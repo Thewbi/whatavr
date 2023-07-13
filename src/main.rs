@@ -4,12 +4,7 @@ mod file_mgmt;
 use std::io;
 use std::io::Write;
 use std::io::Cursor;
-//use std::fs;
 
-//use std::{thread, time};
-//use std::time::Duration;
-
-use bitvec::vec::BitVec;
 use env_logger::{Builder, Target};
 use log::LevelFilter;
 
@@ -27,8 +22,6 @@ fn bit_match(data:u16, pattern:&str) -> bool {
 
         // x means dont care, the function accepts any value
         if c == 'x' {
-            //log::info!("char: {}", c);
-
             if shift_counter > 0 {
                 shift_counter = shift_counter - 1;
             }
@@ -43,14 +36,6 @@ fn bit_match(data:u16, pattern:&str) -> bool {
         }
         bit_mask = bit_mask >> 1;
 
-        // // x means dont care, the function accepts any value
-        // if c == 'x' {
-        //     log::info!("char: {}, temp:{}", c, temp);
-        //     continue;
-        // }
-
-        // log::info!("char: {}, temp:{}", c, temp);
-
         if c == '1' && temp == 0 {
             return false;
         }
@@ -59,7 +44,6 @@ fn bit_match(data:u16, pattern:&str) -> bool {
         }
     }
 
-    //log::info!("MATCH DETECTED!");
     return true;
 }
 
@@ -100,13 +84,6 @@ fn main() -> io::Result<()> {
 
     let mut index: usize = 0;
 
-    // while index < segment_0.data.len() {
-    //     let word:u16 = BigEndian::read_u16(&segment_0.data[index]);
-
-    //     log::info!("word: {}", word);
-    //     index += 2;
-    // }
-
     let mut rdr = Cursor::new(&segment_0.data);
     while index < segment_0.data.len()
     {
@@ -117,19 +94,6 @@ fn main() -> io::Result<()> {
 
         log::trace!("word: {:#06x} {:b}", word, word);
 
-        // if bit_match(word, "10111xxxxxxxxxxx")
-        // {
-        //     log::info!("Match!");
-        // }
-
-        // let bv: BitVec =  BitVec::from_element(wword);
-        // for b in bv {
-        //     log::info!("bit: {:b}", b);
-        // }
-
-        //                              1001010kkkkk110k
-        //let instr_wword:u32 = wword & 0b1001010000001100u32;
-        //if instr_wword == 0b1001010000001100u32 {
         if bit_match(word, "1001010xxxxx110x") {
 
             log::info!("JMP  = 66. JMP – Jump");
