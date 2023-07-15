@@ -167,6 +167,17 @@ fn main() -> io::Result<()> {
 
     let mut index: usize = 0;
 
+    // TODO output disassembly so that a comparison to the .lss is possible
+    // TODO build records from lines so that parsing a .lss file produces the exact same output
+    // TODO build an executor for records
+    //
+    // loop:
+    // Set PC to 0
+    // Fetch instruction from PC
+    // increment PC by 2
+    // if the current instruction is a jump, set instruction pointer to jump destination
+    // goto loop
+
     let mut rdr = Cursor::new(&segment_0.data);
     while index < segment_0.data.len()
     {
@@ -182,8 +193,8 @@ fn main() -> io::Result<()> {
             // 1001 010k kkkk 110k
             // kkkk kkkk kkkk kkkk
 
-            log::info!("JMP  = 66. JMP – Jump");
-            log::info!("{word:#b}");
+            log::trace!("JMP  = 66. JMP – Jump");
+            log::trace!("{word:#b}");
 
             // build k - parse out all occurences of the k bits and combine them into k
             log::trace!("wword: {:b}", wword);
@@ -202,7 +213,7 @@ fn main() -> io::Result<()> {
             log::trace!("k: {:#06x}", k);
 
             // since the amount of elements to jump are words, to find the address, multiply by two
-            log::info!("k: {:#06x}", k*2);
+            log::trace!("k: {:#06x}", k*2);
 
             // let mut var_storage:HashMap<char, u16> = HashMap::new();
             // bit_pattern_match(word, "1001010kkkkk110k", &mut var_storage);
@@ -210,71 +221,79 @@ fn main() -> io::Result<()> {
             // let k_val = var_storage[&'k'];
             // log::info!("k: {}", k_val);
 
+            log::info!("{:#02x}: {word:#06x} {k_lo:#06x} jmp {:#06x}", index-4, k*2);
+
         } else if bit_match(word, "10111xxxxxxxxxxx") {
 
-            log::info!("OUT  = 88. OUT – Store Register to I/O Location");
+            //log::info!("OUT  = 88. OUT – Store Register to I/O Location");
             
-            log::info!("{word:#018b} {word:#02x}");
-            log::info!("  10111AArrrrrAAAA");
+            //log::info!("{word:#018b} {word:#02x}");
+            //log::info!("  10111AArrrrrAAAA");
 
             let mut var_storage:HashMap<char, u16> = HashMap::new();
             bit_pattern_match(word, "10111AArrrrrAAAA", &mut var_storage);
 
             let a_val = var_storage[&'A'];
-            log::info!("A: {a_val:#b} {a_val:#x} {a_val}");
+            //log::info!("A: {a_val:#b} {a_val:#x} {a_val}");
             let r_val = var_storage[&'r'];
-            log::info!("r: {r_val:#b} {r_val:#x} {r_val}");
+            //log::info!("r: {r_val:#b} {r_val:#x} {r_val}");
+
+            log::info!("{:#02x}: {word:#06x} out {a_val:#02x} r{r_val}", index-2);
 
         }  else if bit_match(word, "10110xxxxxxxxxxx") {
 
-            log::info!("IN   = 64. IN - Load an I/O Location to Register");
+            //log::info!("IN   = 64. IN - Load an I/O Location to Register");
 
-            log::info!("{word:#018b} {word:#02x}");
-            log::info!("  10110AAdddddAAAA");
+            //log::info!("{word:#018b} {word:#02x}");
+            //log::info!("  10110AAdddddAAAA");
 
             let mut var_storage:HashMap<char, u16> = HashMap::new();
             bit_pattern_match(word, "10110AAdddddAAAA", &mut var_storage);
 
             let a_val = var_storage[&'A'];
-            log::info!("A: {a_val:#b} {a_val:#x} {a_val}");
+            //log::info!("A: {a_val:#b} {a_val:#x} {a_val}");
             let d_val = var_storage[&'d'];
-            log::info!("d: {d_val:#b} {d_val:#x} {d_val}");
+            //log::info!("d: {d_val:#b} {d_val:#x} {d_val}");
+
+            log::info!("{:#02x}: {word:#06x} in r{d_val:#02} {a_val:#02x}", index-2);
 
         } else if bit_match(word, "1110xxxxxxxxxxxx") {
 
-            log::info!("LDI  = 73. LDI – Load Immediate");
+            //log::info!("LDI  = 73. LDI – Load Immediate");
 
-            log::info!("{word:#018b} {word:#02x}");
-            log::info!("  1110KKKKddddKKKK");
+            //log::info!("{word:#018b} {word:#02x}");
+            //log::info!("  1110KKKKddddKKKK");
 
             let mut var_storage:HashMap<char, u16> = HashMap::new();
             bit_pattern_match(word, "1110KKKKddddKKKK", &mut var_storage);
 
             let k_val = var_storage[&'K'];
-            log::info!("K: {k_val:#b} {k_val:#x}");
+            //log::info!("K: {k_val:#b} {k_val:#x}");
             let d_val = var_storage[&'d'];
-            log::info!("d: {d_val:#b} {d_val:#x}");
+            //log::info!("d: {d_val:#b} {d_val:#x}");
 
             // "Loads an 8-bit constant directly to register 16 to 31."
             // To compute the register to use, add the offset 16 to the parsed value
             let register = d_val + 16;
-            log::info!("[LDI] Using register: r{}", register);
+            //log::info!("[LDI] Using register: r{}", register);
+
+            log::info!("{:#02x}: {word:#06x} ldi r{register:#02} {k_val:#02x}", index-2);
 
         } else if bit_match(word, "1001010xxxxx111x") {
 
-            log::info!("CALL = 36. CALL – Long Call to a Subroutine");
+            //log::info!("CALL = 36. CALL – Long Call to a Subroutine");
 
             // 1001 010k kkkk 111k
             // kkkk kkkk kkkk kkkk
 
-            log::info!("{word:#018b} {word:#02x}");
-            log::info!("  1001010kkkkk111k");
+            //log::info!("{word:#018b} {word:#02x}");
+            //log::info!("  1001010kkkkk111k");
 
             let mut var_storage:HashMap<char, u16> = HashMap::new();
             bit_pattern_match(word, "1001010kkkkk111k", &mut var_storage);
 
             let k_hi:u32 = var_storage[&'k'].into();
-            log::info!("k: {k_hi:#b} {k_hi:#x} {k_hi}");
+            //log::info!("k: {k_hi:#b} {k_hi:#x} {k_hi}");
 
             // read the next two byte of the 32 bit instruction 
             let k_lo:u32 = (rdr.read_u16::<LittleEndian>().unwrap()).into();
@@ -286,163 +305,175 @@ fn main() -> io::Result<()> {
             log::trace!("k: {:#06x}", k);
 
             // since the amount of elements to jump are words, to find the address, multiply by two
-            log::info!("k: {:#06x}", k*2);
+            //log::info!("k: {:#06x}", k*2);
+
+            let addr_value = k*2;
+
+            log::info!("{:#02x}: {word:#06x} {k_lo:#06x} call {addr_value:#02x}", index-4);
 
         } else if bit_match(word, "001001xxxxxxxxxx") {
 
-            log::info!("EOR  = 58. EOR – Exclusive OR");
+            //log::info!("EOR  = 58. EOR – Exclusive OR");
             
-            log::info!("{word:#018b} {word:#02x}");
-            log::info!("  001001rdddddrrrr");
+            //log::info!("{word:#018b} {word:#02x}");
+            //log::info!("  001001rdddddrrrr");
 
             let mut var_storage:HashMap<char, u16> = HashMap::new();
             bit_pattern_match(word, "001001rdddddrrrr", &mut var_storage);
 
             let r_val = var_storage[&'r'];
-            log::info!("r: {r_val:#b} {r_val:#x}");
+            //log::info!("r: {r_val:#b} {r_val:#x}");
             let d_val = var_storage[&'d'];
-            log::info!("d: {d_val:#b} {d_val:#x}");
+            //log::info!("d: {d_val:#b} {d_val:#x}");
+
+            log::info!("{:#02x}: {word:#06x} eor r{r_val} r{d_val}", index-2);
 
         } else if bit_match(word, "0110xxxxxxxxxxxx") {
 
-            log::info!("ORI  = 87. ORI – Logical OR with Immediate");
+            //log::info!("ORI  = 87. ORI – Logical OR with Immediate");
 
             // 0110 KKKK dddd KKKK
 
-            log::info!("{word:#018b} {word:#02x}");
-            log::info!("  0110KKKKddddKKKK");
+            //log::info!("{word:#018b} {word:#02x}");
+            //log::info!("  0110KKKKddddKKKK");
 
             let mut var_storage:HashMap<char, u16> = HashMap::new();
             bit_pattern_match(word, "0110KKKKddddKKKK", &mut var_storage);
 
             let k_val = var_storage[&'K'];
-            log::info!("k: {k_val:#b} {k_val:#x} {k_val}");
+            //log::info!("k: {k_val:#b} {k_val:#x} {k_val}");
             let d_val = var_storage[&'d'];
-            log::info!("d: {d_val:#b} {d_val:#x} {d_val}");
+            //log::info!("d: {d_val:#b} {d_val:#x} {d_val}");
 
         } else if bit_match(word, "0101xxxxxxxxxxxx") {
 
-            log::info!("SUBI = 124. SUBI – Subtract Immediate");
+            //log::info!("SUBI = 124. SUBI – Subtract Immediate");
 
             // 0101 KKKK dddd KKKK
 
-            log::info!("{word:#018b} {word:#02x}");
-            log::info!("  0101KKKKddddKKKK");
+            //log::info!("{word:#018b} {word:#02x}");
+            //log::info!("  0101KKKKddddKKKK");
 
             let mut var_storage:HashMap<char, u16> = HashMap::new();
             bit_pattern_match(word, "0101KKKKddddKKKK", &mut var_storage);
 
             let k_val = var_storage[&'K'];
-            log::info!("k: {k_val:#b} {k_val:#x} {k_val}");
+            //log::info!("k: {k_val:#b} {k_val:#x} {k_val}");
             let d_val = var_storage[&'d'];
-            log::info!("d: {d_val:#b} {d_val:#x} {d_val}");
+            //log::info!("d: {d_val:#b} {d_val:#x} {d_val}");
 
         } else if bit_match(word, "0100xxxxxxxxxxxx") {
 
-            log::info!("SBCI = 98. SBCI – Subtract Immediate with Carry SBI – Set Bit in I/O Register");
+            //log::info!("SBCI = 98. SBCI – Subtract Immediate with Carry SBI – Set Bit in I/O Register");
 
             // 0100 KKKK dddd KKKK
 
-            log::info!("{word:#018b} {word:#02x}");
-            log::info!("  0100KKKKddddKKKK");
+            //log::info!("{word:#018b} {word:#02x}");
+            //log::info!("  0100KKKKddddKKKK");
 
             let mut var_storage:HashMap<char, u16> = HashMap::new();
             bit_pattern_match(word, "0100KKKKddddKKKK", &mut var_storage);
 
             let k_val = var_storage[&'K'];
-            log::info!("k: {k_val:#b} {k_val:#x} {k_val}");
+            //log::info!("k: {k_val:#b} {k_val:#x} {k_val}");
             let d_val = var_storage[&'d'];
-            log::info!("d: {d_val:#b} {d_val:#x} {d_val}");
+            //log::info!("d: {d_val:#b} {d_val:#x} {d_val}");
 
         } else if bit_match(word, "111101xxxxxxx001") {
 
-            log::info!("BRNE = 27. BRNE – Branch if Not Equal");
+            //log::info!("BRNE = 27. BRNE – Branch if Not Equal");
 
             // 1111 01kk kkkk k001
 
-            log::info!("{word:#018b} {word:#02x}");
-            log::info!("  111101kkkkkkk001");
+            //log::info!("{word:#018b} {word:#02x}");
+            //log::info!("  111101kkkkkkk001");
 
             let mut var_storage:HashMap<char, u16> = HashMap::new();
             bit_pattern_match(word, "111101kkkkkkk001", &mut var_storage);
 
             let k_val = var_storage[&'k'];
-            log::info!("k: {k_val:#b} {k_val:#x} {k_val}");
+            //log::info!("k: {k_val:#b} {k_val:#x} {k_val}");
 
         } else if bit_match(word, "1100xxxxxxxxxxxx") {
 
-            log::info!("RJMP = 94. RJMP – Relative Jump");
+            //log::info!("RJMP = 94. RJMP – Relative Jump");
 
             // 1100 kkkk kkkk kkkk
 
-            log::info!("{word:#018b} {word:#02x}");
-            log::info!("  1100kkkkkkkkkkkk");
+            //log::info!("{word:#018b} {word:#02x}");
+            //log::info!("  1100kkkkkkkkkkkk");
 
             let mut var_storage:HashMap<char, u16> = HashMap::new();
             bit_pattern_match(word, "1100kkkkkkkkkkkk", &mut var_storage);
 
             let k_val = var_storage[&'k'];
-            log::info!("k: {k_val:#b} {k_val:#x} {k_val}");
+            //log::info!("k: {k_val:#b} {k_val:#x} {k_val}");
 
         } else if bit_match(word, "0000000000000000") {
 
-            log::info!("NOP  = 85. NOP – No Operation");
+            //log::info!("NOP  = 85. NOP – No Operation");
 
             // 0000 0000 0000 0000
 
         } else if bit_match(word, "0111xxxxxxxxxxxx") {
 
-            log::info!("ANDI = 9. ANDI – Logical AND with Immediate");
+            //log::info!("ANDI = 9. ANDI – Logical AND with Immediate");
 
             // 0111 KKKK dddd KKKK
 
-            log::info!("{word:#018b} {word:#02x}");
-            log::info!("  0111KKKKddddKKKK");
+            //log::info!("{word:#018b} {word:#02x}");
+            //log::info!("  0111KKKKddddKKKK");
 
             let mut var_storage:HashMap<char, u16> = HashMap::new();
             bit_pattern_match(word, "0100KKKKddddKKKK", &mut var_storage);
 
             let k_val = var_storage[&'K'];
-            log::info!("k: {k_val:#b} {k_val:#x} {k_val}");
+            //log::info!("k: {k_val:#b} {k_val:#x} {k_val}");
             let d_val = var_storage[&'d'];
-            log::info!("d: {d_val:#b} {d_val:#x} {d_val}");
+            //log::info!("d: {d_val:#b} {d_val:#x} {d_val}");
 
         } else if bit_match(word, "1001010011111000") {
 
-            log::info!("CLI  = 41. CLI – Clear Global Interrupt Flag");
+            //log::info!("CLI  = 41. CLI – Clear Global Interrupt Flag");
 
             // 1001 0100 1111 1000
 
         } else if bit_match(word, "1001001xxxxx1111") {
 
-            log::info!("PUSH  = 90. PUSH – Push Register on Stack");
+            //log::info!("PUSH  = 90. PUSH – Push Register on Stack");
             
-            log::info!("{word:#018b} {word:#02x}");
-            log::info!("  1001001ddddd1111");
+            //log::info!("{word:#018b} {word:#02x}");
+            //log::info!("  1001001ddddd1111");
 
             let mut var_storage:HashMap<char, u16> = HashMap::new();
             bit_pattern_match(word, "1001001ddddd1111", &mut var_storage);
 
             let d_val = var_storage[&'d'];
-            log::info!("d: {d_val:#b} {d_val:#x} {d_val}");
+            //log::info!("d: {d_val:#b} {d_val:#x} {d_val}");
+
+            let register = d_val;
+
+            log::info!("{:#02x}: {word:#06x} push r{register:#02}", index-2);
             
         } else if bit_match(word, "1101xxxxxxxxxxxx") {
 
-            log::info!("RCALL  = 91. RCALL – Relative Call to Subroutine");
+            //log::info!("RCALL  = 91. RCALL – Relative Call to Subroutine");
             
-            log::info!("{word:#018b} {word:#02x}");
-            log::info!("  1101kkkkkkkkkkkk");
+            //log::info!("{word:#018b} {word:#02x}");
+            //log::info!("  1101kkkkkkkkkkkk");
 
             let mut var_storage:HashMap<char, u16> = HashMap::new();
             bit_pattern_match(word, "1101kkkkkkkkkkkk", &mut var_storage);
 
             let k_val = var_storage[&'k'];
-            log::info!("k: {k_val:#b} {k_val:#x} {k_val}");
+            //log::info!("k: {k_val:#b} {k_val:#x} {k_val}");
+
+            log::info!("{:#02x}: {word:#06x} rcall .+{k_val:#02}", index-2);
             
         } else if bit_match(word, "10010110xxxxxxxx") {
 
-            log::info!("ADIW  = 7. ADIW – Add Immediate to Word");
-            log::info!("{word:#b}");
+            //log::info!("ADIW  = 7. ADIW – Add Immediate to Word");
+            //log::info!("{word:#b}");
 
             let mut var_storage:HashMap<char, u16> = HashMap::new();
             bit_pattern_match(word, "10010110kkddkkkk", &mut var_storage);
@@ -450,201 +481,201 @@ fn main() -> io::Result<()> {
             let k_val = var_storage[&'k'];
             let d_val = var_storage[&'d'];
 
-            log::info!("k: {}, d: {}", k_val, d_val);
+            //log::info!("k: {}, d: {}", k_val, d_val);
             
         } else if bit_match(word, "0011xxxxxxxxxxxx") {
 
-            log::info!("CPI  = 51. CPI – Compare with Immediate");
+            //log::info!("CPI  = 51. CPI – Compare with Immediate");
 
             // 0011 KKKK dddd KKKK
 
-            log::info!("{word:#018b} {word:#02x}");
-            log::info!("  0011KKKKddddKKKK");
+            //log::info!("{word:#018b} {word:#02x}");
+            //log::info!("  0011KKKKddddKKKK");
 
             let mut var_storage:HashMap<char, u16> = HashMap::new();
             bit_pattern_match(word, "0011KKKKddddKKKK", &mut var_storage);
 
             let k_val = var_storage[&'K'];
-            log::info!("k: {k_val:#b} {k_val:#x} {k_val}");
+            //log::info!("k: {k_val:#b} {k_val:#x} {k_val}");
             let d_val = var_storage[&'d'];
-            log::info!("d: {d_val:#b} {d_val:#x} {d_val}");
+            //log::info!("d: {d_val:#b} {d_val:#x} {d_val}");
             
         } else if bit_match(word, "000001xxxxxxxxxx") {
 
-            log::info!("CPC   = 50. CPC – Compare with Carry");
+            //log::info!("CPC   = 50. CPC – Compare with Carry");
 
             // 0000 01rd dddd rrrr
 
-            log::info!("{word:#018b} {word:#02x}");
-            log::info!("  000001rdddddrrrr");
+            //log::info!("{word:#018b} {word:#02x}");
+            //log::info!("  000001rdddddrrrr");
 
             let mut var_storage:HashMap<char, u16> = HashMap::new();
             bit_pattern_match(word, "000001rdddddrrrr", &mut var_storage);
 
             let r_val = var_storage[&'r'];
-            log::info!("r: {r_val:#b} {r_val:#x} {r_val}");
+            //log::info!("r: {r_val:#b} {r_val:#x} {r_val}");
             let d_val = var_storage[&'d'];
-            log::info!("d: {d_val:#b} {d_val:#x} {d_val}");
+            //log::info!("d: {d_val:#b} {d_val:#x} {d_val}");
             
         } else if bit_match(word, "111100xxxxxxx100") {
 
-            log::info!("BRLT   = 25. BRLT – Branch if Less Than (Signed)");
+            //log::info!("BRLT   = 25. BRLT – Branch if Less Than (Signed)");
 
             // 1111 00kk kkkk k100
 
-            log::info!("{word:#018b} {word:#02x}");
-            log::info!("  111100kkkkkkk100");
+            //log::info!("{word:#018b} {word:#02x}");
+            //log::info!("  111100kkkkkkk100");
 
             let mut var_storage:HashMap<char, u16> = HashMap::new();
             bit_pattern_match(word, "111100kkkkkkk100", &mut var_storage);
 
             let k_val = var_storage[&'k'];
-            log::info!("k: {k_val:#b} {k_val:#x} {k_val}");
+            //log::info!("k: {k_val:#b} {k_val:#x} {k_val}");
             
         } else if bit_match(word, "1001000xxxxx1111") {
 
-            log::info!("POP   = 89. POP – Pop Register from Stack");
+            //log::info!("POP   = 89. POP – Pop Register from Stack");
 
             // 1001 000d dddd 1111
 
-            log::info!("{word:#018b} {word:#02x}");
-            log::info!("  1001000ddddd1111");
+            //log::info!("{word:#018b} {word:#02x}");
+            //log::info!("  1001000ddddd1111");
 
             let mut var_storage:HashMap<char, u16> = HashMap::new();
             bit_pattern_match(word, "1001000ddddd1111", &mut var_storage);
 
             let d_val = var_storage[&'d'];
-            log::info!("d: {d_val:#b} {d_val:#x} {d_val}");
+            //log::info!("d: {d_val:#b} {d_val:#x} {d_val}");
             
         } else if bit_match(word, "1001010100001000") {
 
-            log::info!("RET   = 92. RET – Return from Subroutine");
+            //log::info!("RET   = 92. RET – Return from Subroutine");
 
             // 1001 0101 0000 1000
             
         } else if bit_match(word, "1000001xxxxx1000") {
 
-            log::info!("STD Y (A) = 119. ST (STD) – Store Indirect From Register to Data Space using Index Y");
+            //log::info!("STD Y (A) = 119. ST (STD) – Store Indirect From Register to Data Space using Index Y");
 
             // 1000 001r rrrr 1000
 
-            log::info!("{word:#018b} {word:#02x}");
-            log::info!("  1000001rrrrr1000");
+            //log::info!("{word:#018b} {word:#02x}");
+            //log::info!("  1000001rrrrr1000");
 
             let mut var_storage:HashMap<char, u16> = HashMap::new();
             bit_pattern_match(word, "1000001rrrrr1000", &mut var_storage);
 
             let r_val = var_storage[&'r'];
-            log::info!("r: {r_val:#b} {r_val:#x} {r_val}");
+            //log::info!("r: {r_val:#b} {r_val:#x} {r_val}");
             
         } else if bit_match(word, "1001001xxxxx1001") {
 
-            log::info!("STD Y (B) = 119. ST (STD) – Store Indirect From Register to Data Space using Index Y");
+            //log::info!("STD Y (B) = 119. ST (STD) – Store Indirect From Register to Data Space using Index Y");
 
             // 1001 001r rrrr 1001
 
-            log::info!("{word:#018b} {word:#02x}");
-            log::info!("  1001001rrrrr1001");
+            //log::info!("{word:#018b} {word:#02x}");
+            //log::info!("  1001001rrrrr1001");
 
             let mut var_storage:HashMap<char, u16> = HashMap::new();
             bit_pattern_match(word, "1001001rrrrr1001", &mut var_storage);
 
             let r_val = var_storage[&'r'];
-            log::info!("r: {r_val:#b} {r_val:#x} {r_val}");
+            //log::info!("r: {r_val:#b} {r_val:#x} {r_val}");
             
         } else if bit_match(word, "1001001xxxxx1010") {
 
-            log::info!("STD Y (C) = 119. ST (STD) – Store Indirect From Register to Data Space using Index Y");
+            //log::info!("STD Y (C) = 119. ST (STD) – Store Indirect From Register to Data Space using Index Y");
 
             // 1001 001r rrrr 1010
 
-            log::info!("{word:#018b} {word:#02x}");
-            log::info!("  1001001rrrrr1010");
+            //log::info!("{word:#018b} {word:#02x}");
+            //log::info!("  1001001rrrrr1010");
 
             let mut var_storage:HashMap<char, u16> = HashMap::new();
             bit_pattern_match(word, "1001001rrrrr1010", &mut var_storage);
 
             let r_val = var_storage[&'r'];
-            log::info!("r: {r_val:#b} {r_val:#x} {r_val}");
+            //log::info!("r: {r_val:#b} {r_val:#x} {r_val}");
             
         } else if bit_match(word, "10x0xx1xxxxx1xxx") {
 
-            log::info!("STD Y (D) = 119. ST (STD) – Store Indirect From Register to Data Space using Index Y");
+            //log::info!("STD Y (D) = 119. ST (STD) – Store Indirect From Register to Data Space using Index Y");
 
             // 10q0 qq1r rrrr 1qqq
 
-            log::info!("{word:#018b} {word:#02x}");
-            log::info!("  10q0qq1rrrrr1qqq");
+            //log::info!("{word:#018b} {word:#02x}");
+            //log::info!("  10q0qq1rrrrr1qqq");
 
             let mut var_storage:HashMap<char, u16> = HashMap::new();
             bit_pattern_match(word, "10q0qq1rrrrr1qqq", &mut var_storage);
 
             let r_val = var_storage[&'r'];
-            log::info!("r: {r_val:#b} {r_val:#x} {r_val}");
+            //log::info!("r: {r_val:#b} {r_val:#x} {r_val}");
             let q_val = var_storage[&'q'];
-            log::info!("k: {q_val:#b} {q_val:#x} {q_val}");
+            //log::info!("k: {q_val:#b} {q_val:#x} {q_val}");
             
         } else if bit_match(word, "1000001xxxxx0000") {
 
-            log::info!("STD Z (A) = 120. ST (STD) – Store Indirect From Register to Data Space using Index Z");
+            //log::info!("STD Z (A) = 120. ST (STD) – Store Indirect From Register to Data Space using Index Z");
 
             // 1000 001r rrrr 0000
 
-            log::info!("{word:#018b} {word:#02x}");
-            log::info!("  1000001rrrrr0000");
+            //log::info!("{word:#018b} {word:#02x}");
+            //log::info!("  1000001rrrrr0000");
 
             let mut var_storage:HashMap<char, u16> = HashMap::new();
             bit_pattern_match(word, "1000001rrrrr0000", &mut var_storage);
 
             let r_val = var_storage[&'r'];
-            log::info!("r: {r_val:#b} {r_val:#x} {r_val}");
+            //log::info!("r: {r_val:#b} {r_val:#x} {r_val}");
             
         } else if bit_match(word, "1001001xxxxx0001") {
 
-            log::info!("STD Z (B) = 120. ST (STD) – Store Indirect From Register to Data Space using Index Z");
+            //log::info!("STD Z (B) = 120. ST (STD) – Store Indirect From Register to Data Space using Index Z");
 
             // 1001 001r rrrr 0001
 
-            log::info!("{word:#018b} {word:#02x}");
-            log::info!("  1001001rrrrr0001");
+            //log::info!("{word:#018b} {word:#02x}");
+            //log::info!("  1001001rrrrr0001");
 
             let mut var_storage:HashMap<char, u16> = HashMap::new();
             bit_pattern_match(word, "1001001rrrrr0001", &mut var_storage);
 
             let r_val = var_storage[&'r'];
-            log::info!("r: {r_val:#b} {r_val:#x} {r_val}");
+            //log::info!("r: {r_val:#b} {r_val:#x} {r_val}");
             
         } else if bit_match(word, "1001001xxxxx0010") {
 
-            log::info!("STD Z (C) = 120. ST (STD) – Store Indirect From Register to Data Space using Index Z");
+            //log::info!("STD Z (C) = 120. ST (STD) – Store Indirect From Register to Data Space using Index Z");
 
             // 1001 001r rrrr 0010
 
-            log::info!("{word:#018b} {word:#02x}");
-            log::info!("  1001001rrrrr0010");
+            //log::info!("{word:#018b} {word:#02x}");
+            //log::info!("  1001001rrrrr0010");
 
             let mut var_storage:HashMap<char, u16> = HashMap::new();
             bit_pattern_match(word, "1001001rrrrr0010", &mut var_storage);
 
             let r_val = var_storage[&'r'];
-            log::info!("r: {r_val:#b} {r_val:#x} {r_val}");
+            //log::info!("r: {r_val:#b} {r_val:#x} {r_val}");
             
         } else if bit_match(word, "10x0xx1xxxxx0xxx") {
 
-            log::info!("STD Z (D) = 120. ST (STD) – Store Indirect From Register to Data Space using Index Z");
+            //log::info!("STD Z (D) = 120. ST (STD) – Store Indirect From Register to Data Space using Index Z");
 
             // 10q0 qq1r rrrr 0qqq
 
-            log::info!("{word:#018b} {word:#02x}");
-            log::info!("  10q0qq1rrrrr0qqq");
+            //log::info!("{word:#018b} {word:#02x}");
+            //log::info!("  10q0qq1rrrrr0qqq");
 
             let mut var_storage:HashMap<char, u16> = HashMap::new();
             bit_pattern_match(word, "10q0qq1rrrrr0qqq", &mut var_storage);
 
             let r_val = var_storage[&'r'];
-            log::info!("r: {r_val:#b} {r_val:#x} {r_val}");
+            //log::info!("r: {r_val:#b} {r_val:#x} {r_val}");
             let q_val = var_storage[&'q'];
-            log::info!("k: {q_val:#b} {q_val:#x} {q_val}");
+            //log::info!("k: {q_val:#b} {q_val:#x} {q_val}");
             
         }
         
