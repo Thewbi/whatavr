@@ -116,8 +116,19 @@ pub enum InstructionType {
     /* 116 */ SPM, // – Store Program Memory............................................................................169
     /* 117 */ SPM_2, // SPM #2 – Store Program Memory.......................................................................171
     /* 118 */ ST, // – Store Indirect From Register to Data Space using Index X.........................173
-    /* 119 */ ST_STD_Y, // – Store Indirect From Register to Data Space using Index Y..............175
-    /* 120 */ ST_STD_Z, 
+    
+    // /* 119 */ ST_STD_Y, // – Store Indirect From Register to Data Space using Index Y..............175
+    ST_STD_Y_1,
+    ST_STD_Y_2,
+    ST_STD_Y_3,
+    ST_STD_Y_4,
+    
+    // /* 120 */ ST_STD_Z,
+    ST_STD_Z_1,
+    ST_STD_Z_2,
+    ST_STD_Z_3,
+    ST_STD_Z_4,
+    
     /* 121 */ STS, // STS – Store Direct to Data Space.......................................................................179
     /* 122 */ STS_16bit, // STS (16-bit) – Store Direct to Data Space.......................................................... 180
     /* 123 */ SUB, // – Subtract Without Carry.............................................................................181
@@ -154,6 +165,7 @@ impl InstructionType {
             23 => InstructionType::BRIE,
             24 => InstructionType::BRLO,
             25 => InstructionType::BRLT,
+            26 => InstructionType::BRMI,
             27 => InstructionType::BRNE,
             28 => InstructionType::BRPL,
             29 => InstructionType::BRSH,
@@ -246,8 +258,8 @@ impl InstructionType {
             116 => InstructionType::SPM, // – Store Program Memory............................................................................169
             117 => InstructionType::SPM_2, // SPM #2 – Store Program Memory.......................................................................171
             118 => InstructionType::ST,
-            119 => InstructionType::ST_STD_Y, 
-            120 => InstructionType::ST_STD_Z, 
+            119 => InstructionType::ST_STD_Y_1, 
+            120 => InstructionType::ST_STD_Z_1, 
             121 => InstructionType::STS, // STS – Store Direct to Data Space.......................................................................179
             122 => InstructionType::STS_16bit, // STS (16-bit) – Store Direct to Data Space.......................................................... 180
             123 => InstructionType::SUB, // – Subtract Without Carry.............................................................................181
@@ -272,11 +284,13 @@ impl InstructionType {
 
     pub const fn to_code(instruction_type: &InstructionType) -> u8 {
         match instruction_type {
-            InstructionType::IN => 64,
-            InstructionType::JMP => 66,
-            InstructionType::LDI => 73,
-            InstructionType::OUT => 88,
-            InstructionType::Unknown => 0xFF,
+
+            //TODO:
+            // InstructionType::IN => 64,
+            // InstructionType::JMP => 66,
+            // InstructionType::LDI => 73,
+            // InstructionType::OUT => 88,
+            // InstructionType::Unknown => 0xFF,
             _ => 0xFF,
         }
     }
