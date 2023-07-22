@@ -162,9 +162,11 @@ use super::{instruction_definition::InstructionDefinition, instruction_type::Ins
         /* 9 */ ANDI,
         /* 10 */ ASR,
 
+        /* 41 */ CLI, // 1001 0100 1111 1000 cli conflicts with 1001 0100 1sss 1000 BCLR. Moved up to give CLI preference
         /* 11 */ BCLR,
         /* 12 */ BLD,
         /* 13 */ BRBC,
+        /* 25 */ BRLT, // moved upwords to give 1111 00kk kkkk k100 BRLT preference before 1111 00kk kkkk ksss BRBS
         /* 14 */ BRBS,
         /* 15 */ BRCC,
         /* 16 */ BRCS,
@@ -176,7 +178,7 @@ use super::{instruction_definition::InstructionDefinition, instruction_type::Ins
         /* 22 */ BRID,
         /* 23 */ BRIE,
         /* 24 */ BRLO,
-        /* 25 */ BRLT,
+//        /* 25 */ BRLT, // moved upwords to give 1111 00kk kkkk k100 BRLT preference before 1111 00kk kkkk ksss BRBS
         BRMI,
         BRNE,
         BRPL,
@@ -193,7 +195,7 @@ use super::{instruction_definition::InstructionDefinition, instruction_type::Ins
         // CBR, // TODO
         CLC,
         CLH,
-        /* 41 */ CLI,
+//        /* 41 */ CLI, // 1001 0100 1111 1000 cli conflicts with 1001 0100 1sss 1000 BCLR. Moved up to give CLI preference
         CLN,
         CLR,
         CLS,
