@@ -2,6 +2,154 @@ use byteorder::{LittleEndian, ReadBytesExt};
 
 use crate::HashMap;
 
+use super::{instruction_type::InstructionType, instruction_definition::InstructionDefinition};
+
+pub fn match_instruction<R: crate::io::Read>(instruction: &InstructionDefinition, rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>) {
+    
+    match instruction.instruction_type {
+
+        /*   5 */ InstructionType::ADC          => { process_adc(rdr, &word, index, value_storage); },
+        /*   6 */ InstructionType::ADD          => { process_add(rdr, &word, index, value_storage); },
+        /*   7 */ InstructionType::ADIW         => { process_adiw(rdr, &word, index, value_storage); },
+        /*   8 */ InstructionType::AND          => { process_and(rdr, &word, index, value_storage); },
+        /*   9 */ InstructionType::ANDI         => { process_andi(rdr, &word, index, value_storage); }
+        /*  10 */ InstructionType::ASR          => { process_asr(rdr, &word, index, value_storage); },
+        /*  11 */ InstructionType::BCLR         => { process_bclr(rdr, &word, index, value_storage); },
+        /*  12 */ InstructionType::BLD          => { process_bld(rdr, &word, index, value_storage); },
+        /*  13 */ InstructionType::BRBC         => { process_brbc(rdr, &word, index, value_storage); },
+        /*  14 */ InstructionType::BRBS         => { process_brbs(rdr, &word, index, value_storage); },
+        /*  15 */ InstructionType::BRCC         => { process_brcc(rdr, &word, index, value_storage); },
+        /*  16 */ InstructionType::BRCS         => { process_brcs(rdr, &word, index, value_storage); },
+        /*  17 */ InstructionType::BREAK        => { process_break(rdr, &word, index, value_storage); }, 
+        /*  18 */ InstructionType::BREQ         => { process_breq(rdr, &word, index, value_storage); },
+        /*  19 */ InstructionType::BRGE         => { process_brge(rdr, &word, index, value_storage); },
+        /*  20 */ InstructionType::BRHC         => { process_brhc(rdr, &word, index, value_storage); },
+        /*  21 */ InstructionType::BRHS         => { process_brhs(rdr, &word, index, value_storage); },
+        /*  22 */ InstructionType::BRID         => { process_brid(rdr, &word, index, value_storage); },
+        /*  23 */ InstructionType::BRIE         => { process_brie(rdr, &word, index, value_storage); },
+        /*  24 */ InstructionType::BRLO         => { process_brlo(rdr, &word, index, value_storage); },
+        /*  25 */ InstructionType::BRLT         => { process_brlt(rdr, &word, index, value_storage); },
+        /*  26 */ InstructionType::BRMI         => { process_brmi(rdr, &word, index, value_storage); },
+        /*  27 */ InstructionType::BRNE         => { process_brne(rdr, &word, index, value_storage); },
+        /*  28 */ InstructionType::BRPL         => { process_brpl(rdr, &word, index, value_storage); },
+        /*  29 */ InstructionType::BRSH         => { process_brsh(rdr, &word, index, value_storage); },
+        /*  30 */ InstructionType::BRTC         => { process_brtc(rdr, &word, index, value_storage); },
+        /*  31 */ InstructionType::BRTS         => { process_brts(rdr, &word, index, value_storage); },
+        /*  32 */ InstructionType::BRVC         => { process_brvc(rdr, &word, index, value_storage); },
+        /*  33 */ InstructionType::BRVS         => { process_brvs(rdr, &word, index, value_storage); },
+        /*  34 */ InstructionType::BSET         => { process_bset(rdr, &word, index, value_storage); },
+        /*  35 */ InstructionType::BST          => { process_bst(rdr, &word, index, value_storage); },
+        /*  36 */ InstructionType::CALL         => { process_call(rdr, &word, index, value_storage); },
+        /*  37 */ InstructionType::CBI          => { process_cbi(rdr, &word, index, value_storage); }, 
+        /*  38 */ InstructionType::CBR          => { process_cbr(rdr, &word, index, value_storage); },
+        /*  39 */ InstructionType::CLC          => { process_clc(rdr, &word, index, value_storage); },
+        /*  40 */ InstructionType::CLH          => { process_clh(rdr, &word, index, value_storage); },
+        /*  41 */ InstructionType::CLI          => { process_cli(rdr, &word, index, value_storage); },
+        /*  42 */ InstructionType::CLN          => { process_cln(rdr, &word, index, value_storage); },
+        /*  43 */ InstructionType::CLR          => { process_clr(rdr, &word, index, value_storage); },
+        /*  44 */ InstructionType::CLS          => { process_cls(rdr, &word, index, value_storage); },
+        /*  45 */ InstructionType::CLT          => { process_clt(rdr, &word, index, value_storage); },
+        /*  46 */ InstructionType::CLV          => { process_clv(rdr, &word, index, value_storage); },
+        /*  47 */ InstructionType::CLZ          => { process_clz(rdr, &word, index, value_storage); },
+        /*  48 */ InstructionType::COM          => { process_com(rdr, &word, index, value_storage); },
+        /*  49 */ InstructionType::CP           => { process_cp(rdr, &word, index, value_storage); },
+        /*  50 */ InstructionType::CPC          => { process_cpc(rdr, &word, index, value_storage); },
+        /*  51 */ InstructionType::CPI          => { process_cpi(rdr, &word, index, value_storage); },
+        /*  52 */ InstructionType::CPSE         => { process_cpse(rdr, &word, index, value_storage); },
+        /*  53 */ InstructionType::DEC          => { process_dec(rdr, &word, index, value_storage); },
+        /*  54 */ InstructionType::DES          => { process_des(rdr, &word, index, value_storage); },
+        /*  55 */ InstructionType::EICALL       => { process_eicall(rdr, &word, index, value_storage); },
+        /*  56 */ InstructionType::EIJMP        => { process_eijmp(rdr, &word, index, value_storage); },
+        /*  57 */ InstructionType::ELPM         => { process_elpm(rdr, &word, index, value_storage); },
+        /*  58 */ InstructionType::EOR          => { process_eor(rdr, &word, index, value_storage); },
+        /*  59 */ InstructionType::FMUL         => { process_fmul(rdr, &word, index, value_storage); },
+        /*  60 */ InstructionType::FMULS        => { process_fmuls(rdr, &word, index, value_storage); },
+        /*  61 */ InstructionType::FMULSU       => { process_fmulsu(rdr, &word, index, value_storage); },
+        /*  62 */ InstructionType::ICALL        => { process_icall(rdr, &word, index, value_storage); },
+        /*  63 */ InstructionType::IJMP         => { process_ijmp(rdr, &word, index, value_storage); },
+        /*  64 */ InstructionType::IN           => { process_in(rdr, &word, index, value_storage); },
+        /*  65 */ InstructionType::INC          => { process_inc(rdr, &word, index, value_storage); },
+        /*  66 */ InstructionType::JMP          => { process_jmp(rdr, &word, index, value_storage); },
+        /*  67 */ InstructionType::LAC          => { process_lac(rdr, &word, index, value_storage); },
+        /*  68 */ InstructionType::LAS          => { process_las(rdr, &word, index, value_storage); },
+        /*  69 */ InstructionType::LAT          => { process_lat(rdr, &word, index, value_storage); }, 
+        /*  70 */ InstructionType::LD           => { process_ld(rdr, &word, index, value_storage); },
+        /*  71 */ InstructionType::LD_LDD_Y     => { process_ld_ldd_y(rdr, &word, index, value_storage); },
+        /*  72 */ InstructionType::LD_LDD_Z     => { process_ld_ldd_z(rdr, &word, index, value_storage); },
+        /*  73 */ InstructionType::LDI          => { process_ldi(rdr, &word, index, value_storage); },
+        /*  74 */ InstructionType::LDS          => { process_lds(rdr, &word, index, value_storage); },
+        /*  75 */ InstructionType::LDS_16bit    => { process_lds_16bit(rdr, &word, index, value_storage); }, // (16-bit) – Load Direct from Data Space......................................................... 117
+        /*  76 */ InstructionType::LPM          => { process_lpm(rdr, &word, index, value_storage); }, // – Load Program Memory...............................................................................118
+        /*  77 */ InstructionType::LSL          => { process_lsl(rdr, &word, index, value_storage); }, // – Logical Shift Left..........................................................................................120
+        /*  78 */ InstructionType::LSR          => { process_lsr(rdr, &word, index, value_storage); }, // – Logical Shift Right.......................................................................................122
+        /*  79 */ InstructionType::MOV          => { process_mov(rdr, &word, index, value_storage); }, // – Copy Register............................................................................................123
+        /*  80 */ InstructionType::MOVW         => { process_movw(rdr, &word, index, value_storage); }, // – Copy Register Word...............................................................................124
+        /*  81 */ InstructionType::MUL          => { process_mul(rdr, &word, index, value_storage); }, // – Multiply Unsigned.......................................................................................125
+        /*  82 */ InstructionType::MULS         => { process_muls(rdr, &word, index, value_storage); }, // – Multiply Signed........................................................................................ 126
+        /*  83 */ InstructionType::MULSU        => { process_mulsu(rdr, &word, index, value_storage); }, //
+        /*  84 */ InstructionType::NEG          => { process_neg(rdr, &word, index, value_storage); },
+        /*  85 */ InstructionType::NOP          => { process_nop(rdr, &word, index, value_storage); },
+        /*  86 */ InstructionType::OR           => { process_or(rdr, &word, index, value_storage); },
+        /*  87 */ InstructionType::ORI          => { process_ori(rdr, &word, index, value_storage); },
+        /*  88 */ InstructionType::OUT          => { process_out(rdr, &word, index, value_storage); },
+        /*  89 */ InstructionType::POP          => { process_pop(rdr, &word, index, value_storage); }, // – Pop Register from Stack............................................................................ 135
+        /*  90 */ InstructionType::PUSH         => { process_push(rdr, &word, index, value_storage); }, // – Push Register on Stack........................................................................... 136
+        /*  91 */ InstructionType::RCALL        => { process_rcall(rdr, &word, index, value_storage); }, // – Relative Call to Subroutine.................................................................... 137
+        /*  92 */ InstructionType::RET          => { process_ret(rdr, &word, index, value_storage); }, // – Return from Subroutine.............................................................................. 139
+        /*  93 */ InstructionType::RETI         => { process_reti(rdr, &word, index, value_storage); }, // – Return from Interrupt................................................................................. 140
+        /*  94 */ InstructionType::RJMP         => { process_rjmp(rdr, &word, index, value_storage); }, // – Relative Jump.......................................................................................... 142
+        /*  95 */ InstructionType::ROL          => { process_rol(rdr, &word, index, value_storage); }, //
+        /*  96 */ InstructionType::ROR          => { process_ror(rdr, &word, index, value_storage); }, // – Rotate Right through Carry........................................................................145
+        /*  97 */ InstructionType::SBC          => { process_sbc(rdr, &word, index, value_storage); }, // – Subtract with Carry.....................................................................................147
+        /*  98 */ InstructionType::SBCI         => { process_sbci(rdr, &word, index, value_storage); }, // – Subtract Immediate with Carry SBI – Set Bit in I/O Register.................... 149
+        /*  99 */ InstructionType::SBI          => { process_sbi(rdr, &word, index, value_storage); }, // – Set Bit in I/O Register.................................................................................. 151
+        /* 100 */ InstructionType::SBIC         => { process_sbic(rdr, &word, index, value_storage); }, // – Skip if Bit in I/O Register is Cleared........................................................ 152
+        /* 101 */ InstructionType::SBIS         => { process_sbis(rdr, &word, index, value_storage); }, // – Skip if Bit in I/O Register is Set............................................................... 153
+        /* 102 */ InstructionType::SBIW         => { process_sbiw(rdr, &word, index, value_storage); }, // – Subtract Immediate from Word...............................................................154
+        /* 103 */ InstructionType::SBR          => { process_sbr(rdr, &word, index, value_storage); }, // – Set Bits in Register...................................................................................156
+        /* 104 */ InstructionType::SBRC         => { process_sbrc(rdr, &word, index, value_storage); }, // – Skip if Bit in Register is Cleared............................................................ 157
+        /* 105 */ InstructionType::SBRS         => { process_sbrs(rdr, &word, index, value_storage); }, // – Skip if Bit in Register is Set....................................................................158
+        /* 106 */ InstructionType::SEC          => { process_sec(rdr, &word, index, value_storage); }, // – Set Carry Flag.......................................................................................... 159
+        /* 107 */ InstructionType::SEH          => { process_seh(rdr, &word, index, value_storage); }, // – Set Half Carry Flag...................................................................................160
+        /* 108 */ InstructionType::SEI          => { process_sei(rdr, &word, index, value_storage); }, //
+        /* 109 */ InstructionType::SEN          => { process_sen(rdr, &word, index, value_storage); }, // – Set Negative Flag.....................................................................................162
+        /* 110 */ InstructionType::SER          => { process_ser(rdr, &word, index, value_storage); }, // – Set all Bits in Register.............................................................................. 163
+        /* 111 */ InstructionType::SES          => { process_ses(rdr, &word, index, value_storage); }, // – Set Signed Flag........................................................................................ 164
+        /* 112 */ InstructionType::SET          => { process_set(rdr, &word, index, value_storage); }, // – Set T Flag................................................................................................. 165
+        /* 113 */ InstructionType::SEV          => { process_sev(rdr, &word, index, value_storage); }, // – Set Overflow Flag..................................................................................... 166
+        /* 114 */ InstructionType::SEZ          => { process_sez(rdr, &word, index, value_storage); }, // – Set Zero Flag............................................................................................ 167
+        /* 115 */ InstructionType::SLEEP        => { process_sleep(rdr, &word, index, value_storage); }, //................................................................................................................. 168
+        /* 116 */ InstructionType::SPM          => { process_spm(rdr, &word, index, value_storage); }, // – Store Program Memory............................................................................169
+        /* 117 */ InstructionType::SPM_2        => { process_spm2(rdr, &word, index, value_storage); }, // SPM #2 – Store Program Memory.......................................................................171
+        /* 118 */ InstructionType::ST           => { process_st(rdr, &word, index, value_storage); }, // – Store Indirect From Register to Data Space using Index X.........................173
+        
+        // /* 119 */ InstructionType::ST_STD_Y => { process_st_std_y(rdr, &word, index, value_storage); }, // – Store Indirect From Register to Data Space using Index Y..............175
+        InstructionType::ST_STD_Y_1             => { process_st_std_y_1(rdr, &word, index, value_storage); },
+        InstructionType::ST_STD_Y_2             => { process_st_std_y_2(rdr, &word, index, value_storage); },
+        InstructionType::ST_STD_Y_3             => { process_st_std_y_3(rdr, &word, index, value_storage); },
+        InstructionType::ST_STD_Y_4             => { process_st_std_y_4(rdr, &word, index, value_storage); },
+
+        // /* 120 */ InstructionType::ST_STD_Z => { process_st_std_z(rdr, &word, index, value_storage); }, 
+        InstructionType::ST_STD_Z_1             => { process_st_std_z_1(rdr, &word, index, value_storage); },
+        InstructionType::ST_STD_Z_2             => { process_st_std_z_2(rdr, &word, index, value_storage); },
+        InstructionType::ST_STD_Z_3             => { process_st_std_z_3(rdr, &word, index, value_storage); },
+        InstructionType::ST_STD_Z_4             => { process_st_std_z_4(rdr, &word, index, value_storage); },
+        
+        /* 121 */ InstructionType::STS          => { process_sts(rdr, &word, index, value_storage); }, // STS – Store Direct to Data Space.......................................................................179
+        /* 122 */ InstructionType::STS_16bit    => { process_sts_16bit(rdr, &word, index, value_storage); }, // STS (16-bit) – Store Direct to Data Space.......................................................... 180
+        /* 123 */ InstructionType::SUB          => { process_sub(rdr, &word, index, value_storage); }, // – Subtract Without Carry.............................................................................181
+        /* 124 */ InstructionType::SUBI         => { process_subi(rdr, &word, index, value_storage); }, // – Subtract Immediate................................................................................. 183
+        /* 125 */ InstructionType::SWAP         => { process_swap(rdr, &word, index, value_storage); }, // – Swap Nibbles........................................................................................ 185
+        /* 126 */ InstructionType::TST          => { process_tst(rdr, &word, index, value_storage); }, // – Test for Zero or Minus...............................................................................186
+        /* 127 */ InstructionType::WDR          => { process_wdr(rdr, &word, index, value_storage); }, // – Watchdog Reset......................................................................................187
+        /* 128 */ InstructionType::XCH          => { process_xch(rdr, &word, index, value_storage); }, // 
+        
+        InstructionType::Unknown => { panic!("Unknown instruction!"); },
+        
+        _ => { panic!("Unknown instruction!"); }
+    }
+}
+
 pub fn process_adc<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
