@@ -241,7 +241,7 @@ use super::{instruction_definition::InstructionDefinition, instruction_type::Ins
         LSR,
 
         MOV,
-        MOVW,
+        /* 80 */ MOVW,
         MUL,
         MULS,
         MULSU,

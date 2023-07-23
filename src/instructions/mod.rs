@@ -3,3 +3,4 @@ pub mod bit_pattern_matching;
 pub mod instruction_definition;
 pub mod instructions;
 pub mod process;
+pub mod decode;
