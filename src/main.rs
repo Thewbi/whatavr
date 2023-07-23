@@ -21,6 +21,28 @@ use crate::instructions::process::*;
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
+macro_rules! HIGH {
+    // match like arm for macro
+    ($a:expr) => {
+        // macro expand to this code
+        {
+            // $a and $b will be templated using the value/variable provided to macro
+            ($a >> 8u16)
+        }
+    }
+}
+
+macro_rules! LOW {
+    // match like arm for macro
+    ($a:expr) => {
+        // macro expand to this code
+        {
+            // $a and $b will be templated using the value/variable provided to macro
+            ($a & 0xFFu16)
+        }
+    }
+}
+
 fn main() -> io::Result<()> {
 
     println!("whatavr starting ...");
@@ -78,7 +100,7 @@ fn main() -> io::Result<()> {
         // disassenble the entire segment
         //
 
-        const DISSASSEMBLE:bool = false;
+        const DISSASSEMBLE: bool = false;
         if DISSASSEMBLE {
 
             let mut rdr = Cursor::new(&segment_0.data);
@@ -113,11 +135,15 @@ fn main() -> io::Result<()> {
         let mut assembler_segment: Segment = Segment::new();
         assembler_segment.address = 0u16;
         assembler_segment.size = 0u32;
-        //assembler_segment.data[0usize] = 0x00u8;
 
-        let mut labels:HashMap<String, usize> = HashMap::new();
+        let mut labels: HashMap<String, usize> = HashMap::new();
 
-        let mut z:bool = false;
+        // the z flag
+        let mut z: bool = false;
+
+        // stack pointer high, low
+        let mut sph: u8 = 0x00u8;
+        let mut spl: u8 = 0x00u8;
 
         //     ldi r16, 7
         // loop:
@@ -145,14 +171,19 @@ fn main() -> io::Result<()> {
         // create_label(&mut labels, String::from("loop"), idx);
         // encode_jmp(&mut assembler_segment, &mut idx, &labels, &String::from("loop"));
 
+        // // will overflow the u8 datatype, on the real hardware, this would be an endless loop
+        // encode_ldi(&mut assembler_segment, &mut idx, 16u16, 1u16);
+        // encode_ldi(&mut assembler_segment, &mut idx, 17u16, 1u16);
+        // create_label(&mut labels, String::from("loop"), idx);
+        // encode_add(&mut assembler_segment, &mut idx, 16u16, 17u16);
+        // encode_jmp(&mut assembler_segment, &mut idx, &labels, &String::from("loop"));
 
-        encode_ldi(&mut assembler_segment, &mut idx, 16u16, 1u16);
-        encode_ldi(&mut assembler_segment, &mut idx, 17u16, 1u16);
-        create_label(&mut labels, String::from("loop"), idx);
-        encode_add(&mut assembler_segment, &mut idx, 16u16, 17u16);
-        encode_jmp(&mut assembler_segment, &mut idx, &labels, &String::from("loop"));
+        const RAMEND: u16 = 0x08ff;
         
-        //encode_jmp(&mut assembler_segment, &mut idx, &String::from("loop"));
+        encode_ldi(&mut assembler_segment, &mut idx, 16, LOW!(RAMEND));
+        encode_out(&mut assembler_segment, &mut idx, IO_Destination::SPL, 16u16);
+        encode_ldi(&mut assembler_segment, &mut idx, 16, HIGH!(RAMEND));
+        encode_out(&mut assembler_segment, &mut idx, IO_Destination::SPH, 16u16);
 
         // pc always points to the instruction after the current instruction so it does not start at 0x00 but at 0x02
         let mut pc: i32 = 0x02;
@@ -382,7 +413,7 @@ fn main() -> io::Result<()> {
                     let register = d_val + 16;
                     //log::info!("[LDI] Using register: r{}", register);
 
-                    log::trace!("{temp_pc:#02x}: {word:#06x} ldi r{register:#02}, {k_val:#02x}");
+                    log::info!("{temp_pc:#02x}: {word:#06x} ldi r{register:#02}, {k_val:#02x}");
 
 
                     // execute
@@ -396,14 +427,25 @@ fn main() -> io::Result<()> {
                     log::info!("[OUT]");
 
                     // Stores data from register Rr in the Register File to I/O Space (Ports, Timers, Configuration Registers, etc.).
-                    let a_val = value_storage[&'A'];
-                    // log::info!("A: {a_val:#b} {a_val:#x} {a_val}");
+                    let a_val: u16 = value_storage[&'A'];
+                    log::info!("A: {a_val:#b} {a_val:#x} {a_val}");
                     let r_val = value_storage[&'r'];
-                    // log::info!("r: {r_val:#b} {r_val:#x} {r_val}");
+                    log::info!("r: {r_val:#b} {r_val:#x} {r_val}");
 
                     // TODO output the value stored in register r_val into memory to the address a_val
+                    let dest: IO_Destination = IO_Destination::from_code(a_val);
+                    log::info!("dest: {:?}", dest);
+
+                    match dest {
+                        IO_Destination::SPH => { sph = register_file[r_val as usize]; }
+                        IO_Destination::SPL => { spl = register_file[r_val as usize]; }
+                        IO_Destination::UNKNOWN => { panic!("unknown destination!"); }
+                        _ => { panic!("unknown destination!"); }
+                    }
 
                     pc += 2i32;
+
+                    log::info!("stack pointer: {sph:#04x} {spl:#04x}");
                 },
 
                 InstructionType::Unknown => { panic!("Unknown instruction!"); },
@@ -425,6 +467,66 @@ fn create_label(labels:&mut HashMap<String, usize>, label: String, idx: usize)
     labels.insert(label, idx);
 }
 
+#[derive(Debug)]
+enum IO_Destination {
+    SPL,
+    SPH,
+
+    UNKNOWN,
+}
+
+impl IO_Destination {
+
+    pub const fn to_code(io_destination: &IO_Destination) -> u16 {
+        match io_destination {
+            IO_Destination::SPL => 0x01u16,
+            IO_Destination::SPH => 0x02u16,
+            _ => 0xFF,
+        }
+    }
+
+    pub const fn from_code(code: u16) -> IO_Destination {
+        match code {
+            0x01u16 => IO_Destination::SPL,
+            0x02u16 => IO_Destination::SPH,
+            _ => IO_Destination::UNKNOWN,
+        }
+    }
+
+}
+
+/// OUT – Store Register to I/O Location
+/// 1011 1AAr rrrr AAAA
+fn encode_out(assembler_segment:&mut Segment, idx:&mut usize, io_dest: IO_Destination, register_r: u16)
+{
+    let mut a_val: u16 = 0x00;
+    let mut r_val: u16 = register_r;
+
+    match io_dest {
+        IO_Destination::SPL => {
+            a_val = 0x01;
+        }
+        IO_Destination::SPH => {
+            a_val = 0x02;
+        }
+        _ => panic!("Unknown enum value")
+    }
+
+    let result: u16 = (0b1011100000000000u16 | ((a_val >> 4u16) << 8u16) | (a_val & 0x0Fu16) | (r_val << 0x04u16)) as u16;
+
+    log::info!("ENC OUT: {:b}", result);
+
+    log::info!("ENC OUT: {:#02x}", (result >> 0u16) as u8);
+    assembler_segment.data.push((result >> 0u16) as u8);
+    assembler_segment.size += 1u32;
+    *idx += 1usize;
+
+    log::info!("ENC OUT: {:#02x}", (result >> 8u16) as u8);
+    assembler_segment.data.push((result >> 8u16) as u8);
+    assembler_segment.size += 1u32;
+    *idx += 1usize;
+}
+
 /// add - Add without carry (Rd ← Rd + Rr)
 /// 0000 11rd dddd rrrr
 fn encode_add(assembler_segment:&mut Segment, idx:&mut usize, register_d: u16, register_r: u16)
@@ -443,7 +545,7 @@ fn encode_add(assembler_segment:&mut Segment, idx:&mut usize, register_d: u16, r
     assembler_segment.size += 1u32;
     *idx += 1usize;
 
-    log::info!("ENC ADD: {:#02x}", (result >> 0u16) as u8);
+    log::info!("ENC ADD: {:#02x}", (result >> 8u16) as u8);
     assembler_segment.data.push((result >> 8u16) as u8);
     assembler_segment.size += 1u32;
     *idx += 1usize;
