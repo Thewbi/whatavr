@@ -74,51 +74,11 @@ pub fn bit_pattern_match(data:u16, pattern:&str, value_storage:&mut HashMap<char
         }
         bit_mask = bit_mask >> 1;
 
-        //println!("");
-
-        //println!("placeholder: {}, value: {}", c, temp);
-
         // check if c is part of the hashmap and insert it if not
         if !value_storage.contains_key(&c) {
-
-            //println!("value_storage does not contain {}", c);
             value_storage.insert(c, temp);
-
-            // // DEBUG
-            // for (key, val) in value_storage.iter() {
-            //     println!("{} {}", key, val);
-            // }
         } else {
-            //println!("value_storage contains {}", c);
-
-            //*value_storage.get_mut(&c).unwrap() += 1;
-
             *value_storage.get_mut(&c).unwrap() = (value_storage.get(&c).unwrap() << 1) + temp;
-
-            // let mut storage_value = *value_storage.get_mut(&c).unwrap();
-            // storage_value = storage_value << 1;
-            // storage_value = storage_value + temp;
-
-            // let val_option = value_storage.get(&c);
-            // let mut val_unwrap = val_option.unwrap();
-            // println!("{}", val_unwrap);
-
-            // let mut val_unwrap_temp = &(val_unwrap << 1);
-            // val_unwrap_temp = &(val_unwrap_temp | temp);
-
-            // value_storage.insert(c, *val_unwrap_temp);
-
-            // // DEBUG
-            // for (key, val) in value_storage.iter() {
-            //     println!("{} {}", key, val);
-            // }
         }
-
-        
     }
-
-    // // DEBUG
-    // for (key, val) in value_storage.iter() {
-    //     println!("{} {}", key, val);
-    // }
 }
