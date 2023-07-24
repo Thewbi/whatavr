@@ -1,6 +1,7 @@
 mod ihex_mgmt;
 mod file_mgmt;
 mod instructions;
+mod cpu;
 
 use std::io;
 use std::io::Write;
@@ -11,6 +12,8 @@ use env_logger::{Builder, Target};
 use instructions::instruction_definition::InstructionDefinition;
 use log::LevelFilter;
 
+use crate::cpu::cpu::CPU;
+use crate::cpu::cpu::RAMEND;
 use crate::ihex_mgmt::ihex_mgmt::Segment;
 use crate::ihex_mgmt::ihex_mgmt::parse_hex_file;
 use crate::instructions::decode::decode_instruction;
@@ -42,6 +45,8 @@ macro_rules! LOW {
         }
     }
 }
+
+
 
 fn main() -> io::Result<()> {
 
@@ -125,7 +130,14 @@ fn main() -> io::Result<()> {
         }
     }
 
-    
+    let mut cpu: CPU = CPU {
+        z: false,
+        sph: 0x00u8,
+        spl: 0x00u8,
+        pc: 0x02i32,
+        register_file: [0; 32usize],
+        sram: [0; RAMEND as usize],
+    };
 
     const EXECUTE: bool = true;
     if EXECUTE {
@@ -137,13 +149,6 @@ fn main() -> io::Result<()> {
         assembler_segment.size = 0u32;
 
         let mut labels: HashMap<String, usize> = HashMap::new();
-
-        // the z flag
-        let mut z: bool = false;
-
-        // stack pointer high, low
-        let mut sph: u8 = 0x00u8;
-        let mut spl: u8 = 0x00u8;
 
         //     ldi r16, 7
         // loop:
@@ -177,25 +182,39 @@ fn main() -> io::Result<()> {
         // create_label(&mut labels, String::from("loop"), idx);
         // encode_add(&mut assembler_segment, &mut idx, 16u16, 17u16);
         // encode_jmp(&mut assembler_segment, &mut idx, &labels, &String::from("loop"));
-
-        const RAMEND: u16 = 0x08ff;
         
-        encode_ldi(&mut assembler_segment, &mut idx, 16, LOW!(RAMEND));
+        encode_ldi(&mut assembler_segment, &mut idx, 16u16, LOW!(RAMEND));
         encode_out(&mut assembler_segment, &mut idx, IO_Destination::SPL, 16u16);
-        encode_ldi(&mut assembler_segment, &mut idx, 16, HIGH!(RAMEND));
+        encode_ldi(&mut assembler_segment, &mut idx, 16u16, HIGH!(RAMEND));
         encode_out(&mut assembler_segment, &mut idx, IO_Destination::SPH, 16u16);
 
-        // pc always points to the instruction after the current instruction so it does not start at 0x00 but at 0x02
-        let mut pc: i32 = 0x02;
+        encode_ldi(&mut assembler_segment, &mut idx, 16u16, 0x01u16);
+        encode_push(&mut assembler_segment, &mut idx, 16u16);
 
-        // register file, 32 8bit registers
-        let mut register_file: [u8; 32] = [0; 32];
+        encode_ldi(&mut assembler_segment, &mut idx, 16u16, 0x02u16);
+        encode_push(&mut assembler_segment, &mut idx, 16u16);
+
+        encode_ldi(&mut assembler_segment, &mut idx, 16u16, 0x03u16);
+        encode_push(&mut assembler_segment, &mut idx, 16u16);
+
+        encode_pop(&mut assembler_segment, &mut idx, 0u16);
+        encode_pop(&mut assembler_segment, &mut idx, 0u16);
+        encode_pop(&mut assembler_segment, &mut idx, 0u16);
+
+        encode_ldi(&mut assembler_segment, &mut idx, 16u16, 0x07u16);
+        encode_push(&mut assembler_segment, &mut idx, 16u16);
+
+        encode_ldi(&mut assembler_segment, &mut idx, 16u16, 0x08u16);
+        encode_push(&mut assembler_segment, &mut idx, 16u16);
+
+        encode_ldi(&mut assembler_segment, &mut idx, 16u16, 0x09u16);
+        encode_push(&mut assembler_segment, &mut idx, 16u16);
 
         let mut done: bool = false;
         while !done {
 
             // get the current instruction
-            let temp_pc:i32 = pc - 0x02;
+            let temp_pc:i32 = cpu.pc - 0x02;
 
             // check for end of code
             if assembler_segment.size <= temp_pc as u32 {
@@ -222,11 +241,11 @@ fn main() -> io::Result<()> {
                     let r_valu16 = value_storage[&'r'];
                     let d_valu16 = value_storage[&'d'];
 
-                    register_file[d_valu16 as usize] += register_file[r_valu16 as usize];
+                    cpu.register_file[d_valu16 as usize] += cpu.register_file[r_valu16 as usize];
 
-                    log::info!("[ADD] result value: {}", register_file[d_valu16 as usize]);
+                    log::info!("[ADD] result value: {}", cpu.register_file[d_valu16 as usize]);
 
-                    pc += 2i32;
+                    cpu.pc += 2i32;
                 },
 
                 /*  13 */ 
@@ -250,13 +269,13 @@ fn main() -> io::Result<()> {
                         // same code as BRNE
 
                         // check the Z-flag
-                        if z {
+                        if cpu.z {
                             
-                            pc += 2i32;
+                            cpu.pc += 2i32;
 
                         } else {
                             
-                            pc = (pc as i16 + offset as i16) as i32;
+                            cpu.pc = (cpu.pc as i16 + offset as i16) as i32;
 
                         }
 
@@ -270,10 +289,10 @@ fn main() -> io::Result<()> {
                     let offset:i32 = value_storage[&'k'] as i32;
 
                     // check the Z-flag
-                    if z {
-                        pc += offset;
+                    if cpu.z {
+                        cpu.pc += offset;
                     } else {
-                        pc += 2i32;
+                        cpu.pc += 2i32;
                     }
                 },
 
@@ -303,9 +322,9 @@ fn main() -> io::Result<()> {
                     let mut d:u16 = value_storage[&'d'];
                     
                     //log::info!("Clearing register d: {:#06x}", d);
-                    register_file[d as usize] = 0x00;
+                    cpu.register_file[d as usize] = 0x00;
 
-                    pc += 2i32;
+                    cpu.pc += 2i32;
                 },
 
                 /*  53 */ 
@@ -315,16 +334,16 @@ fn main() -> io::Result<()> {
                     let mut d:u16 = value_storage[&'d'];
                     
                     // perform the decrement
-                    register_file[d as usize] -= 0x01u8;
+                    cpu.register_file[d as usize] -= 0x01u8;
 
                     // set the z flag
-                    if register_file[d as usize] == 0x00u8 {
-                        z = true;
+                    if cpu.register_file[d as usize] == 0x00u8 {
+                        cpu.z = true;
                     }
 
-                    log::info!("[DEC] Register r{}: {:#06x}", d, register_file[d as usize]);
+                    log::info!("[DEC] Register r{}: {:#06x}", d, cpu.register_file[d as usize]);
 
-                    pc += 2i32;
+                    cpu.pc += 2i32;
                 },
             
                 /*  66 */ 
@@ -335,17 +354,8 @@ fn main() -> io::Result<()> {
                     // get the first 16 bit
                     let k_hi:u32 = value_storage[&'k'].into();
 
-                    //log::info!("READ 1: {:#02x}", assembler_segment.data[pc as usize] as u8);
-                    //log::info!("READ 2: {:#02x}", assembler_segment.data[(pc + 1) as usize] as u8);
-
-                    //pc += 2u32;
-                    //pc += 1u32;
-
-                    //log::info!("READ 3: {:#02x}", assembler_segment.data[(pc + 2) as usize] as u8);
-                    //log::info!("READ 4: {:#02x}", assembler_segment.data[(pc + 3) as usize] as u8);
-
                     // get the next 16 stored at the pc since the JMP command is encoded using 32 bit (4 byte)
-                    let temp_pc:i32 = pc;
+                    let temp_pc:i32 = cpu.pc;
 
                     let word_hi:u16 = assembler_segment.data[(temp_pc + 1i32) as usize] as u16;
                     //log::info!("READ: {:#02x}", word_hi as u8);
@@ -358,45 +368,10 @@ fn main() -> io::Result<()> {
                     // assemble the parameter k
                     let mut k_val:i16 = ((k_hi << 16u8) + k_lo) as i16;
 
-                    //log::info!("k_val: {k_val:#02x}");
-
                     // sign extend to i32
-                    //let k_val_i32:i32 = 0b11111111110000000000000000000000 | k_val;
                     let k_val_i32:i32 = k_val as i32;
-                    //log::info!("k_val_i32: {k_val_i32:#02x}");
-                    //log::info!("offset: {k_val_i32:#02x}");
-
-                    // log::info!("k_val_i32: {k_val_i32:#02x}");
-
-                    // twos-complement
-                    //let offset:i32 = (k_val as i8 * -1i8) as i32;
-
-                    //log::info!("offset: {offset:#02x}");
-
-                    // since the amount of elements to jump are words, to find the address, multiply by two
-                    //k *= 2u32;
-
-                    // DEBUG
-                    //log::info!("k: {:#06x}", k);
-
-                    // perform the jump
-                    //pc += (offset - 2u32);
-
-                    //let p: i32 = offset as i32 - 2i32;
-
-                    //pc -= 2;
-                    //pc += offset;
-                    pc += k_val_i32;
-
-                    //pc += p;
-
-                    //log::info!("done");
-                    //panic!("LUL");
-
-
-
-
-                    //pc = (pc as i16 + offset as i16) as i32;
+                    
+                    cpu.pc += k_val_i32;
                 },
 
                 /*  73 */ 
@@ -417,9 +392,9 @@ fn main() -> io::Result<()> {
 
 
                     // execute
-                    register_file[register as usize] = k_val as u8;
+                    cpu.register_file[register as usize] = k_val as u8;
 
-                    pc += 2i32;
+                    cpu.pc += 2i32;
                 },
 
                 /*  88 */ 
@@ -437,15 +412,47 @@ fn main() -> io::Result<()> {
                     log::info!("dest: {:?}", dest);
 
                     match dest {
-                        IO_Destination::SPH => { sph = register_file[r_val as usize]; }
-                        IO_Destination::SPL => { spl = register_file[r_val as usize]; }
+                        IO_Destination::SPH => { cpu.sph = cpu.register_file[r_val as usize]; }
+                        IO_Destination::SPL => { cpu.spl = cpu.register_file[r_val as usize]; }
                         IO_Destination::UNKNOWN => { panic!("unknown destination!"); }
                         _ => { panic!("unknown destination!"); }
                     }
 
-                    pc += 2i32;
+                    cpu.pc += 2i32;
 
-                    log::info!("stack pointer: {sph:#04x} {spl:#04x}");
+                    log::info!("stack pointer: {:#04x} {:#04x}", cpu.sph, cpu.spl);
+                },
+
+                /*  89 */ 
+                InstructionType::POP => { 
+                    log::info!("[POP]");
+
+                    let d_val: u16 = value_storage[&'d'];
+                    log::info!("d: {d_val:#b} {d_val:#x} {d_val}");
+
+                    cpu.pc += 2i32;
+
+                    increment_stack_pointer(&mut cpu);
+
+                    log::info!("stack pointer: {:#04x} {:#04x}", cpu.sph, cpu.spl);
+                },
+
+                /*  90 */ 
+                InstructionType::PUSH => { 
+                    log::info!("[PUSH]");
+
+                    let d_val: u16 = value_storage[&'d'];
+                    log::info!("d: {d_val:#b} {d_val:#x} {d_val}");
+
+                    cpu.pc += 2i32;
+
+                    // the value is placed at the stackpointer then, after that, the stack pointer is decremented
+                    let stack_pointer: u16 = ((cpu.sph as u16) << 8u16) | cpu.spl as u16;
+                    cpu.sram[(stack_pointer - 1) as usize] = cpu.register_file[d_val as usize];
+
+                    decrement_stack_pointer(&mut cpu);
+
+                    log::info!("stack pointer: {:#04x} {:#04x}", cpu.sph, cpu.spl);
                 },
 
                 InstructionType::Unknown => { panic!("Unknown instruction!"); },
@@ -460,6 +467,22 @@ fn main() -> io::Result<()> {
 
     Ok(())
 
+}
+
+fn increment_stack_pointer(cpu: &mut CPU)
+{
+    let mut stack_pointer: u16 = ((cpu.sph as u16) << 8u16) | cpu.spl as u16;
+    stack_pointer += 1u16;
+    cpu.sph = HIGH!(stack_pointer).try_into().unwrap();
+    cpu.spl = LOW!(stack_pointer).try_into().unwrap();
+}
+
+fn decrement_stack_pointer(cpu: &mut CPU)
+{
+    let mut stack_pointer: u16 = ((cpu.sph as u16) << 8u16) | cpu.spl as u16;
+    stack_pointer -= 1u16;
+    cpu.sph = HIGH!(stack_pointer).try_into().unwrap();
+    cpu.spl = LOW!(stack_pointer).try_into().unwrap();
 }
 
 fn create_label(labels:&mut HashMap<String, usize>, label: String, idx: usize)
@@ -691,6 +714,58 @@ fn encode_jmp(assembler_segment:&mut Segment, idx:&mut usize, labels:&HashMap<St
 
     //log::info!("result: {:#026b}", result);
 
+}
+
+fn encode_push(assembler_segment:&mut Segment, idx:&mut usize, register_d: u16)
+{
+    if register_d > 31 {
+        panic!("Invalid register for PUSH! Only registers [r0, r31] are allowed")
+    }
+    // register is increased by 16 to arrive at the register id
+    //let register: u16 = register_d;
+
+    let result: u16 = 0x920Fu16 | (register_d << 4u16);
+    //let k_mask: u16 = ((imm_value_k >> 4u16) << 8u16) | (imm_value_k & 0x0Fu16);
+
+    //let result: u16 = 0xEFFFu16 & (k_mask | (register << 4u16));
+
+    //log::info!("result: {:#018b}", result);
+    
+    log::info!("ENC PUSH: {:#02x}", (result >> 0u16) as u8);
+    assembler_segment.data.push((result >> 0u16) as u8);
+    assembler_segment.size += 1u32;
+    *idx += 1usize;
+    
+    log::info!("ENC PUSH: {:#02x}", (result >> 8u16) as u8);
+    assembler_segment.data.push((result >> 8u16) as u8);
+    assembler_segment.size += 1u32;
+    *idx += 1usize;
+}
+
+fn encode_pop(assembler_segment:&mut Segment, idx:&mut usize, register_d: u16)
+{
+    if register_d > 31 {
+        panic!("Invalid register for PUSH! Only registers [r0, r31] are allowed")
+    }
+    // register is increased by 16 to arrive at the register id
+    //let register: u16 = register_d;
+
+    let result: u16 = 0x900Fu16 | (register_d << 4u16);
+    //let k_mask: u16 = ((imm_value_k >> 4u16) << 8u16) | (imm_value_k & 0x0Fu16);
+
+    //let result: u16 = 0xEFFFu16 & (k_mask | (register << 4u16));
+
+    //log::info!("result: {:#018b}", result);
+    
+    log::info!("ENC POP: {:#02x}", (result >> 0u16) as u8);
+    assembler_segment.data.push((result >> 0u16) as u8);
+    assembler_segment.size += 1u32;
+    *idx += 1usize;
+    
+    log::info!("ENC POP: {:#02x}", (result >> 8u16) as u8);
+    assembler_segment.data.push((result >> 8u16) as u8);
+    assembler_segment.size += 1u32;
+    *idx += 1usize;
 }
 
 fn init_logging() {
