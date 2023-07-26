@@ -46,6 +46,71 @@ macro_rules! LOW {
     }
 }
 
+macro_rules! HIGH_I16 {
+    // match like arm for macro
+    ($a:expr) => {
+        // macro expand to this code
+        {
+            // $a and $b will be templated using the value/variable provided to macro
+            ($a >> 8u16)
+        }
+    }
+}
+
+macro_rules! LOW_I16 {
+    // match like arm for macro
+    ($a:expr) => {
+        // macro expand to this code
+        {
+            // $a and $b will be templated using the value/variable provided to macro
+            ($a & 0xFFi16)
+        }
+    }
+}
+
+macro_rules! HIGH_HIGH_I32 {
+    // match like arm for macro
+    ($a:expr) => {
+        // macro expand to this code
+        {
+            // $a and $b will be templated using the value/variable provided to macro
+            (($a >> 24) & 0xFFi32)
+        }
+    }
+}
+
+macro_rules! HIGH_I32 {
+    // match like arm for macro
+    ($a:expr) => {
+        // macro expand to this code
+        {
+            // $a and $b will be templated using the value/variable provided to macro
+            (($a >> 16) & 0xFFi32)
+        }
+    }
+}
+
+macro_rules! LOW_I32 {
+    // match like arm for macro
+    ($a:expr) => {
+        // macro expand to this code
+        {
+            // $a and $b will be templated using the value/variable provided to macro
+            (($a >> 8) & 0xFFi32)
+        }
+    }
+}
+
+macro_rules! LOW_LOW_I32 {
+    // match like arm for macro
+    ($a:expr) => {
+        // macro expand to this code
+        {
+            // $a and $b will be templated using the value/variable provided to macro
+            (($a >> 0) & 0xFFi32)
+        }
+    }
+}
 
 
 fn main() -> io::Result<()> {
@@ -183,32 +248,46 @@ fn main() -> io::Result<()> {
         // encode_add(&mut assembler_segment, &mut idx, 16u16, 17u16);
         // encode_jmp(&mut assembler_segment, &mut idx, &labels, &String::from("loop"));
         
+        // // initialize the stack
+        // encode_ldi(&mut assembler_segment, &mut idx, 16u16, LOW!(RAMEND));
+        // encode_out(&mut assembler_segment, &mut idx, IO_Destination::SPL, 16u16);
+        // encode_ldi(&mut assembler_segment, &mut idx, 16u16, HIGH!(RAMEND));
+        // encode_out(&mut assembler_segment, &mut idx, IO_Destination::SPH, 16u16);
+        // encode_ldi(&mut assembler_segment, &mut idx, 16u16, 0x01u16);
+        // encode_push(&mut assembler_segment, &mut idx, 16u16);
+        // encode_ldi(&mut assembler_segment, &mut idx, 16u16, 0x02u16);
+        // encode_push(&mut assembler_segment, &mut idx, 16u16);
+        // encode_ldi(&mut assembler_segment, &mut idx, 16u16, 0x03u16);
+        // encode_push(&mut assembler_segment, &mut idx, 16u16);
+        // encode_pop(&mut assembler_segment, &mut idx, 0u16);
+        // encode_pop(&mut assembler_segment, &mut idx, 0u16);
+        // encode_pop(&mut assembler_segment, &mut idx, 0u16);
+        // encode_ldi(&mut assembler_segment, &mut idx, 16u16, 0x07u16);
+        // encode_push(&mut assembler_segment, &mut idx, 16u16);
+        // encode_ldi(&mut assembler_segment, &mut idx, 16u16, 0x08u16);
+        // encode_push(&mut assembler_segment, &mut idx, 16u16);
+        // encode_ldi(&mut assembler_segment, &mut idx, 16u16, 0x09u16);
+        // encode_push(&mut assembler_segment, &mut idx, 16u16);
+
+        // initialize the stack
         encode_ldi(&mut assembler_segment, &mut idx, 16u16, LOW!(RAMEND));
         encode_out(&mut assembler_segment, &mut idx, IO_Destination::SPL, 16u16);
         encode_ldi(&mut assembler_segment, &mut idx, 16u16, HIGH!(RAMEND));
         encode_out(&mut assembler_segment, &mut idx, IO_Destination::SPH, 16u16);
 
-        encode_ldi(&mut assembler_segment, &mut idx, 16u16, 0x01u16);
-        encode_push(&mut assembler_segment, &mut idx, 16u16);
+        encode_ldi(&mut assembler_segment, &mut idx, 16u16, 0x01);
+        encode_ldi(&mut assembler_segment, &mut idx, 17u16, 0x02);
 
-        encode_ldi(&mut assembler_segment, &mut idx, 16u16, 0x02u16);
-        encode_push(&mut assembler_segment, &mut idx, 16u16);
-
-        encode_ldi(&mut assembler_segment, &mut idx, 16u16, 0x03u16);
-        encode_push(&mut assembler_segment, &mut idx, 16u16);
-
-        encode_pop(&mut assembler_segment, &mut idx, 0u16);
-        encode_pop(&mut assembler_segment, &mut idx, 0u16);
-        encode_pop(&mut assembler_segment, &mut idx, 0u16);
-
-        encode_ldi(&mut assembler_segment, &mut idx, 16u16, 0x07u16);
-        encode_push(&mut assembler_segment, &mut idx, 16u16);
-
-        encode_ldi(&mut assembler_segment, &mut idx, 16u16, 0x08u16);
-        encode_push(&mut assembler_segment, &mut idx, 16u16);
-
-        encode_ldi(&mut assembler_segment, &mut idx, 16u16, 0x09u16);
-        encode_push(&mut assembler_segment, &mut idx, 16u16);
+        // this label should be on the same line as the first add command but
+        // currently there is no assembler that can detect label
+        create_label(&mut labels, String::from("addReg"), idx + 4); // call is a 4 byte instruction
+        encode_call(&mut assembler_segment, &mut idx, &labels, &String::from("addReg"));
+        //create_label(&mut labels, String::from("addReg"), idx);
+        encode_add(&mut assembler_segment, &mut idx, 16u16, 17u16);
+        encode_add(&mut assembler_segment, &mut idx, 16u16, 17u16);
+        encode_add(&mut assembler_segment, &mut idx, 16u16, 17u16);
+        encode_add(&mut assembler_segment, &mut idx, 16u16, 17u16);
+        encode_ret(&mut assembler_segment, &mut idx);
 
         let mut done: bool = false;
         while !done {
@@ -229,7 +308,8 @@ fn main() -> io::Result<()> {
             
             // decode the current instruction
             let mut value_storage:HashMap<char, u16> = HashMap::new();
-            let instruction: &InstructionDefinition = decode_instruction(word, instructions, &unknown, &mut value_storage);
+            let instruction: &InstructionDefinition = decode_instruction(word, 
+                instructions, &unknown, &mut value_storage);
 
             // execute the instruction
             match instruction.instruction_type {
@@ -295,6 +375,42 @@ fn main() -> io::Result<()> {
                         cpu.pc += 2i32;
                     }
                 },
+
+                /* 36 */ 
+                InstructionType::CALL => {
+
+                    log::info!("[CALL]");
+
+                    // get the first 16 bit
+                    let k_hi:u32 = value_storage[&'k'].into();
+
+                    // get the next 16 stored at the pc since the JMP command is encoded using 32 bit (4 byte)
+                    let temp_pc:i32 = cpu.pc;
+
+                    let word_hi:u16 = assembler_segment.data[(temp_pc + 1i32) as usize] as u16;
+                    //log::info!("READ: {:#02x}", word_hi as u8);
+
+                    let word_lo:u16 = assembler_segment.data[temp_pc as usize] as u16;
+                    //log::info!("READ: {:#02x}", word_lo as u8);
+
+                    let k_lo:u32 = ((word_hi << 8u8) + word_lo).into();
+
+                    // assemble the parameter k
+                    let mut k_val:i16 = ((k_hi << 16u8) + k_lo) as i16;
+
+                    // sign extend to i32
+                    let k_val_i32:i32 = k_val as i32;
+
+
+                    // push return address onto the stack 
+                    let data = cpu.pc;
+                    push_to_stack_i16(&mut cpu, data as i16);
+
+                    log::info!("stack pointer: {:#04x} {:#04x}", cpu.sph, cpu.spl);
+                    
+                    // jump to address
+                    cpu.pc += k_val_i32;
+                }
 
                 // /*  41 */ 
                 // InstructionType::CLI => { 
@@ -432,7 +548,7 @@ fn main() -> io::Result<()> {
 
                     cpu.pc += 2i32;
 
-                    increment_stack_pointer(&mut cpu);
+                    pop_from_stack_u8(&mut cpu);
 
                     log::info!("stack pointer: {:#04x} {:#04x}", cpu.sph, cpu.spl);
                 },
@@ -446,11 +562,28 @@ fn main() -> io::Result<()> {
 
                     cpu.pc += 2i32;
 
-                    // the value is placed at the stackpointer then, after that, the stack pointer is decremented
-                    let stack_pointer: u16 = ((cpu.sph as u16) << 8u16) | cpu.spl as u16;
-                    cpu.sram[(stack_pointer - 1) as usize] = cpu.register_file[d_val as usize];
+                    let data = cpu.register_file[d_val as usize];
+                    push_to_stack_u8(&mut cpu, data);
 
-                    decrement_stack_pointer(&mut cpu);
+                    log::info!("stack pointer: {:#04x} {:#04x}", cpu.sph, cpu.spl);
+                },
+
+                /* 92 */ 
+                InstructionType::RET => { 
+                    log::info!("[RET]");
+
+                    // let d_val: u16 = value_storage[&'d'];
+                    // log::info!("d: {d_val:#b} {d_val:#x} {d_val}");
+
+                    // cpu.pc += 2i32;
+
+                    // let data = cpu.register_file[d_val as usize];
+                    let k_hi: u16 = pop_from_stack_u8(&mut cpu) as u16;
+                    let k_lo: u16 = pop_from_stack_u8(&mut cpu) as u16;
+
+                    let k_val:i16 = ((k_hi << 8i16) + k_lo) as i16;
+
+                    cpu.pc = k_val as i32;
 
                     log::info!("stack pointer: {:#04x} {:#04x}", cpu.sph, cpu.spl);
                 },
@@ -467,6 +600,73 @@ fn main() -> io::Result<()> {
 
     Ok(())
 
+}
+
+// the value is placed at the stackpointer then, after that, the stack pointer is decremented
+fn push_to_stack_u8(cpu: &mut CPU, data: u8) 
+{
+    let stack_pointer: u16 = ((cpu.sph as u16) << 8u16) | cpu.spl as u16;
+    cpu.sram[(stack_pointer - 1) as usize] = data;
+
+    decrement_stack_pointer(cpu);
+}
+
+fn push_to_stack_u16(cpu: &mut CPU, data: &u16) 
+{
+    let stack_pointer: u16 = ((cpu.sph as u16) << 8u16) | cpu.spl as u16;
+    cpu.sram[(stack_pointer - 1) as usize] = HIGH!(data).try_into().unwrap();
+    decrement_stack_pointer(cpu);
+
+    let stack_pointer: u16 = ((cpu.sph as u16) << 8u16) | cpu.spl as u16;
+    cpu.sram[(stack_pointer - 1) as usize] = LOW!(data).try_into().unwrap();
+    decrement_stack_pointer(cpu);
+}
+
+fn push_to_stack_i16(cpu: &mut CPU, data: i16) 
+{
+    let stack_pointer: u16 = ((cpu.sph as u16) << 8u16) | cpu.spl as u16;
+    cpu.sram[(stack_pointer - 1) as usize] = HIGH_I16!(data).try_into().unwrap();
+    decrement_stack_pointer(cpu);
+
+    let stack_pointer: u16 = ((cpu.sph as u16) << 8u16) | cpu.spl as u16;
+    cpu.sram[(stack_pointer - 1) as usize] = LOW_I16!(data).try_into().unwrap();
+    decrement_stack_pointer(cpu);
+}
+
+fn push_to_stack_i32(cpu: &mut CPU, data: i32) 
+{
+    let stack_pointer: u16 = ((cpu.sph as u16) << 8u16) | cpu.spl as u16;
+    cpu.sram[(stack_pointer - 1) as usize] = HIGH_HIGH_I32!(data).try_into().unwrap();
+    decrement_stack_pointer(cpu);
+
+    let stack_pointer: u16 = ((cpu.sph as u16) << 8u16) | cpu.spl as u16;
+    cpu.sram[(stack_pointer - 1) as usize] = HIGH_I32!(data).try_into().unwrap();
+    decrement_stack_pointer(cpu);
+
+    let stack_pointer: u16 = ((cpu.sph as u16) << 8u16) | cpu.spl as u16;
+    cpu.sram[(stack_pointer - 1) as usize] = LOW_I32!(data).try_into().unwrap();
+    decrement_stack_pointer(cpu);
+
+    let stack_pointer: u16 = ((cpu.sph as u16) << 8u16) | cpu.spl as u16;
+    cpu.sram[(stack_pointer - 1) as usize] = LOW_LOW_I32!(data).try_into().unwrap();
+    decrement_stack_pointer(cpu);
+}
+
+fn pop_from_stack_u8(cpu: &mut CPU) -> u8 {
+
+    // let stack_pointer: u16 = ((cpu.sph as u16) << 8u16) | cpu.spl as u16;
+    // cpu.sram[(stack_pointer - 1) as usize]
+
+    // increment_stack_pointer(cpu);
+
+    // return 
+
+    increment_stack_pointer(cpu);
+
+    let stack_pointer: u16 = ((cpu.sph as u16) << 8u16) | cpu.spl as u16;
+    let data: u8 = cpu.sram[(stack_pointer - 1) as usize];
+
+    data
 }
 
 fn increment_stack_pointer(cpu: &mut CPU)
@@ -655,7 +855,7 @@ fn encode_brne(assembler_segment:&mut Segment, idx:&mut usize, labels:&HashMap<S
 /// 66. JMP – Jump
 /// 1001 010k kkkk 110k
 /// kkkk kkkk kkkk kkkk
-fn encode_jmp(assembler_segment:&mut Segment, idx:&mut usize, labels:&HashMap<String, usize>, label: &String)
+fn encode_jmp(assembler_segment: &mut Segment, idx: &mut usize, labels: &HashMap<String, usize>, label: &String)
 {
     // register is increased by 16 to arrive at the register id
     let label_address: i32 = labels[label] as i32;
@@ -674,21 +874,13 @@ fn encode_jmp(assembler_segment:&mut Segment, idx:&mut usize, labels:&HashMap<St
     //let result: u32 = (0b1001010u32 << 25) | ((offset_k as u32 >> 16) << 20) | (0b110u32 << 17) | (offset_k as u32 & 0b11111111111111111u32);
     let result: u32 = (0b1001010u32 << 25) | ((offset_k as u32 >> 17) << 20) | (0b110u32 << 17) | (offset_k as u32 & 0b11111111111111111u32);
 
-
     log::info!("result: {:#32b}", result);
 
-
     //panic!("t");
-
 
     // let label_address: u32 = labels[label] as u32;
     // let offset_k: u32 = label_address - (*idx as u32);
     // let result: u32 = (0b1001010u32 << 25) | ((offset_k as u32 >> 16) << 20) | (0b110u32 << 17) | (offset_k as u32 & 0b11111111111111111u32);
-
-    
-
-
-    
     
     log::info!("ENC JMP: {:#02x}", (result >> 16u16) as u8);
     assembler_segment.data.push((result >> 16u16) as u8);
@@ -709,8 +901,6 @@ fn encode_jmp(assembler_segment:&mut Segment, idx:&mut usize, labels:&HashMap<St
     assembler_segment.data.push((result >> 8u16) as u8);
     assembler_segment.size += 1u32;
     *idx += 1usize;
-
-    
 
     //log::info!("result: {:#026b}", result);
 
@@ -764,6 +954,75 @@ fn encode_pop(assembler_segment:&mut Segment, idx:&mut usize, register_d: u16)
     
     log::info!("ENC POP: {:#02x}", (result >> 8u16) as u8);
     assembler_segment.data.push((result >> 8u16) as u8);
+    assembler_segment.size += 1u32;
+    *idx += 1usize;
+}
+
+/// CALL – Long Call to a Subroutine
+/// 1001 010k kkkk 111k
+/// kkkk kkkk kkkk kkkk
+fn encode_call(assembler_segment:&mut Segment, idx:&mut usize, labels: &HashMap<String, usize>, label: &String)
+{
+    // register is increased by 16 to arrive at the register id
+    let label_address: i32 = labels[label] as i32;
+    let mut offset_k: i32 = label_address - (*idx as i32);
+
+    log::info!("offset_k: {:#06x}", offset_k);
+    log::info!("offset_k: {:#06x}", offset_k as u32);
+
+    offset_k &= 0b00000000001111111111111111111111i32;
+    //offset_k &= 0b 0000 0000 0011 1111 1111 1111 1111 1111 i32;
+
+    log::info!("offset_k: {:#06x}", offset_k);
+    log::info!("offset_k: {:#06x}", offset_k as u32);
+
+    //let offset_k: i32 = 0;
+    //let result: u32 = (0b1001010u32 << 25) | ((offset_k as u32 >> 16) << 20) | (0b110u32 << 17) | (offset_k as u32 & 0b11111111111111111u32);
+    let result: u32 = (0b1001010u32 << 25) | ((offset_k as u32 >> 17) << 20) | (0b111u32 << 17) | (offset_k as u32 & 0b11111111111111111u32);
+
+    log::info!("result: {:#32b}", result);
+
+    //panic!("t");
+
+    // let label_address: u32 = labels[label] as u32;
+    // let offset_k: u32 = label_address - (*idx as u32);
+    // let result: u32 = (0b1001010u32 << 25) | ((offset_k as u32 >> 16) << 20) | (0b110u32 << 17) | (offset_k as u32 & 0b11111111111111111u32);
+    
+    log::info!("ENC CALL: {:#02x}", (result >> 16u16) as u8);
+    assembler_segment.data.push((result >> 16u16) as u8);
+    assembler_segment.size += 1u32;
+    *idx += 1usize;
+
+    log::info!("ENC CALL: {:#02x}", (result >> 24u16) as u8);
+    assembler_segment.data.push((result >> 24u16) as u8);
+    assembler_segment.size += 1u32;
+    *idx += 1usize;
+
+    log::info!("ENC CALL: {:#02x}", (result >> 0u16) as u8);
+    assembler_segment.data.push((result >> 0u16) as u8);
+    assembler_segment.size += 1u32;
+    *idx += 1usize;
+
+    log::info!("ENC CALL: {:#02x}", (result >> 8u16) as u8);
+    assembler_segment.data.push((result >> 8u16) as u8);
+    assembler_segment.size += 1u32;
+    *idx += 1usize;
+
+    //log::info!("result: {:#026b}", result);
+}
+
+/// Returns from subroutine. The return address is loaded from the STACK. 
+/// The Stack Pointer uses a pre-increment scheme during RET
+/// 1001 0101 0000 1000
+fn encode_ret(assembler_segment:&mut Segment, idx:&mut usize) {
+
+    let result: u16 = 0b1001010100001000u16;
+
+    assembler_segment.data.push(LOW!(result) as u8);
+    assembler_segment.size += 1u32;
+    *idx += 1usize;
+
+    assembler_segment.data.push(HIGH!(result) as u8);
     assembler_segment.size += 1u32;
     *idx += 1usize;
 }

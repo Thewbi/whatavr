@@ -791,9 +791,9 @@ pub fn process_rcall<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut us
 
 pub fn process_ret<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
-     //log::info!("RET   = 92. RET – Return from Subroutine");
+    //log::info!("RET   = 92. RET – Return from Subroutine");
 
-            // 1001 0101 0000 1000
+    // 1001 0101 0000 1000
 }
 
 pub fn process_reti<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
