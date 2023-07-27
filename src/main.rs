@@ -321,15 +321,52 @@ fn main() -> io::Result<()> {
         // RCALL
         //
 
+        // // initialize the stack
+        // encode_ldi(&mut assembler_segment, &mut idx, 16u16, LOW!(RAMEND));
+        // encode_out(&mut assembler_segment, &mut idx, IO_Destination::SPL, 16u16);
+        // encode_ldi(&mut assembler_segment, &mut idx, 16u16, HIGH!(RAMEND));
+        // encode_out(&mut assembler_segment, &mut idx, IO_Destination::SPH, 16u16);
+
+        // create_label(&mut labels, String::from("main"), idx);
+        // encode_add(&mut assembler_segment, &mut idx, 16u16, 17u16);
+        // encode_rcall(&mut assembler_segment, &mut idx, &labels, &String::from("main"));
+
+        //
+        // MOV
+        //
+
+        // encode_ldi(&mut assembler_segment, &mut idx, 16u16, 0x01);
+        // encode_ldi(&mut assembler_segment, &mut idx, 17u16, 0x02);
+        // encode_mov(&mut assembler_segment, &mut idx, 16u16, 17u16);
+
+        //
+        // Example app
+        //
+
         // initialize the stack
         encode_ldi(&mut assembler_segment, &mut idx, 16u16, LOW!(RAMEND));
         encode_out(&mut assembler_segment, &mut idx, IO_Destination::SPL, 16u16);
         encode_ldi(&mut assembler_segment, &mut idx, 16u16, HIGH!(RAMEND));
         encode_out(&mut assembler_segment, &mut idx, IO_Destination::SPH, 16u16);
 
-        create_label(&mut labels, String::from("main"), idx);
-        encode_add(&mut assembler_segment, &mut idx, 16u16, 17u16);
-        encode_rcall(&mut assembler_segment, &mut idx, &labels, &String::from("main"));
+        create_label(&mut labels, String::from("main"), idx); // main:
+        encode_rjmp(&mut assembler_segment, &mut idx, &labels, &String::from("reset"));  // rjmp reset
+
+        create_label(&mut labels, String::from("swap"), idx); // swap:
+        encode_push(&mut assembler_segment, &mut idx, 16u16); // push r18
+        encode_mov(&mut assembler_segment, &mut idx, 18u16, 16u16); // mov r18, r16
+        encode_mov(&mut assembler_segment, &mut idx, 16u16, 17u16); // mov r16, r17
+        encode_mov(&mut assembler_segment, &mut idx, 17u16, 18u16); // mov r17, r18
+        encode_pop(&mut assembler_segment, &mut idx, 18u16); // pop r18
+        encode_ret(&mut assembler_segment, &mut idx); // ret
+
+        create_label(&mut labels, String::from("reset"), idx);  // reset:
+        encode_ldi(&mut assembler_segment, &mut idx, 18u16, 0x21); // ldi r18, 33d == 0x21
+
+        encode_ldi(&mut assembler_segment, &mut idx, 16u16, 0x0B); // ldi r16, 11
+        encode_ldi(&mut assembler_segment, &mut idx, 17u16, 0x16); // ldi r17, 22
+        encode_rcall(&mut assembler_segment, &mut idx, &labels, &String::from("swap"));
+        encode_rjmp(&mut assembler_segment, &mut idx, &labels, &String::from("main"));
 
         let mut done: bool = false;
         while !done {
@@ -548,12 +585,27 @@ fn main() -> io::Result<()> {
 
                     log::info!("{temp_pc:#02x}: {word:#06x} ldi r{register:#02}, {k_val:#02x}");
 
-
                     // execute
                     cpu.register_file[register as usize] = k_val as u8;
 
                     cpu.pc += 2i32;
                 },
+
+                /*  79 */
+                InstructionType::MOV => {
+                    log::info!("[MOV]");
+
+                    let r_register = value_storage[&'r'];
+                    //log::info!("K: {r_register:#b} {r_register:#x}");
+                    let d_register = value_storage[&'d'];
+                    //log::info!("d: {d_register:#b} {d_register:#x}");
+
+                    let k_val: u8 = cpu.register_file[r_register as usize];
+
+                    cpu.register_file[d_register as usize] = k_val as u8;
+
+                    cpu.pc += 2i32;
+                }
 
                 /*  88 */ 
                 InstructionType::OUT => {
@@ -1017,6 +1069,31 @@ fn encode_ldi(assembler_segment:&mut Segment, idx:&mut usize, register_d: u16, i
     *idx += 1usize;
     
     log::info!("ENC LDI: {:#02x}", (result >> 8u16) as u8);
+    assembler_segment.data.push((result >> 8u16) as u8);
+    assembler_segment.size += 1u32;
+    *idx += 1usize;
+}
+
+/// 79. MOV – Copy Register
+/// 0010 11rd dddd rrrr
+fn encode_mov(assembler_segment:&mut Segment, idx:&mut usize, register_d: u16, register_r: u16)
+{
+    if register_d > 31 {
+        panic!("Invalid register d for MOV! Only registers [r00, r31] are allowed")
+    }
+    if register_r > 31 {
+        panic!("Invalid register r for MOV! Only registers [r00, r31] are allowed")
+    }
+    let result: u16 = (0b0010110000000000u16 | ((register_r >> 4u16) << 9u16) | ((register_d << 4u16) & 0x1Fu16) | (register_r << 0x04u16)) as u16;
+
+    log::info!("ENC MOV: {:b}", result);
+
+    log::info!("ENC MOV: {:#02x}", (result >> 0u16) as u8);
+    assembler_segment.data.push((result >> 0u16) as u8);
+    assembler_segment.size += 1u32;
+    *idx += 1usize;
+
+    log::info!("ENC MOV: {:#02x}", (result >> 8u16) as u8);
     assembler_segment.data.push((result >> 8u16) as u8);
     assembler_segment.size += 1u32;
     *idx += 1usize;
