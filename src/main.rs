@@ -215,6 +215,10 @@ fn main() -> io::Result<()> {
 
         let mut labels: HashMap<String, usize> = HashMap::new();
 
+        //
+        // BRNE
+        //
+
         //     ldi r16, 7
         // loop:
         //     -- Block of code
@@ -230,6 +234,10 @@ fn main() -> io::Result<()> {
         // encode_dec(&mut assembler_segment, &mut idx, 16u16);
         // encode_brne(&mut assembler_segment, &mut idx, &labels, &String::from("loop"));
 
+        //
+        // ADD
+        //
+
         //          ldi r16, 1
         //          ldi r17, 1
         //          add r16, r17
@@ -241,12 +249,20 @@ fn main() -> io::Result<()> {
         // create_label(&mut labels, String::from("loop"), idx);
         // encode_jmp(&mut assembler_segment, &mut idx, &labels, &String::from("loop"));
 
+        //
+        // JMP
+        //
+
         // // will overflow the u8 datatype, on the real hardware, this would be an endless loop
         // encode_ldi(&mut assembler_segment, &mut idx, 16u16, 1u16);
         // encode_ldi(&mut assembler_segment, &mut idx, 17u16, 1u16);
         // create_label(&mut labels, String::from("loop"), idx);
         // encode_add(&mut assembler_segment, &mut idx, 16u16, 17u16);
         // encode_jmp(&mut assembler_segment, &mut idx, &labels, &String::from("loop"));
+
+        //
+        // PUSH and POP
+        //
         
         // // initialize the stack
         // encode_ldi(&mut assembler_segment, &mut idx, 16u16, LOW!(RAMEND));
@@ -269,25 +285,37 @@ fn main() -> io::Result<()> {
         // encode_ldi(&mut assembler_segment, &mut idx, 16u16, 0x09u16);
         // encode_push(&mut assembler_segment, &mut idx, 16u16);
 
-        // initialize the stack
-        encode_ldi(&mut assembler_segment, &mut idx, 16u16, LOW!(RAMEND));
-        encode_out(&mut assembler_segment, &mut idx, IO_Destination::SPL, 16u16);
-        encode_ldi(&mut assembler_segment, &mut idx, 16u16, HIGH!(RAMEND));
-        encode_out(&mut assembler_segment, &mut idx, IO_Destination::SPH, 16u16);
+        //
+        // CALL and RET
+        //
 
-        encode_ldi(&mut assembler_segment, &mut idx, 16u16, 0x01);
-        encode_ldi(&mut assembler_segment, &mut idx, 17u16, 0x02);
+        // // initialize the stack
+        // encode_ldi(&mut assembler_segment, &mut idx, 16u16, LOW!(RAMEND));
+        // encode_out(&mut assembler_segment, &mut idx, IO_Destination::SPL, 16u16);
+        // encode_ldi(&mut assembler_segment, &mut idx, 16u16, HIGH!(RAMEND));
+        // encode_out(&mut assembler_segment, &mut idx, IO_Destination::SPH, 16u16);
 
-        // this label should be on the same line as the first add command but
-        // currently there is no assembler that can detect label
-        create_label(&mut labels, String::from("addReg"), idx + 4); // call is a 4 byte instruction
-        encode_call(&mut assembler_segment, &mut idx, &labels, &String::from("addReg"));
-        //create_label(&mut labels, String::from("addReg"), idx);
+        // encode_ldi(&mut assembler_segment, &mut idx, 16u16, 0x01);
+        // encode_ldi(&mut assembler_segment, &mut idx, 17u16, 0x02);
+
+        // // this label should be on the same line as the first add command but
+        // // currently there is no assembler that can detect label
+        // create_label(&mut labels, String::from("addReg"), idx + 4); // call is a 4 byte instruction
+        // encode_call(&mut assembler_segment, &mut idx, &labels, &String::from("addReg"));
+        // //create_label(&mut labels, String::from("addReg"), idx);
+        // encode_add(&mut assembler_segment, &mut idx, 16u16, 17u16);
+        // encode_add(&mut assembler_segment, &mut idx, 16u16, 17u16);
+        // encode_add(&mut assembler_segment, &mut idx, 16u16, 17u16);
+        // encode_add(&mut assembler_segment, &mut idx, 16u16, 17u16);
+        // encode_ret(&mut assembler_segment, &mut idx);
+
+        //
+        // RJMP
+        //
+
+        create_label(&mut labels, String::from("target"), idx);
         encode_add(&mut assembler_segment, &mut idx, 16u16, 17u16);
-        encode_add(&mut assembler_segment, &mut idx, 16u16, 17u16);
-        encode_add(&mut assembler_segment, &mut idx, 16u16, 17u16);
-        encode_add(&mut assembler_segment, &mut idx, 16u16, 17u16);
-        encode_ret(&mut assembler_segment, &mut idx);
+        encode_rjmp(&mut assembler_segment, &mut idx, &labels, &String::from("target"));
 
         let mut done: bool = false;
         while !done {
@@ -588,6 +616,28 @@ fn main() -> io::Result<()> {
                     log::info!("stack pointer: {:#04x} {:#04x}", cpu.sph, cpu.spl);
                 },
 
+                /*  94 */ 
+                InstructionType::RJMP => {
+
+                    log::info!("[RJMP]");
+
+                    // get the first 16 bit
+                    let mut k: u16 = value_storage[&'k'] as u16;
+
+                    log::info!("k: {:04x} {:016b}", k, k);
+
+                    // sign extend
+                    k |= 0xF000;
+
+                    log::info!("k: {:04x} {:016b} {}", k as i16, k as i16, k as i16);
+
+                    let kk: i16 = k as i16;
+
+                    log::info!("kk: {:04x} {:016b} {}", kk, kk, kk);
+                    
+                    cpu.pc += kk as i32;
+                },
+
                 InstructionType::Unknown => { panic!("Unknown instruction!"); },
         
                 _ => { panic!("Unknown instruction!"); }
@@ -718,38 +768,7 @@ impl IO_Destination {
 
 }
 
-/// OUT – Store Register to I/O Location
-/// 1011 1AAr rrrr AAAA
-fn encode_out(assembler_segment:&mut Segment, idx:&mut usize, io_dest: IO_Destination, register_r: u16)
-{
-    let mut a_val: u16 = 0x00;
-    let mut r_val: u16 = register_r;
-
-    match io_dest {
-        IO_Destination::SPL => {
-            a_val = 0x01;
-        }
-        IO_Destination::SPH => {
-            a_val = 0x02;
-        }
-        _ => panic!("Unknown enum value")
-    }
-
-    let result: u16 = (0b1011100000000000u16 | ((a_val >> 4u16) << 8u16) | (a_val & 0x0Fu16) | (r_val << 0x04u16)) as u16;
-
-    log::info!("ENC OUT: {:b}", result);
-
-    log::info!("ENC OUT: {:#02x}", (result >> 0u16) as u8);
-    assembler_segment.data.push((result >> 0u16) as u8);
-    assembler_segment.size += 1u32;
-    *idx += 1usize;
-
-    log::info!("ENC OUT: {:#02x}", (result >> 8u16) as u8);
-    assembler_segment.data.push((result >> 8u16) as u8);
-    assembler_segment.size += 1u32;
-    *idx += 1usize;
-}
-
+/// 5. ADC – Add with Carry
 /// add - Add without carry (Rd ← Rd + Rr)
 /// 0000 11rd dddd rrrr
 fn encode_add(assembler_segment:&mut Segment, idx:&mut usize, register_d: u16, register_r: u16)
@@ -774,62 +793,7 @@ fn encode_add(assembler_segment:&mut Segment, idx:&mut usize, register_d: u16, r
     *idx += 1usize;
 }
 
-/// ldi - load immediate
-/// 1110 KKKK dddd KKKK
-/// 
-/// NOTE: LDI is only allowed for registers in the range from [r16, r31]
-/// The full 32 regsters cannot be used since there are only 4 bit of space to store the target register.
-/// The register parameter is diminished by 16 so that it fits into the 4 bit space in the instruction word.
-fn encode_ldi(assembler_segment:&mut Segment, idx:&mut usize, register_d: u16, imm_value_k: u16)
-{
-    if register_d < 15 || register_d > 31 {
-        panic!("Invalid register for LDI! Only registers [r16, r31] are allowed")
-    }
-    // register is increased by 16 to arrive at the register id
-    let register: u16 = register_d - 16u16;
-
-    let k_mask: u16 = 0xE000u16 | ((imm_value_k >> 4u16) << 8u16) | (imm_value_k & 0x0Fu16);
-    //let k_mask: u16 = ((imm_value_k >> 4u16) << 8u16) | (imm_value_k & 0x0Fu16);
-
-    let result: u16 = 0xEFFFu16 & (k_mask | (register << 4u16));
-
-    //log::info!("result: {:#018b}", result);
-    
-    log::info!("ENC LDI: {:#02x}", (result >> 0u16) as u8);
-    assembler_segment.data.push((result >> 0u16) as u8);
-    assembler_segment.size += 1u32;
-    *idx += 1usize;
-    
-    log::info!("ENC LDI: {:#02x}", (result >> 8u16) as u8);
-    assembler_segment.data.push((result >> 8u16) as u8);
-    assembler_segment.size += 1u32;
-    *idx += 1usize;
-}
-
-/// dec - decrement
-/// 1001 010d dddd 1010
-fn encode_dec(assembler_segment:&mut Segment, idx:&mut usize, register_d: u16)
-{
-    // register is increased by 16 to arrive at the register id
-    let register: u16 = register_d; // - 16u16;
-
-    let result: u16 = 0x940Au16 | (register << 4u16);
-    //let k_mask: u16 = ((imm_value_k >> 4u16) << 8u16) | (imm_value_k & 0x0Fu16);
-
-    // let result: u16 = 0xEFFFu16 & (k_mask | (register << 4u16));
-    
-    log::info!("ENC DEC: {:#02x}", (result >> 0u16) as u8);
-    assembler_segment.data.push((result >> 0u16) as u8);
-    assembler_segment.size += 1u32;
-    *idx += 1usize;
-
-    log::info!("ENC DEC: {:#02x}", (result >> 8u16) as u8);
-    assembler_segment.data.push((result >> 8u16) as u8);
-    assembler_segment.size += 1u32;
-    *idx += 1usize;
-}
-
-/// BRNE – Branch if Not Equal
+/// 27. BRNE – Branch if Not Equal
 /// 1111 01kk kkkk k001
 fn encode_brne(assembler_segment:&mut Segment, idx:&mut usize, labels:&HashMap<String, usize>, label: &String)
 {
@@ -847,6 +811,82 @@ fn encode_brne(assembler_segment:&mut Segment, idx:&mut usize, labels:&HashMap<S
     *idx += 1usize;
 
     log::info!("ENC BRNE: {:#02x}", (result >> 8u16) as u8);
+    assembler_segment.data.push((result >> 8u16) as u8);
+    assembler_segment.size += 1u32;
+    *idx += 1usize;
+}
+
+/// 36. CALL – Long Call to a Subroutine
+/// 1001 010k kkkk 111k
+/// kkkk kkkk kkkk kkkk
+fn encode_call(assembler_segment:&mut Segment, idx:&mut usize, labels: &HashMap<String, usize>, label: &String)
+{
+    // register is increased by 16 to arrive at the register id
+    let label_address: i32 = labels[label] as i32;
+    let mut offset_k: i32 = label_address - (*idx as i32);
+
+    log::info!("offset_k: {:#06x}", offset_k);
+    log::info!("offset_k: {:#06x}", offset_k as u32);
+
+    offset_k &= 0b00000000001111111111111111111111i32;
+    //offset_k &= 0b 0000 0000 0011 1111 1111 1111 1111 1111 i32;
+
+    log::info!("offset_k: {:#06x}", offset_k);
+    log::info!("offset_k: {:#06x}", offset_k as u32);
+
+    //let offset_k: i32 = 0;
+    //let result: u32 = (0b1001010u32 << 25) | ((offset_k as u32 >> 16) << 20) | (0b110u32 << 17) | (offset_k as u32 & 0b11111111111111111u32);
+    let result: u32 = (0b1001010u32 << 25) | ((offset_k as u32 >> 17) << 20) | (0b111u32 << 17) | (offset_k as u32 & 0b11111111111111111u32);
+
+    log::info!("result: {:#32b}", result);
+
+    //panic!("t");
+
+    // let label_address: u32 = labels[label] as u32;
+    // let offset_k: u32 = label_address - (*idx as u32);
+    // let result: u32 = (0b1001010u32 << 25) | ((offset_k as u32 >> 16) << 20) | (0b110u32 << 17) | (offset_k as u32 & 0b11111111111111111u32);
+    
+    log::info!("ENC CALL: {:#02x}", (result >> 16u16) as u8);
+    assembler_segment.data.push((result >> 16u16) as u8);
+    assembler_segment.size += 1u32;
+    *idx += 1usize;
+
+    log::info!("ENC CALL: {:#02x}", (result >> 24u16) as u8);
+    assembler_segment.data.push((result >> 24u16) as u8);
+    assembler_segment.size += 1u32;
+    *idx += 1usize;
+
+    log::info!("ENC CALL: {:#02x}", (result >> 0u16) as u8);
+    assembler_segment.data.push((result >> 0u16) as u8);
+    assembler_segment.size += 1u32;
+    *idx += 1usize;
+
+    log::info!("ENC CALL: {:#02x}", (result >> 8u16) as u8);
+    assembler_segment.data.push((result >> 8u16) as u8);
+    assembler_segment.size += 1u32;
+    *idx += 1usize;
+
+    //log::info!("result: {:#026b}", result);
+}
+
+/// 53. DEC – Decrement
+/// 1001 010d dddd 1010
+fn encode_dec(assembler_segment:&mut Segment, idx:&mut usize, register_d: u16)
+{
+    // register is increased by 16 to arrive at the register id
+    let register: u16 = register_d; // - 16u16;
+
+    let result: u16 = 0x940Au16 | (register << 4u16);
+    //let k_mask: u16 = ((imm_value_k >> 4u16) << 8u16) | (imm_value_k & 0x0Fu16);
+
+    // let result: u16 = 0xEFFFu16 & (k_mask | (register << 4u16));
+    
+    log::info!("ENC DEC: {:#02x}", (result >> 0u16) as u8);
+    assembler_segment.data.push((result >> 0u16) as u8);
+    assembler_segment.size += 1u32;
+    *idx += 1usize;
+
+    log::info!("ENC DEC: {:#02x}", (result >> 8u16) as u8);
     assembler_segment.data.push((result >> 8u16) as u8);
     assembler_segment.size += 1u32;
     *idx += 1usize;
@@ -906,32 +946,71 @@ fn encode_jmp(assembler_segment: &mut Segment, idx: &mut usize, labels: &HashMap
 
 }
 
-fn encode_push(assembler_segment:&mut Segment, idx:&mut usize, register_d: u16)
+/// 73. LDI – Load Immediate
+/// 1110 KKKK dddd KKKK
+/// 
+/// NOTE: LDI is only allowed for registers in the range from [r16, r31]
+/// The full 32 regsters cannot be used since there are only 4 bit of space to store the target register.
+/// The register parameter is diminished by 16 so that it fits into the 4 bit space in the instruction word.
+fn encode_ldi(assembler_segment:&mut Segment, idx:&mut usize, register_d: u16, imm_value_k: u16)
 {
-    if register_d > 31 {
-        panic!("Invalid register for PUSH! Only registers [r0, r31] are allowed")
+    if register_d < 15 || register_d > 31 {
+        panic!("Invalid register for LDI! Only registers [r16, r31] are allowed")
     }
     // register is increased by 16 to arrive at the register id
-    //let register: u16 = register_d;
+    let register: u16 = register_d - 16u16;
 
-    let result: u16 = 0x920Fu16 | (register_d << 4u16);
+    let k_mask: u16 = 0xE000u16 | ((imm_value_k >> 4u16) << 8u16) | (imm_value_k & 0x0Fu16);
     //let k_mask: u16 = ((imm_value_k >> 4u16) << 8u16) | (imm_value_k & 0x0Fu16);
 
-    //let result: u16 = 0xEFFFu16 & (k_mask | (register << 4u16));
+    let result: u16 = 0xEFFFu16 & (k_mask | (register << 4u16));
 
     //log::info!("result: {:#018b}", result);
     
-    log::info!("ENC PUSH: {:#02x}", (result >> 0u16) as u8);
+    log::info!("ENC LDI: {:#02x}", (result >> 0u16) as u8);
     assembler_segment.data.push((result >> 0u16) as u8);
     assembler_segment.size += 1u32;
     *idx += 1usize;
     
-    log::info!("ENC PUSH: {:#02x}", (result >> 8u16) as u8);
+    log::info!("ENC LDI: {:#02x}", (result >> 8u16) as u8);
     assembler_segment.data.push((result >> 8u16) as u8);
     assembler_segment.size += 1u32;
     *idx += 1usize;
 }
 
+/// 88. OUT – Store Register to I/O Location
+/// 1011 1AAr rrrr AAAA
+fn encode_out(assembler_segment:&mut Segment, idx:&mut usize, io_dest: IO_Destination, register_r: u16)
+{
+    let mut a_val: u16 = 0x00;
+    let mut r_val: u16 = register_r;
+
+    match io_dest {
+        IO_Destination::SPL => {
+            a_val = 0x01;
+        }
+        IO_Destination::SPH => {
+            a_val = 0x02;
+        }
+        _ => panic!("Unknown enum value")
+    }
+
+    let result: u16 = (0b1011100000000000u16 | ((a_val >> 4u16) << 8u16) | (a_val & 0x0Fu16) | (r_val << 0x04u16)) as u16;
+
+    log::info!("ENC OUT: {:b}", result);
+
+    log::info!("ENC OUT: {:#02x}", (result >> 0u16) as u8);
+    assembler_segment.data.push((result >> 0u16) as u8);
+    assembler_segment.size += 1u32;
+    *idx += 1usize;
+
+    log::info!("ENC OUT: {:#02x}", (result >> 8u16) as u8);
+    assembler_segment.data.push((result >> 8u16) as u8);
+    assembler_segment.size += 1u32;
+    *idx += 1usize;
+}
+
+/// 89. POP – Pop Register from Stack
 fn encode_pop(assembler_segment:&mut Segment, idx:&mut usize, register_d: u16)
 {
     if register_d > 31 {
@@ -958,59 +1037,34 @@ fn encode_pop(assembler_segment:&mut Segment, idx:&mut usize, register_d: u16)
     *idx += 1usize;
 }
 
-/// CALL – Long Call to a Subroutine
-/// 1001 010k kkkk 111k
-/// kkkk kkkk kkkk kkkk
-fn encode_call(assembler_segment:&mut Segment, idx:&mut usize, labels: &HashMap<String, usize>, label: &String)
+/// 90. PUSH – Push Register on Stack
+fn encode_push(assembler_segment:&mut Segment, idx:&mut usize, register_d: u16)
 {
+    if register_d > 31 {
+        panic!("Invalid register for PUSH! Only registers [r0, r31] are allowed")
+    }
     // register is increased by 16 to arrive at the register id
-    let label_address: i32 = labels[label] as i32;
-    let mut offset_k: i32 = label_address - (*idx as i32);
+    //let register: u16 = register_d;
 
-    log::info!("offset_k: {:#06x}", offset_k);
-    log::info!("offset_k: {:#06x}", offset_k as u32);
+    let result: u16 = 0x920Fu16 | (register_d << 4u16);
+    //let k_mask: u16 = ((imm_value_k >> 4u16) << 8u16) | (imm_value_k & 0x0Fu16);
 
-    offset_k &= 0b00000000001111111111111111111111i32;
-    //offset_k &= 0b 0000 0000 0011 1111 1111 1111 1111 1111 i32;
+    //let result: u16 = 0xEFFFu16 & (k_mask | (register << 4u16));
 
-    log::info!("offset_k: {:#06x}", offset_k);
-    log::info!("offset_k: {:#06x}", offset_k as u32);
-
-    //let offset_k: i32 = 0;
-    //let result: u32 = (0b1001010u32 << 25) | ((offset_k as u32 >> 16) << 20) | (0b110u32 << 17) | (offset_k as u32 & 0b11111111111111111u32);
-    let result: u32 = (0b1001010u32 << 25) | ((offset_k as u32 >> 17) << 20) | (0b111u32 << 17) | (offset_k as u32 & 0b11111111111111111u32);
-
-    log::info!("result: {:#32b}", result);
-
-    //panic!("t");
-
-    // let label_address: u32 = labels[label] as u32;
-    // let offset_k: u32 = label_address - (*idx as u32);
-    // let result: u32 = (0b1001010u32 << 25) | ((offset_k as u32 >> 16) << 20) | (0b110u32 << 17) | (offset_k as u32 & 0b11111111111111111u32);
+    //log::info!("result: {:#018b}", result);
     
-    log::info!("ENC CALL: {:#02x}", (result >> 16u16) as u8);
-    assembler_segment.data.push((result >> 16u16) as u8);
-    assembler_segment.size += 1u32;
-    *idx += 1usize;
-
-    log::info!("ENC CALL: {:#02x}", (result >> 24u16) as u8);
-    assembler_segment.data.push((result >> 24u16) as u8);
-    assembler_segment.size += 1u32;
-    *idx += 1usize;
-
-    log::info!("ENC CALL: {:#02x}", (result >> 0u16) as u8);
+    log::info!("ENC PUSH: {:#02x}", (result >> 0u16) as u8);
     assembler_segment.data.push((result >> 0u16) as u8);
     assembler_segment.size += 1u32;
     *idx += 1usize;
-
-    log::info!("ENC CALL: {:#02x}", (result >> 8u16) as u8);
+    
+    log::info!("ENC PUSH: {:#02x}", (result >> 8u16) as u8);
     assembler_segment.data.push((result >> 8u16) as u8);
     assembler_segment.size += 1u32;
     *idx += 1usize;
-
-    //log::info!("result: {:#026b}", result);
 }
 
+/// 92. RET – Return from Subroutine
 /// Returns from subroutine. The return address is loaded from the STACK. 
 /// The Stack Pointer uses a pre-increment scheme during RET
 /// 1001 0101 0000 1000
@@ -1025,6 +1079,41 @@ fn encode_ret(assembler_segment:&mut Segment, idx:&mut usize) {
     assembler_segment.data.push(HIGH!(result) as u8);
     assembler_segment.size += 1u32;
     *idx += 1usize;
+}
+
+/// 94. RJMP – Relative Jump
+/// 1100 kkkk kkkk kkkk
+fn encode_rjmp(assembler_segment: &mut Segment, idx: &mut usize, labels: &HashMap<String, usize>, label: &String)
+{
+    // register is increased by 16 to arrive at the register id
+    let label_address: i16 = labels[label] as i16;
+
+    log::info!("label_address: {:#06x}", label_address);
+
+    let mut offset_k: i16 = label_address - (*idx as i16);
+
+    log::info!("offset_k: {:#06x} {}", offset_k, offset_k);
+
+    offset_k &= 0b0000111111111111i16;
+
+    log::info!("offset_k: {:#06x} {}", offset_k, offset_k);
+
+    let result: i16 = (0b1100 << 12) | offset_k;
+
+    log::info!("result: {:#32b}", result);
+
+    log::info!("ENC RJMP: {:#02x}", (result >> 0u16) as u8);
+    assembler_segment.data.push((result >> 0u16) as u8);
+    assembler_segment.size += 1u32;
+    *idx += 1usize;
+
+    log::info!("ENC RJMP: {:#02x}", (result >> 8u16) as u8);
+    assembler_segment.data.push((result >> 8u16) as u8);
+    assembler_segment.size += 1u32;
+    *idx += 1usize;
+
+    log::info!("result: {:#026b}", result);
+
 }
 
 fn init_logging() {
