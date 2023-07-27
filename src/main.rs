@@ -313,9 +313,23 @@ fn main() -> io::Result<()> {
         // RJMP
         //
 
-        create_label(&mut labels, String::from("target"), idx);
+        // create_label(&mut labels, String::from("target"), idx);
+        // encode_add(&mut assembler_segment, &mut idx, 16u16, 17u16);
+        // encode_rjmp(&mut assembler_segment, &mut idx, &labels, &String::from("target"));
+
+        //
+        // RCALL
+        //
+
+        // initialize the stack
+        encode_ldi(&mut assembler_segment, &mut idx, 16u16, LOW!(RAMEND));
+        encode_out(&mut assembler_segment, &mut idx, IO_Destination::SPL, 16u16);
+        encode_ldi(&mut assembler_segment, &mut idx, 16u16, HIGH!(RAMEND));
+        encode_out(&mut assembler_segment, &mut idx, IO_Destination::SPH, 16u16);
+
+        create_label(&mut labels, String::from("main"), idx);
         encode_add(&mut assembler_segment, &mut idx, 16u16, 17u16);
-        encode_rjmp(&mut assembler_segment, &mut idx, &labels, &String::from("target"));
+        encode_rcall(&mut assembler_segment, &mut idx, &labels, &String::from("main"));
 
         let mut done: bool = false;
         while !done {
@@ -595,6 +609,36 @@ fn main() -> io::Result<()> {
 
                     log::info!("stack pointer: {:#04x} {:#04x}", cpu.sph, cpu.spl);
                 },
+
+                /* 91 */ 
+                InstructionType::RCALL => { 
+                    log::info!("[RCALL]");
+
+                    // get the first 16 bit
+                    let mut k: u16 = value_storage[&'k'] as u16;
+
+                    log::info!("k: {:04x} {:016b}", k, k);
+
+                    // sign extend
+                    k |= 0xF000;
+
+                    log::info!("k: {:04x} {:016b} {}", k as i16, k as i16, k as i16);
+
+                    let kk: i16 = k as i16;
+
+                    log::info!("kk: {:04x} {:016b} {}", kk, kk, kk);
+                    
+                    //cpu.pc += kk as i32;
+
+                    // push return address onto the stack 
+                    let data: i32 = cpu.pc;
+                    push_to_stack_i16(&mut cpu, data as i16);
+
+                    log::info!("stack pointer: {:#04x} {:#04x}", cpu.sph, cpu.spl);
+                    
+                    // jump to address
+                    cpu.pc += kk as i32;
+                }
 
                 /* 92 */ 
                 InstructionType::RET => { 
@@ -1062,6 +1106,43 @@ fn encode_push(assembler_segment:&mut Segment, idx:&mut usize, register_d: u16)
     assembler_segment.data.push((result >> 8u16) as u8);
     assembler_segment.size += 1u32;
     *idx += 1usize;
+}
+
+/// 91. RCALL – Relative Call to Subroutine
+/// 1101 kkkk kkkk kkkk
+fn encode_rcall(assembler_segment:&mut Segment, idx:&mut usize, labels: &HashMap<String, usize>, label: &String)
+{
+    // THIS CODE HAS BEEN COPIED FROM RJMP
+
+    // register is increased by 16 to arrive at the register id
+    let label_address: i16 = labels[label] as i16;
+
+    log::info!("label_address: {:#06x}", label_address);
+
+    let mut offset_k: i16 = label_address - (*idx as i16);
+
+    log::info!("offset_k: {:#06x} {}", offset_k, offset_k);
+
+    offset_k &= 0b0000111111111111i16;
+
+    log::info!("offset_k: {:#06x} {}", offset_k, offset_k);
+
+    let result: i16 = (0b1101 << 12) | offset_k;
+
+    log::info!("result: {:#32b}", result);
+
+    log::info!("ENC RCALL: {:#02x}", (result >> 0u16) as u8);
+    assembler_segment.data.push((result >> 0u16) as u8);
+    assembler_segment.size += 1u32;
+    *idx += 1usize;
+
+    log::info!("ENC RCALL: {:#02x}", (result >> 8u16) as u8);
+    assembler_segment.data.push((result >> 8u16) as u8);
+    assembler_segment.size += 1u32;
+    *idx += 1usize;
+
+    log::info!("result: {:#026b}", result);
+
 }
 
 /// 92. RET – Return from Subroutine
