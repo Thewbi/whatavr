@@ -80,13 +80,6 @@ pub fn push_to_stack_i32(cpu: &mut CPU, data: i32)
 
 pub fn pop_from_stack_u8(cpu: &mut CPU) -> u8 {
 
-    // let stack_pointer: u16 = ((cpu.sph as u16) << 8u16) | cpu.spl as u16;
-    // cpu.sram[(stack_pointer - 1) as usize]
-
-    // increment_stack_pointer(cpu);
-
-    // return 
-
     increment_stack_pointer(cpu);
 
     let stack_pointer: u16 = ((cpu.sph as u16) << 8u16) | cpu.spl as u16;
@@ -154,8 +147,6 @@ fn main() -> io::Result<()> {
         let ref segment_0: &Segment = &segments[0];
         log::info!("Segment: {}", segment_0);
 
-        
-
         let mut index: usize = 0;
 
         // TODO output disassembly so that a comparison to the .lss is possible
@@ -210,7 +201,14 @@ fn main() -> io::Result<()> {
     const EXECUTE: bool = true;
     if EXECUTE {
 
-        //let idx: usize = 0usize;
+        // 1. enter all commands into a list
+        // 2. resolve all macros and insert new entries (created from the resolved macros) into the list
+        // 3. go through the list of all commands when a label is found, insert the label into a map along with the current idx
+        //    but do not encode any command in this phase
+        // 4. got through the list of commands and call encode for each command using the table of resolved labels
+        //    but this time ignore the creation of labels and do not insert the labels int the map any more since they are already resolved in phase 1
+
+        // 1. Add a cycle counter
 
         let mut assembler_segment: Segment = Segment::new();
         assembler_segment.address = 0u16;
@@ -312,34 +310,34 @@ fn main() -> io::Result<()> {
         // encode_add(&mut assembler_segment, &mut idx, 16u16, 17u16);
         // encode_ret(&mut assembler_segment, &mut idx);
 
-        let mut asm_record_1:AsmRecord = AsmRecord::new(String::new(), InstructionType::LDI, 16u16, 0, LOW!(RAMEND), String::new(), IoDestination::UNKNOWN);
-        asm_records.push(&mut asm_record_1);
-        let mut asm_record_2:AsmRecord = AsmRecord::new(String::new(), InstructionType::OUT, 16u16, 0, 0, String::new(), IoDestination::SPL);
-        asm_records.push(&mut asm_record_2);
-        let mut asm_record_3:AsmRecord = AsmRecord::new(String::new(), InstructionType::LDI, 16u16, 0, HIGH!(RAMEND), String::new(), IoDestination::UNKNOWN);
-        asm_records.push(&mut asm_record_3);
-        let mut asm_record_4:AsmRecord = AsmRecord::new(String::new(), InstructionType::OUT, 16u16, 0, 0, String::new(), IoDestination::SPH);
-        asm_records.push(&mut asm_record_4);
+        // let mut asm_record_1:AsmRecord = AsmRecord::new(String::new(), InstructionType::LDI, 16u16, 0, LOW!(RAMEND), String::new(), IoDestination::UNKNOWN);
+        // asm_records.push(&mut asm_record_1);
+        // let mut asm_record_2:AsmRecord = AsmRecord::new(String::new(), InstructionType::OUT, 16u16, 0, 0, String::new(), IoDestination::SPL);
+        // asm_records.push(&mut asm_record_2);
+        // let mut asm_record_3:AsmRecord = AsmRecord::new(String::new(), InstructionType::LDI, 16u16, 0, HIGH!(RAMEND), String::new(), IoDestination::UNKNOWN);
+        // asm_records.push(&mut asm_record_3);
+        // let mut asm_record_4:AsmRecord = AsmRecord::new(String::new(), InstructionType::OUT, 16u16, 0, 0, String::new(), IoDestination::SPH);
+        // asm_records.push(&mut asm_record_4);
 
-        let mut asm_record_5:AsmRecord = AsmRecord::new(String::new(), InstructionType::LDI, 16u16, 0, 0x01, String::new(), IoDestination::UNKNOWN);
-        asm_records.push(&mut asm_record_5);
-        let mut asm_record_6:AsmRecord = AsmRecord::new(String::new(), InstructionType::LDI, 17u16, 0, 0x02, String::new(), IoDestination::UNKNOWN);
-        asm_records.push(&mut asm_record_6);
+        // let mut asm_record_5:AsmRecord = AsmRecord::new(String::new(), InstructionType::LDI, 16u16, 0, 0x01, String::new(), IoDestination::UNKNOWN);
+        // asm_records.push(&mut asm_record_5);
+        // let mut asm_record_6:AsmRecord = AsmRecord::new(String::new(), InstructionType::LDI, 17u16, 0, 0x02, String::new(), IoDestination::UNKNOWN);
+        // asm_records.push(&mut asm_record_6);
 
-        let mut asm_record_7:AsmRecord = AsmRecord::new(String::new(), InstructionType::CALL, 16u16, 0, 0, String::from("addReg"), IoDestination::UNKNOWN);
-        asm_records.push(&mut asm_record_7);
+        // let mut asm_record_7:AsmRecord = AsmRecord::new(String::new(), InstructionType::CALL, 16u16, 0, 0, String::from("addReg"), IoDestination::UNKNOWN);
+        // asm_records.push(&mut asm_record_7);
 
-        let mut asm_record_8:AsmRecord = AsmRecord::new(String::from("addReg"), InstructionType::ADD, 16u16, 17u16, 0, String::new(), IoDestination::UNKNOWN);
-        asm_records.push(&mut asm_record_8);
-        let mut asm_record_9:AsmRecord = AsmRecord::new(String::new(), InstructionType::ADD, 16u16, 17u16, 0, String::new(), IoDestination::UNKNOWN);
-        asm_records.push(&mut asm_record_9);
-        let mut asm_record_10:AsmRecord = AsmRecord::new(String::new(), InstructionType::ADD, 16u16, 17u16, 0, String::new(), IoDestination::UNKNOWN);
-        asm_records.push(&mut asm_record_10);
-        let mut asm_record_11:AsmRecord = AsmRecord::new(String::new(), InstructionType::ADD, 16u16, 17u16, 0, String::new(), IoDestination::UNKNOWN);
-        asm_records.push(&mut asm_record_11);
+        // let mut asm_record_8:AsmRecord = AsmRecord::new(String::from("addReg"), InstructionType::ADD, 16u16, 17u16, 0, String::new(), IoDestination::UNKNOWN);
+        // asm_records.push(&mut asm_record_8);
+        // let mut asm_record_9:AsmRecord = AsmRecord::new(String::new(), InstructionType::ADD, 16u16, 17u16, 0, String::new(), IoDestination::UNKNOWN);
+        // asm_records.push(&mut asm_record_9);
+        // let mut asm_record_10:AsmRecord = AsmRecord::new(String::new(), InstructionType::ADD, 16u16, 17u16, 0, String::new(), IoDestination::UNKNOWN);
+        // asm_records.push(&mut asm_record_10);
+        // let mut asm_record_11:AsmRecord = AsmRecord::new(String::new(), InstructionType::ADD, 16u16, 17u16, 0, String::new(), IoDestination::UNKNOWN);
+        // asm_records.push(&mut asm_record_11);
 
-        let mut asm_record_12:AsmRecord = AsmRecord::new(String::new(), InstructionType::RET, 0, 0, 0, String::new(), IoDestination::UNKNOWN);
-        asm_records.push(&mut asm_record_12);
+        // let mut asm_record_12:AsmRecord = AsmRecord::new(String::new(), InstructionType::RET, 0, 0, 0, String::new(), IoDestination::UNKNOWN);
+        // asm_records.push(&mut asm_record_12);
 
         //
         // RJMP
@@ -375,15 +373,19 @@ fn main() -> io::Result<()> {
         // Example app
         //
 
-        // 1. enter all commands into a list
-        // 2. resolve all macros and insert new entries (created from the resolved macros) into the list
-        // 3. go through the list of all commands when a label is found, insert the label into a map along with the current idx
-        //    but do not encode any command in this phase
-        // 4. got through the list of commands and call encode for each command using the table of resolved labels
-        //    but this time ignore the creation of labels and do not insert the labels int the map any more since they are already resolved in phase 1
+        // ldi r16, 0xFF
+        let mut asm_record_1:AsmRecord = AsmRecord::new(String::new(), InstructionType::LDI, 16u16, 0, 0xFF, String::new(), IoDestination::UNKNOWN);
+        asm_records.push(&mut asm_record_1);
 
-        // 1. Add a cycle counter
+        // out DDRB, r16
+        const DDRB: u8 = 0x24;
+        let mut asm_record_2:AsmRecord = AsmRecord::new(String::new(), InstructionType::OUT, 16u16, 0, DDRB as u16, String::new(), IoDestination::DDRB);
+        asm_records.push(&mut asm_record_2);
 
+        // read the Data Direction Register for Port B into r0 using the in instruction
+        // in	r1, DDRB
+        let mut asm_record_3:AsmRecord = AsmRecord::new(String::new(), InstructionType::IN, 1u16, 0, DDRB as u16, String::new(), IoDestination::DDRB);
+        asm_records.push(&mut asm_record_3);
         
 
         
@@ -405,12 +407,18 @@ fn main() -> io::Result<()> {
 
         let mut idx: usize = 0usize;
         for rec in asm_records.iter_mut() {
+
+            // assign the current address to the record
             rec.idx = idx;
 
+            // if a label was specified for the current address,
+            // manage the mapping of the label to the current address
             if rec.label != "" {
                 create_label(&mut asm_encoder.labels, rec.label.clone(), idx);
             }
 
+            // advance the address by the actual length of the instruction.
+            // Some instructions are 1 word (2 byte) whereas others are 2 word (4 byte)
             idx += InstructionType::words(&rec.instruction_type);
         }
 
@@ -614,7 +622,25 @@ fn main() -> io::Result<()> {
                         cpu.z = true;
                     }
 
-                    log::info!("[DEC] Register r{}: {:#06x}", d, cpu.register_file[d as usize]);
+                    log::info!("[DEC] Register r{}: value at reg:{:#06x}", d, cpu.register_file[d as usize]);
+
+                    cpu.pc += 2i32;
+                },
+
+                /*  64 */ 
+                InstructionType::IN => { 
+                    log::info!("[IN]");
+
+                    let register_d:u16 = value_storage[&'d'];
+                    let address:u16 = value_storage[&'A'];
+                    
+                    let val: u8 = cpu.sram[address as usize];
+
+                    log::info!("[IN] value from read-operation: {:#06x}", val);
+
+                    cpu.register_file[register_d as usize] = val as u8;
+
+                    log::info!("[IN] Register r{}: value at reg:{:#06x}", register_d, cpu.register_file[register_d as usize]);
 
                     cpu.pc += 2i32;
                 },
@@ -700,24 +726,42 @@ fn main() -> io::Result<()> {
                     log::info!("dest: {:?}", dest);
 
                     match dest {
+
                         IoDestination::SPH => {
                             log::info!("r_val: {r_val:#b} {r_val:#x} {r_val}");
                             let val:u8 = cpu.register_file[r_val as usize];
                             log::info!("val: {val:#b} {val:#x} {val}");
                             cpu.sph = val;
+
+                            log::info!("stack pointer: {:#04x} {:#04x}", cpu.sph, cpu.spl);
                         }
+
                         IoDestination::SPL => {
                             log::info!("r_val: {r_val:#b} {r_val:#x} {r_val}");
                             let val:u8 = cpu.register_file[r_val as usize];
                             log::info!("val: {val:#b} {val:#x} {val}");
                             cpu.spl = val;
+
+                            log::info!("stack pointer: {:#04x} {:#04x}", cpu.sph, cpu.spl);
                         }
-                        IoDestination::UNKNOWN => { panic!("unknown destination!"); }
+
+                        IoDestination::DDRB | IoDestination::PORTB | IoDestination::PINB => {
+                            log::info!("r_val: {r_val:#b} {r_val:#x} {r_val}");
+                            let val:u8 = cpu.register_file[r_val as usize];
+                            log::info!("val: {val:#b} {val:#x} {val}");
+
+                            // write the value into SRAM
+                            cpu.sram[a_val as usize] = val;
+                        }
+
+                        IoDestination::UNKNOWN => {
+                            panic!("UNKNOWN enum value!")
+                        }
+
+                        // _ => panic!("Unknown enum value!")
                     }
 
                     cpu.pc += 2i32;
-
-                    log::info!("stack pointer: {:#04x} {:#04x}", cpu.sph, cpu.spl);
                 },
 
                 /*  89 */ 

@@ -108,31 +108,6 @@ impl AsmEncoder {
 
     }
 
-    // // initialize the stack
-    // encode_ldi(&mut assembler_segment, &mut idx, 16u16, LOW!(RAMEND));
-    // encode_out(&mut assembler_segment, &mut idx, IoDestination::SPL, 16u16);
-    // encode_ldi(&mut assembler_segment, &mut idx, 16u16, HIGH!(RAMEND));
-    // encode_out(&mut assembler_segment, &mut idx, IoDestination::SPH, 16u16);
-
-    // create_label(&mut labels, String::from("main"), idx); // main:
-    // encode_rjmp(&mut assembler_segment, &mut idx, &labels, &String::from("reset"));  // rjmp reset
-
-    // create_label(&mut labels, String::from("swap"), idx); // swap:
-    // encode_push(&mut assembler_segment, &mut idx, 16u16); // push r18
-    // encode_mov(&mut assembler_segment, &mut idx, 18u16, 16u16); // mov r18, r16
-    // encode_mov(&mut assembler_segment, &mut idx, 16u16, 17u16); // mov r16, r17
-    // encode_mov(&mut assembler_segment, &mut idx, 17u16, 18u16); // mov r17, r18
-    // encode_pop(&mut assembler_segment, &mut idx, 18u16); // pop r18
-    // encode_ret(&mut assembler_segment, &mut idx); // ret
-
-    // create_label(&mut labels, String::from("reset"), idx);  // reset:
-    // encode_ldi(&mut assembler_segment, &mut idx, 18u16, 0x21); // ldi r18, 33d == 0x21
-
-    // encode_ldi(&mut assembler_segment, &mut idx, 16u16, 0x0B); // ldi r16, 11
-    // encode_ldi(&mut assembler_segment, &mut idx, 17u16, 0x16); // ldi r17, 22
-    // encode_rcall(&mut assembler_segment, &mut idx, &labels, &String::from("swap"));
-    // encode_rjmp(&mut assembler_segment, &mut idx, &labels, &String::from("main"));
-
     pub fn encode(&self, segment:&mut Segment, asm_record: &AsmRecord)
     {
         match asm_record.instruction_type {
@@ -141,6 +116,7 @@ impl AsmEncoder {
             /*  27 */ InstructionType::BRNE => { Self::encode_brne(&self, segment, &asm_record.target_label); }
             /*  36 */ InstructionType::CALL => { Self::encode_call(&self, segment, &asm_record.idx, &asm_record.target_label); }
             /*  53 */ InstructionType::DEC => { Self::encode_dec(&self, segment, asm_record.reg_1); }
+            /*  64 */ InstructionType::IN => { Self::encode_in(&self, segment, asm_record.reg_1, asm_record.data); }
             /*  66 */ InstructionType::JMP => { Self::encode_jmp(&self, segment, &asm_record.idx, &asm_record.target_label); }
             /*  73 */ InstructionType::LDI => { Self::encode_ldi(&self, segment, asm_record.reg_1, asm_record.data); }
             /*  79 */ InstructionType::MOV => { Self::encode_mov(&self, segment, asm_record.reg_1, asm_record.reg_2); }
@@ -250,6 +226,30 @@ impl AsmEncoder {
         segment.size += 1u32;
     }
 
+    /// 64. IN - Load an I/O Location to Register
+    /// 1011 0AAd dddd AAAA
+    fn encode_in(&self, segment:&mut Segment, register_d: u16, address: u16)
+    {
+        if register_d > 31 {
+            panic!("Invalid register for IN! Only registers [r0, r31] are allowed")
+        }
+        if address > 64 {
+            panic!("Invalid address for IN! Only address [0, 0x3F] are allowed")
+        }
+
+        // register is increased by 16 to arrive at the register id
+        let register: u16 = register_d;
+        let result: u16 = 0xB000u16 | ((address >> 4u16) << 9u16) | ((register_d) << 4u16) | (address & 0x0Fu16);
+        
+        log::info!("ENC IN: {:#02x}", (result >> 0u16) as u8);
+        segment.data.push((result >> 0u16) as u8);
+        segment.size += 1u32;
+
+        log::info!("ENC IN: {:#02x}", (result >> 8u16) as u8);
+        segment.data.push((result >> 8u16) as u8);
+        segment.size += 1u32;
+    }
+
     /// 66. JMP – Jump
     /// 1001 010k kkkk 110k
     /// kkkk kkkk kkkk kkkk
@@ -344,6 +344,13 @@ impl AsmEncoder {
     /// 1011 1AAr rrrr AAAA
     fn encode_out(&self, segment:&mut Segment, io_dest: IoDestination, register_r: u16)
     {
+        if register_r > 31 {
+            panic!("Invalid register for OUT! Only registers [r0, r31] are allowed")
+        }
+        // if io_dest > 64 {
+        //     panic!("Invalid address for OUT! Only address [0, 0x3F] are allowed")
+        // }
+
         let mut a_val: u16 = 0x00;
         let r_val: u16 = register_r;
 
@@ -354,10 +361,19 @@ impl AsmEncoder {
             IoDestination::SPH => {
                 a_val = 0x02;
             }
+            IoDestination::DDRB => {
+                a_val = 0x24;
+            }
+            IoDestination::PORTB => {
+                a_val = 0x25;
+            }
+            IoDestination::PINB => {
+                a_val = 0x26;
+            }
             _ => panic!("Unknown enum value")
         }
 
-        let result: u16 = (0b1011100000000000u16 | ((a_val >> 4u16) << 8u16) | (a_val & 0x0Fu16) | (r_val << 0x04u16)) as u16;
+        let result: u16 = (0b1011100000000000u16 | ((a_val >> 4u16) << 9u16) | (a_val & 0x0Fu16) | (r_val << 0x04u16)) as u16;
 
         log::info!("ENC OUT: {:b}", result);
 
