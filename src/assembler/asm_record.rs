@@ -14,11 +14,11 @@ pub struct AsmRecord {
 
     pub data: u16,
 
-    pub idx: usize,
-
     pub target_label: String,
 
     pub io_dest: IoDestination,
+
+    pub idx: usize,
 
 }
 

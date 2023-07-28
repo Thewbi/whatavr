@@ -211,8 +211,6 @@ fn main() -> io::Result<()> {
         assembler_segment.address = 0u16;
         assembler_segment.size = 0u32;
 
-        
-
         //
         // BRNE
         //
@@ -350,16 +348,35 @@ fn main() -> io::Result<()> {
 
         // 1. Add a cycle counter
 
-        let asm_record:AsmRecord = AsmRecord::new(String::new(), 
+        let mut asm_records: Vec<&mut AsmRecord> = Vec::new();
+
+        let mut asm_record:AsmRecord = AsmRecord::new(String::new(), 
             InstructionType::LDI, 
             16u16, 
             0, 
             LOW!(RAMEND),
             String::new(),
             IoDestination::UNKNOWN);
+        asm_records.push(&mut asm_record);
+
+        //
+        // phase 1 - scan for labels
+        //
+
+        let idx: usize = 0usize;
+        for rec in asm_records.iter_mut() {
+            rec.idx = idx;
+            idx += rec.instruction_type.encoded_size;
+        }
+
+        //
+        // phase 2 - encode (with addresses resolved to labels)
+        //
 
         let asm_encoder:AsmEncoder = AsmEncoder::new();
-        asm_encoder.encode(&mut assembler_segment, &asm_record);
+        for rec in asm_records.iter() {
+            asm_encoder.encode(&mut assembler_segment, rec);
+        }
 
         // // initialize the stack
         // encode_ldi(&mut assembler_segment, &mut idx, 16u16, LOW!(RAMEND));
