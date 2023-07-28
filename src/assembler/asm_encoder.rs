@@ -92,11 +92,6 @@ use super::{asm_record::AsmRecord, io_destination::IoDestination};
     }
 }
 
-fn create_label(labels:&mut HashMap<String, usize>, label: String, idx: usize)
-{
-    labels.insert(label, idx);
-}
-
 pub struct AsmEncoder {
 
     pub labels: HashMap<String, usize>,
@@ -149,7 +144,7 @@ impl AsmEncoder {
             /*  66 */ InstructionType::JMP => { Self::encode_jmp(&self, segment, &asm_record.idx, &asm_record.target_label); }
             /*  73 */ InstructionType::LDI => { Self::encode_ldi(&self, segment, asm_record.reg_1, asm_record.data); }
             /*  79 */ InstructionType::MOV => { Self::encode_mov(&self, segment, asm_record.reg_1, asm_record.reg_2); }
-            /*  88 */ InstructionType::OUT => { Self::encode_out(&self, segment, asm_record.io_dest, asm_record.reg_2); }
+            /*  88 */ InstructionType::OUT => { Self::encode_out(&self, segment, asm_record.io_dest, asm_record.reg_1); }
             /*  89 */ InstructionType::POP => { Self::encode_pop(&self, segment, asm_record.reg_1); }
             /*  90 */ InstructionType::PUSH => { Self::encode_push(&self, segment, asm_record.reg_1); }
             /*  91 */ InstructionType::RCALL => { Self::encode_rcall(&self, segment, &asm_record.idx, &asm_record.target_label); }
@@ -350,7 +345,7 @@ impl AsmEncoder {
     fn encode_out(&self, segment:&mut Segment, io_dest: IoDestination, register_r: u16)
     {
         let mut a_val: u16 = 0x00;
-        let mut r_val: u16 = register_r;
+        let r_val: u16 = register_r;
 
         match io_dest {
             IoDestination::SPL => {

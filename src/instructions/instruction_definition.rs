@@ -9,7 +9,6 @@ pub struct InstructionDefinition {
     pub instruction_type: InstructionType,
 
     // bit_pattern for decoding of an instruction
-    //pub bit_pattern: String,
     pub bit_pattern: &'static str,
 
 }

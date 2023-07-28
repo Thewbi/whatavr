@@ -111,6 +111,11 @@ fn decrement_stack_pointer(cpu: &mut CPU)
     cpu.spl = LOW!(stack_pointer).try_into().unwrap();
 }
 
+pub fn create_label(labels:&mut HashMap<String, usize>, label: String, idx: usize)
+{
+    labels.insert(label, idx);
+}
+
 fn main() -> io::Result<()> {
 
     println!("whatavr starting ...");
@@ -211,6 +216,8 @@ fn main() -> io::Result<()> {
         assembler_segment.address = 0u16;
         assembler_segment.size = 0u32;
 
+        let mut asm_records: Vec<&mut AsmRecord> = Vec::new();
+
         //
         // BRNE
         //
@@ -295,7 +302,7 @@ fn main() -> io::Result<()> {
         // encode_ldi(&mut assembler_segment, &mut idx, 17u16, 0x02);
 
         // // this label should be on the same line as the first add command but
-        // // currently there is no assembler that can detect label
+        // // currently there is no assembler that can detect labels that lie ahead
         // create_label(&mut labels, String::from("addReg"), idx + 4); // call is a 4 byte instruction
         // encode_call(&mut assembler_segment, &mut idx, &labels, &String::from("addReg"));
         // //create_label(&mut labels, String::from("addReg"), idx);
@@ -304,6 +311,35 @@ fn main() -> io::Result<()> {
         // encode_add(&mut assembler_segment, &mut idx, 16u16, 17u16);
         // encode_add(&mut assembler_segment, &mut idx, 16u16, 17u16);
         // encode_ret(&mut assembler_segment, &mut idx);
+
+        let mut asm_record_1:AsmRecord = AsmRecord::new(String::new(), InstructionType::LDI, 16u16, 0, LOW!(RAMEND), String::new(), IoDestination::UNKNOWN);
+        asm_records.push(&mut asm_record_1);
+        let mut asm_record_2:AsmRecord = AsmRecord::new(String::new(), InstructionType::OUT, 16u16, 0, 0, String::new(), IoDestination::SPL);
+        asm_records.push(&mut asm_record_2);
+        let mut asm_record_3:AsmRecord = AsmRecord::new(String::new(), InstructionType::LDI, 16u16, 0, HIGH!(RAMEND), String::new(), IoDestination::UNKNOWN);
+        asm_records.push(&mut asm_record_3);
+        let mut asm_record_4:AsmRecord = AsmRecord::new(String::new(), InstructionType::OUT, 16u16, 0, 0, String::new(), IoDestination::SPH);
+        asm_records.push(&mut asm_record_4);
+
+        let mut asm_record_5:AsmRecord = AsmRecord::new(String::new(), InstructionType::LDI, 16u16, 0, 0x01, String::new(), IoDestination::UNKNOWN);
+        asm_records.push(&mut asm_record_5);
+        let mut asm_record_6:AsmRecord = AsmRecord::new(String::new(), InstructionType::LDI, 17u16, 0, 0x02, String::new(), IoDestination::UNKNOWN);
+        asm_records.push(&mut asm_record_6);
+
+        let mut asm_record_7:AsmRecord = AsmRecord::new(String::new(), InstructionType::CALL, 16u16, 0, 0, String::from("addReg"), IoDestination::UNKNOWN);
+        asm_records.push(&mut asm_record_7);
+
+        let mut asm_record_8:AsmRecord = AsmRecord::new(String::from("addReg"), InstructionType::ADD, 16u16, 17u16, 0, String::new(), IoDestination::UNKNOWN);
+        asm_records.push(&mut asm_record_8);
+        let mut asm_record_9:AsmRecord = AsmRecord::new(String::new(), InstructionType::ADD, 16u16, 17u16, 0, String::new(), IoDestination::UNKNOWN);
+        asm_records.push(&mut asm_record_9);
+        let mut asm_record_10:AsmRecord = AsmRecord::new(String::new(), InstructionType::ADD, 16u16, 17u16, 0, String::new(), IoDestination::UNKNOWN);
+        asm_records.push(&mut asm_record_10);
+        let mut asm_record_11:AsmRecord = AsmRecord::new(String::new(), InstructionType::ADD, 16u16, 17u16, 0, String::new(), IoDestination::UNKNOWN);
+        asm_records.push(&mut asm_record_11);
+
+        let mut asm_record_12:AsmRecord = AsmRecord::new(String::new(), InstructionType::RET, 0, 0, 0, String::new(), IoDestination::UNKNOWN);
+        asm_records.push(&mut asm_record_12);
 
         //
         // RJMP
@@ -348,32 +384,40 @@ fn main() -> io::Result<()> {
 
         // 1. Add a cycle counter
 
-        let mut asm_records: Vec<&mut AsmRecord> = Vec::new();
+        
 
-        let mut asm_record:AsmRecord = AsmRecord::new(String::new(), 
-            InstructionType::LDI, 
-            16u16, 
-            0, 
-            LOW!(RAMEND),
-            String::new(),
-            IoDestination::UNKNOWN);
-        asm_records.push(&mut asm_record);
+        
+
+        // let mut asm_record:AsmRecord = AsmRecord::new(String::new(), 
+        //     InstructionType::LDI, 
+        //     16u16, 
+        //     0, 
+        //     LOW!(RAMEND),
+        //     String::new(),
+        //     IoDestination::UNKNOWN);
+        // asm_records.push(&mut asm_record);
+
+        let mut asm_encoder:AsmEncoder = AsmEncoder::new();
 
         //
         // phase 1 - scan for labels
         //
 
-        let idx: usize = 0usize;
+        let mut idx: usize = 0usize;
         for rec in asm_records.iter_mut() {
             rec.idx = idx;
-            idx += rec.instruction_type.encoded_size;
+
+            if rec.label != "" {
+                create_label(&mut asm_encoder.labels, rec.label.clone(), idx);
+            }
+
+            idx += InstructionType::words(&rec.instruction_type);
         }
 
         //
         // phase 2 - encode (with addresses resolved to labels)
         //
-
-        let asm_encoder:AsmEncoder = AsmEncoder::new();
+        
         for rec in asm_records.iter() {
             asm_encoder.encode(&mut assembler_segment, rec);
         }
@@ -656,10 +700,19 @@ fn main() -> io::Result<()> {
                     log::info!("dest: {:?}", dest);
 
                     match dest {
-                        IoDestination::SPH => { cpu.sph = cpu.register_file[r_val as usize]; }
-                        IoDestination::SPL => { cpu.spl = cpu.register_file[r_val as usize]; }
+                        IoDestination::SPH => {
+                            log::info!("r_val: {r_val:#b} {r_val:#x} {r_val}");
+                            let val:u8 = cpu.register_file[r_val as usize];
+                            log::info!("val: {val:#b} {val:#x} {val}");
+                            cpu.sph = val;
+                        }
+                        IoDestination::SPL => {
+                            log::info!("r_val: {r_val:#b} {r_val:#x} {r_val}");
+                            let val:u8 = cpu.register_file[r_val as usize];
+                            log::info!("val: {val:#b} {val:#x} {val}");
+                            cpu.spl = val;
+                        }
                         IoDestination::UNKNOWN => { panic!("unknown destination!"); }
-                        // _ => { panic!("unknown destination!"); }
                     }
 
                     cpu.pc += 2i32;
