@@ -238,7 +238,7 @@ impl AsmEncoder {
         }
 
         // register is increased by 16 to arrive at the register id
-        let register: u16 = register_d;
+        //let register: u16 = register_d;
         let result: u16 = 0xB000u16 | ((address >> 4u16) << 9u16) | ((register_d) << 4u16) | (address & 0x0Fu16);
         
         log::info!("ENC IN: {:#02x}", (result >> 0u16) as u8);
@@ -351,6 +351,7 @@ impl AsmEncoder {
         //     panic!("Invalid address for OUT! Only address [0, 0x3F] are allowed")
         // }
 
+        #[allow(unused)]
         let mut a_val: u16 = 0x00;
         let r_val: u16 = register_r;
 
@@ -474,6 +475,7 @@ impl AsmEncoder {
 
     /// 94. RJMP – Relative Jump
     /// 1100 kkkk kkkk kkkk
+    #[allow(dead_code)]
     fn encode_rjmp(&self, segment: &mut Segment, idx:&usize, label: &String)
     {
         // register is increased by 16 to arrive at the register id

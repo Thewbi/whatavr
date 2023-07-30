@@ -78,7 +78,7 @@ use super::{instruction_definition::InstructionDefinition, instruction_type::Ins
     // /* 72 => InstructionType::LD_LDD_Z */       const LD_LDD_Z:     InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::LD_LDD_Z),    instruction_type: InstructionType::LD_LDD_Z,    bit_pattern: "" };
     /* 73 => InstructionType::LDI */            const LDI:          InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::LDI),         instruction_type: InstructionType::LDI,         bit_pattern: "1110 KKKK dddd KKKK" };
     /* 74 => InstructionType::LDS */            const LDS:          InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::LDS),         instruction_type: InstructionType::LDS,         bit_pattern: "1001 000d dddd 0000" };
-    /* 75 => InstructionType::LDS_16bit */      const LDS_16bit:    InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::LDS_16bit),   instruction_type: InstructionType::LDS_16bit,   bit_pattern: "1010 0kkk dddd kkkk" };
+    /* 75 => InstructionType::LDS_16bit */      const LDS_16BIT:    InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::LDS_16bit),   instruction_type: InstructionType::LDS_16bit,   bit_pattern: "1010 0kkk dddd kkkk" };
     // /* 76 => InstructionType::LPM */            const LPM:          InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::LPM),         instruction_type: InstructionType::LPM,         bit_pattern: "" };
     /* 77 => InstructionType::LSL */            const LSL:          InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::LSL),         instruction_type: InstructionType::LSL,         bit_pattern: "0000 11dd dddd dddd" };
     /* 78 => InstructionType::LSR */            const LSR:          InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::LSR),         instruction_type: InstructionType::LSR,         bit_pattern: "1001 010d dddd 0110" };
@@ -139,7 +139,7 @@ use super::{instruction_definition::InstructionDefinition, instruction_type::Ins
     const ST_STD_Z_3:     InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::ST_STD_Z_3),    instruction_type: InstructionType::ST_STD_Z_3,    bit_pattern: "1001 001r rrrr 0010" };
     const ST_STD_Z_4:     InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::ST_STD_Z_4),    instruction_type: InstructionType::ST_STD_Z_4,    bit_pattern: "10q0 qq1r rrrr 0qqq" };
     /*  121 => InstructionType::STS */          const STS:          InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::STS),         instruction_type: InstructionType::STS,         bit_pattern: "1001 001d dddd 0000" };
-    /*  122 => InstructionType::STS_16bit */    const STS_16bit:    InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::STS_16bit),   instruction_type: InstructionType::STS_16bit,   bit_pattern: "1010 1kkk dddd kkkk" };
+    /*  122 => InstructionType::STS_16bit */    const STS_16BIT:    InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::STS_16bit),   instruction_type: InstructionType::STS_16bit,   bit_pattern: "1010 1kkk dddd kkkk" };
     /*  123 => InstructionType::SUB */          const SUB:          InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::SUB),         instruction_type: InstructionType::SUB,         bit_pattern: "0001 10rd dddd rrrr" };
     /*  124 => InstructionType::SUBI */         const SUBI:         InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::SUBI),        instruction_type: InstructionType::SUBI,        bit_pattern: "0101 KKKK dddd KKKK" };
     /*  125 => InstructionType::SWAP */         const SWAP:         InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::SWAP),        instruction_type: InstructionType::SWAP,        bit_pattern: "1001 010d dddd 0010" };
@@ -150,10 +150,10 @@ use super::{instruction_definition::InstructionDefinition, instruction_type::Ins
     
     /*  128 => InstructionType::XCH */          const XCH:          InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::XCH),         instruction_type: InstructionType::XCH,         bit_pattern: "1001 001r rrrr 0100" };
     
-    pub                                         const unknown:      InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::Unknown),     instruction_type: InstructionType::Unknown, bit_pattern: "xxxxxxxxxxxxxxxx" };
+    pub                                         const UNKNOWN:      InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::Unknown),     instruction_type: InstructionType::Unknown, bit_pattern: "xxxxxxxxxxxxxxxx" };
 
     
-    pub const instructions: &'static [InstructionDefinition] = &[
+    pub const INSTRUCTIONS: &'static [InstructionDefinition] = &[
 
         /* 5 */ ADC, 
         /* 6 */ ADD, 
@@ -235,7 +235,7 @@ use super::{instruction_definition::InstructionDefinition, instruction_type::Ins
         // LD_LDD_Z, // TODO
         LDI,
         LDS,
-        LDS_16bit,
+        LDS_16BIT,
         // LPM, // TODO
         LSL,
         LSR,
@@ -296,7 +296,7 @@ use super::{instruction_definition::InstructionDefinition, instruction_type::Ins
         ST_STD_Z_3,
         ST_STD_Z_4,
         STS,
-        STS_16bit,
+        STS_16BIT,
         SUB,
         SUBI,
         SWAP,

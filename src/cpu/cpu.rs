@@ -5,8 +5,8 @@ use crate::{HIGH, LOW, HIGH_HIGH_I32, HIGH_I32, LOW_I32, LOW_LOW_I32, LOW_I16, H
 use crate::ihex_mgmt::ihex_mgmt::Segment;
 use crate::assembler::io_destination::IoDestination;
 use crate::instructions::{instruction_definition::InstructionDefinition, instruction_type::InstructionType, decode::decode_instruction};
-use crate::instructions::instructions::instructions;
-use crate::instructions::instructions::unknown;
+use crate::instructions::instructions::INSTRUCTIONS;
+use crate::instructions::instructions::UNKNOWN;
 
 pub const RAMEND: u16 = 0x08ff;
 
@@ -20,6 +20,7 @@ pub fn push_to_stack_u8(cpu: &mut CPU, data: u8)
     decrement_stack_pointer(cpu);
 }
 
+#[allow(dead_code)]
 pub fn push_to_stack_u16(cpu: &mut CPU, data: &u16) 
 {
     let stack_pointer: u16 = ((cpu.sph as u16) << 8u16) | cpu.spl as u16;
@@ -42,6 +43,7 @@ pub fn push_to_stack_i16(cpu: &mut CPU, data: i16)
     decrement_stack_pointer(cpu);
 }
 
+#[allow(dead_code)]
 pub fn push_to_stack_i32(cpu: &mut CPU, data: i32) 
 {
     let stack_pointer: u16 = ((cpu.sph as u16) << 8u16) | cpu.spl as u16;
@@ -127,7 +129,7 @@ impl CPU {
         // decode the current instruction
         let mut value_storage:HashMap<char, u16> = HashMap::new();
         let instruction: &InstructionDefinition = decode_instruction(word, 
-            instructions, &unknown, &mut value_storage);
+            INSTRUCTIONS, &UNKNOWN, &mut value_storage);
 
         let mut cpu = self;
 

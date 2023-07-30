@@ -1,3 +1,4 @@
+#[allow(non_camel_case_types)]
 #[derive(PartialEq)]
 #[derive(Debug, Clone, Copy)]
 pub enum InstructionType {
@@ -157,6 +158,7 @@ pub enum InstructionType {
 
 impl InstructionType {
 
+    #[allow(dead_code)]
     pub const fn from_code(code: u8) -> InstructionType {
 
         match code {
@@ -310,6 +312,7 @@ impl InstructionType {
         }
     }
 
+    #[allow(dead_code)]
     pub const fn cycles(instruction_type: &InstructionType) -> usize {
 
         match instruction_type {

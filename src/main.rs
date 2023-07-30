@@ -16,15 +16,14 @@ use log::LevelFilter;
 use crate::assembler::asm_application::application_instruction_source;
 use crate::assembler::asm_encoder::AsmEncoder;
 use crate::assembler::asm_record::AsmRecord;
-use crate::assembler::io_destination::IoDestination;
 use crate::cpu::cpu::CPU;
 use crate::cpu::cpu::RAMEND;
 use crate::ihex_mgmt::ihex_mgmt::Segment;
 use crate::ihex_mgmt::ihex_mgmt::parse_hex_file;
 use crate::instructions::decode::decode_instruction;
 use crate::instructions::instruction_type::InstructionType;
-use crate::instructions::instructions::instructions;
-use crate::instructions::instructions::unknown;
+use crate::instructions::instructions::INSTRUCTIONS;
+use crate::instructions::instructions::UNKNOWN;
 use crate::instructions::process::*;
 
 use byteorder::{LittleEndian, ReadBytesExt};
@@ -101,7 +100,7 @@ fn main() -> io::Result<()> {
                 log::trace!("word: {:#06x} {:b}", word, word);
 
                 let mut value_storage:HashMap<char, u16> = HashMap::new();
-                let instruction: &InstructionDefinition = decode_instruction(word, instructions, &unknown, &mut value_storage);
+                let instruction: &InstructionDefinition = decode_instruction(word, INSTRUCTIONS, &UNKNOWN, &mut value_storage);
 
                 log::info!("instruction {:?}", instruction.instruction_type);
                 if instruction.instruction_type == InstructionType::EOR || instruction.instruction_type == InstructionType::CLR {

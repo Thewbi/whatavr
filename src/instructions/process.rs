@@ -160,18 +160,21 @@ pub fn match_instruction<R: crate::io::Read>(instruction: &InstructionDefinition
         
         InstructionType::Unknown => { panic!("Unknown instruction!"); },
         
-        _ => { panic!("Unknown instruction!"); }
+        // _ => { panic!("Unknown instruction!"); }
     }
 }
 
+#[allow(dead_code, unused)]
 pub fn process_adc<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_add<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_adiw<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
     //log::info!("ADIW  = 7. ADIW – Add Immediate to Word");
@@ -186,10 +189,12 @@ pub fn process_adiw<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usi
     //log::info!("k: {}, d: {}", k_val, d_val);
 }
 
+#[allow(dead_code, unused)]
 pub fn process_and<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_andi<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
     //log::info!("ANDI = 9. ANDI – Logical AND with Immediate");
@@ -208,66 +213,82 @@ pub fn process_andi<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usi
     //log::info!("d: {d_val:#b} {d_val:#x} {d_val}");
 }
 
+#[allow(dead_code, unused)]
 pub fn process_asr<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_bclr<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_bld<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_brbc<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_brbs<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_brcc<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_brcs<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_break<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_breq<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_brge<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_brhc<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_brhs<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_brid<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_brie<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_brlo<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_brlt<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
     //log::info!("BRLT   = 25. BRLT – Branch if Less Than (Signed)");
@@ -284,6 +305,7 @@ pub fn process_brlt<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usi
     //log::info!("k: {k_val:#b} {k_val:#x} {k_val}");
 }
 
+#[allow(dead_code, unused)]
 pub fn process_brne<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
      //log::info!("BRNE = 27. BRNE – Branch if Not Equal");
@@ -300,38 +322,47 @@ pub fn process_brne<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usi
     //log::info!("k: {k_val:#b} {k_val:#x} {k_val}");
 }
 
+#[allow(dead_code, unused)]
 pub fn process_brmi<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_brpl<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_brsh<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_brtc<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_brts<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_brvc<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_brvs<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_bset<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_bst<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
@@ -369,22 +400,27 @@ pub fn process_call<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usi
     log::info!("{:#02x}: {word:#06x} {k_lo:#06x} call {addr_value:#02x}", *index-4usize);
 }
 
+#[allow(dead_code, unused)]
 pub fn process_cbi<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_cbr<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_clc<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_clh<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_cli<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
      //log::info!("CLI  = 41. CLI – Clear Global Interrupt Flag");
@@ -392,10 +428,12 @@ pub fn process_cli<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usiz
             // 1001 0100 1111 1000
 }
 
+#[allow(dead_code, unused)]
 pub fn process_cln<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_clr<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
     // CLR and EOR are the same thing!
@@ -405,30 +443,37 @@ pub fn process_clr<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usiz
     // all bits in the register.
 }
 
+#[allow(dead_code, unused)]
 pub fn process_cls<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_clt<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_clv<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_clz<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_com<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_cp<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_cpc<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
     //log::info!("CPC   = 50. CPC – Compare with Carry");
@@ -447,6 +492,7 @@ pub fn process_cpc<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usiz
     //log::info!("d: {d_val:#b} {d_val:#x} {d_val}");
 }
 
+#[allow(dead_code, unused)]
 pub fn process_cpi<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
     //log::info!("CPI  = 51. CPI – Compare with Immediate");
@@ -465,30 +511,37 @@ pub fn process_cpi<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usiz
     //log::info!("d: {d_val:#b} {d_val:#x} {d_val}");
 }
 
+#[allow(dead_code, unused)]
 pub fn process_cpse<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_dec<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_des<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_eicall<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_eijmp<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_elpm<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_eor<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
     //log::info!("EOR  = 58. EOR – Exclusive OR");
@@ -507,26 +560,32 @@ pub fn process_eor<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usiz
     log::info!("{:#02x}: {word:#06x} eor r{r_val}, r{d_val}", *index-2usize);
 }
 
+#[allow(dead_code, unused)]
 pub fn process_fmul<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_fmuls<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_fmulsu<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_icall<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_ijmp<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_in<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
     //log::info!("IN   = 64. IN - Load an I/O Location to Register");
@@ -545,6 +604,7 @@ pub fn process_in<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize
     log::info!("{:#02x}: {word:#06x} in r{d_val:#02} {a_val:#02x}", *index-2usize);
 }
 
+#[allow(dead_code, unused)]
 pub fn process_inc<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
@@ -601,30 +661,37 @@ pub fn process_jmp<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usiz
     // log::info!("{:#02x}: {word:#06x} {k_lo:#06x} jmp {:#06x}", index-4, k*2);
 }
 
+#[allow(dead_code, unused)]
 pub fn process_lac<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_las<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_lat<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_ld<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_ld_ldd_y<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_ld_ldd_z<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_ldi<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
     //log::info!("LDI  = 73. LDI – Load Immediate");
@@ -648,50 +715,62 @@ pub fn process_ldi<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usiz
     log::info!("{:#02x}: {word:#06x} ldi r{register:#02}, {k_val:#02x}", *index-2usize);
 }
 
+#[allow(dead_code, unused)]
 pub fn process_lds<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_lds_16bit<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_lpm<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_lsl<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_lsr<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_mov<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_movw<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_mul<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_muls<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_mulsu<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_neg<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_nop<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
     //log::info!("NOP  = 85. NOP – No Operation");
@@ -699,10 +778,12 @@ pub fn process_nop<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usiz
     // 0000 0000 0000 0000
 }
 
+#[allow(dead_code, unused)]
 pub fn process_or<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_ori<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
     //log::info!("ORI  = 87. ORI – Logical OR with Immediate");
@@ -721,6 +802,7 @@ pub fn process_ori<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usiz
     //log::info!("d: {d_val:#b} {d_val:#x} {d_val}");
 }
 
+#[allow(dead_code, unused)]
 pub fn process_out<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
     //log::info!("OUT  = 88. OUT – Store Register to I/O Location");
@@ -739,6 +821,7 @@ pub fn process_out<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usiz
     log::info!("{:#02x}: {word:#06x} out {a_val:#02x}, r{r_val}", *index-2usize);
 }
 
+#[allow(dead_code, unused)]
 pub fn process_pop<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
     //log::info!("POP   = 89. POP – Pop Register from Stack");
@@ -755,6 +838,7 @@ pub fn process_pop<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usiz
     //log::info!("d: {d_val:#b} {d_val:#x} {d_val}");
 }
 
+#[allow(dead_code, unused)]
 pub fn process_push<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
     //log::info!("PUSH  = 90. PUSH – Push Register on Stack");
@@ -773,6 +857,7 @@ pub fn process_push<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usi
     log::info!("{:#02x}: {word:#06x} push r{register:#02}", *index-2usize);
 }
 
+#[allow(dead_code, unused)]
 pub fn process_rcall<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
     //log::info!("RCALL  = 91. RCALL – Relative Call to Subroutine");
@@ -789,6 +874,7 @@ pub fn process_rcall<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut us
     log::info!("{:#02x}: {word:#06x} rcall .+{k_val:#02}", *index-22usize);
 }
 
+#[allow(dead_code, unused)]
 pub fn process_ret<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
     //log::info!("RET   = 92. RET – Return from Subroutine");
@@ -796,10 +882,12 @@ pub fn process_ret<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usiz
     // 1001 0101 0000 1000
 }
 
+#[allow(dead_code, unused)]
 pub fn process_reti<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_rjmp<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
     //log::info!("RJMP = 94. RJMP – Relative Jump");
@@ -816,18 +904,22 @@ pub fn process_rjmp<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usi
     //log::info!("k: {k_val:#b} {k_val:#x} {k_val}");
 }
 
+#[allow(dead_code, unused)]
 pub fn process_rol<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_ror<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_sbc<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_sbci<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
     //log::info!("SBCI = 98. SBCI – Subtract Immediate with Carry SBI – Set Bit in I/O Register");
@@ -846,86 +938,107 @@ pub fn process_sbci<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usi
     //log::info!("d: {d_val:#b} {d_val:#x} {d_val}");
 }
 
+#[allow(dead_code, unused)]
 pub fn process_sbi<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_sbic<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_sbis<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_sbiw<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_sbr<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_sbrc<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_sbrs<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_sec<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_seh<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_sei<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_sen<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_ser<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_ses<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_set<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_sev<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_sez<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_sleep<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_spm<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_spm2<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_st<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_st_std_y_1<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
     log::info!("STD Y (A) = 119. ST (STD) – Store Indirect From Register to Data Space using Index Y");
@@ -942,50 +1055,62 @@ pub fn process_st_std_y_1<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &m
     //log::info!("r: {r_val:#b} {r_val:#x} {r_val}");
 }
 
+#[allow(dead_code, unused)]
 pub fn process_st_std_y_2<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_st_std_y_3<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_st_std_y_4<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_st_std_z_1<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_st_std_z_2<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_st_std_z_3<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_st_std_z_4<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_st_std_z<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_sts<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_sts_16bit<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_sub<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_subi<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
     //log::info!("SUBI = 124. SUBI – Subtract Immediate");
@@ -1004,18 +1129,22 @@ pub fn process_subi<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usi
     //log::info!("d: {d_val:#b} {d_val:#x} {d_val}");
 }
 
+#[allow(dead_code, unused)]
 pub fn process_swap<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_tst<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_wdr<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_xch<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
 }
