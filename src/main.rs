@@ -28,11 +28,6 @@ use crate::instructions::process::*;
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
-pub fn create_label(labels:&mut HashMap<String, usize>, label: String, idx: usize)
-{
-    labels.insert(label, idx);
-}
-
 fn main() -> io::Result<()> {
 
     println!("whatavr starting ...");
@@ -40,6 +35,97 @@ fn main() -> io::Result<()> {
     // logging setup
     init_logging();
     log_start();
+
+    //dissassemble();
+
+    const EXECUTE: bool = true;
+    if EXECUTE {
+
+        // create an application as a vector of instructions (mnemonics)
+        let mut asm_application: Vec<AsmRecord> = Vec::new();
+        application_instruction_source(&mut asm_application);
+
+        // the ihex segment which is filled with source code bytes by the assembler
+        let mut assembler_segment: Segment = Segment::new();
+        assembler_segment.address = 0u16;
+        assembler_segment.size = 0u32;
+
+        // convert the mnemonic instructions into bytes to store into the ihex segment
+        let mut asm_encoder: AsmEncoder = AsmEncoder::new();
+        asm_encoder.assemble(&mut asm_application, &mut assembler_segment);
+        
+        // ATmega328p cpu
+        let mut cpu: CPU = CPU {
+            z: false,
+            sph: 0x00u8,
+            spl: 0x00u8,
+            pc: 0x02i32,
+            register_file: [0; 32usize],
+            sram: [0; RAMEND as usize],
+        };
+
+        // main loop that executes the instruction
+        let done: bool = false;
+        while !done {
+
+            // get the current instruction
+            let temp_pc:i32 = cpu.pc - 0x02;
+
+            // check for end of code
+            if assembler_segment.size <= temp_pc as u32 {
+                log::info!("End of Code reached! Application Finished!");
+                log_end();
+                return Ok(());
+            }
+
+            // execute the next instruction
+            cpu.execute_instruction(&assembler_segment);
+        }
+    }
+
+    log_end();
+
+    Ok(())
+
+}
+
+fn init_logging() {
+    Builder::new()
+        .target(Target::Stdout)
+        .filter_level(LevelFilter::Debug)
+        // https://stackoverflow.com/questions/61810740/log-source-file-and-line-numbers
+        .format(|buf, record| {
+            writeln!(
+                buf,
+                "{}:{} {} [{}] - {}",
+                record.file().unwrap_or("unknown"),
+                record.line().unwrap_or(0),
+                chrono::Local::now().format("%Y-%m-%dT%H:%M:%S"),
+                record.level(),
+                record.args()
+            )
+        })
+        .init();
+}
+
+fn log_start() {
+    log::trace!("Application starts ...");
+    log::debug!("Application starts ...");
+    log::info!("Application starts ...");
+    log::warn!("Application starts ...");
+    log::error!("Application starts ...");
+}
+
+fn log_end() {
+    log::trace!("Application terminates.");
+    log::debug!("Application terminates.");
+    log::info!("Application terminates.");
+    log::warn!("Application terminates.");
+    log::error!("Application terminates.");
+}
+
+#[allow(dead_code, unused)]
+fn dissassemble() -> io::Result<()> {
 
     let hex: bool = false;
     if hex {
@@ -109,150 +195,8 @@ fn main() -> io::Result<()> {
 
                 match_instruction(&instruction, &mut rdr, &word, &mut index, &mut value_storage);
             }
-
         }
     }
-
-    let mut cpu: CPU = CPU {
-        z: false,
-        sph: 0x00u8,
-        spl: 0x00u8,
-        pc: 0x02i32,
-        register_file: [0; 32usize],
-        sram: [0; RAMEND as usize],
-    };
-
-    const EXECUTE: bool = true;
-    if EXECUTE {
-
-        // 1. enter all commands into a list
-        // 2. resolve all macros and insert new entries (created from the resolved macros) into the list
-        // 3. go through the list of all commands when a label is found, insert the label into a map along with the current idx
-        //    but do not encode any command in this phase
-        // 4. got through the list of commands and call encode for each command using the table of resolved labels
-        //    but this time ignore the creation of labels and do not insert the labels int the map any more since they are already resolved in phase 1
-
-        // 1. Add a cycle counter
-
-        // create an application as a vector of instructions
-        let mut asm_records: Vec<AsmRecord> = Vec::new();
-        application_instruction_source(&mut asm_records);
-
-        let mut asm_encoder: AsmEncoder = AsmEncoder::new();
-
-        //
-        // phase 1 - scan for labels
-        //
-
-        let mut idx: usize = 0usize;
-        for rec in asm_records.iter_mut() {
-
-            // assign the current address to the record
-            rec.idx = idx;
-
-            // if a label was specified for the current address,
-            // manage the mapping of the label to the current address
-            if rec.label != "" {
-                create_label(&mut asm_encoder.labels, rec.label.clone(), idx);
-            }
-
-            // advance the address by the actual length of the instruction.
-            // Some instructions are 1 word (2 byte) whereas others are 2 word (4 byte)
-            idx += InstructionType::words(&rec.instruction_type);
-        }
-
-        //
-        // phase 2 - encode (with addresses resolved to labels)
-        //
-
-        // the ihex segment which is filled with source code bytes by the assembler
-        let mut assembler_segment: Segment = Segment::new();
-        assembler_segment.address = 0u16;
-        assembler_segment.size = 0u32;
-        
-        for rec in asm_records.iter() {
-            asm_encoder.encode(&mut assembler_segment, rec);
-        }
-
-        // // initialize the stack
-        // encode_ldi(&mut assembler_segment, &mut idx, 16u16, LOW!(RAMEND));
-        // encode_out(&mut assembler_segment, &mut idx, IoDestination::SPL, 16u16);
-        // encode_ldi(&mut assembler_segment, &mut idx, 16u16, HIGH!(RAMEND));
-        // encode_out(&mut assembler_segment, &mut idx, IoDestination::SPH, 16u16);
-
-        // create_label(&mut labels, String::from("main"), idx); // main:
-        // encode_rjmp(&mut assembler_segment, &mut idx, &labels, &String::from("reset"));  // rjmp reset
-
-        // create_label(&mut labels, String::from("swap"), idx); // swap:
-        // encode_push(&mut assembler_segment, &mut idx, 16u16); // push r18
-        // encode_mov(&mut assembler_segment, &mut idx, 18u16, 16u16); // mov r18, r16
-        // encode_mov(&mut assembler_segment, &mut idx, 16u16, 17u16); // mov r16, r17
-        // encode_mov(&mut assembler_segment, &mut idx, 17u16, 18u16); // mov r17, r18
-        // encode_pop(&mut assembler_segment, &mut idx, 18u16); // pop r18
-        // encode_ret(&mut assembler_segment, &mut idx); // ret
-
-        // create_label(&mut labels, String::from("reset"), idx);  // reset:
-        // encode_ldi(&mut assembler_segment, &mut idx, 18u16, 0x21); // ldi r18, 33d == 0x21
-
-        // encode_ldi(&mut assembler_segment, &mut idx, 16u16, 0x0B); // ldi r16, 11
-        // encode_ldi(&mut assembler_segment, &mut idx, 17u16, 0x16); // ldi r17, 22
-        // encode_rcall(&mut assembler_segment, &mut idx, &labels, &String::from("swap"));
-        // encode_rjmp(&mut assembler_segment, &mut idx, &labels, &String::from("main"));
-
-        let done: bool = false;
-        while !done {
-
-            // get the current instruction
-            let temp_pc:i32 = cpu.pc - 0x02;
-
-            // check for end of code
-            if assembler_segment.size <= temp_pc as u32 {
-                log::info!("End of Code reached! Application Finished!");
-                log_end();
-                return Ok(());
-            }
-
-            cpu.execute_instruction(&assembler_segment);
-        }
-    }
-
-    log_end();
 
     Ok(())
-
-}
-
-fn init_logging() {
-    Builder::new()
-        .target(Target::Stdout)
-        .filter_level(LevelFilter::Debug)
-        // https://stackoverflow.com/questions/61810740/log-source-file-and-line-numbers
-        .format(|buf, record| {
-            writeln!(
-                buf,
-                "{}:{} {} [{}] - {}",
-                record.file().unwrap_or("unknown"),
-                record.line().unwrap_or(0),
-                chrono::Local::now().format("%Y-%m-%dT%H:%M:%S"),
-                record.level(),
-                record.args()
-            )
-        })
-        .init();
-}
-
-fn log_start() {
-    log::trace!("Application starts ...");
-    log::debug!("Application starts ...");
-    log::info!("Application starts ...");
-    log::warn!("Application starts ...");
-    log::error!("Application starts ...");
-}
-
-fn log_end() {
-    log::trace!("Application terminates.");
-    log::debug!("Application terminates.");
-    log::info!("Application terminates.");
-    log::warn!("Application terminates.");
-    log::error!("Application terminates.");
 }

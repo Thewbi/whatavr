@@ -4,6 +4,7 @@ use crate::HashMap;
 
 use super::{instruction_type::InstructionType, instruction_definition::InstructionDefinition};
 
+#[allow(dead_code, unused)]
 pub fn match_instruction<R: crate::io::Read>(instruction: &InstructionDefinition, rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>) {
     
     match instruction.instruction_type {
@@ -367,6 +368,7 @@ pub fn process_bst<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usiz
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_call<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
     //log::info!("CALL = 36. CALL – Long Call to a Subroutine");
@@ -609,6 +611,7 @@ pub fn process_inc<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usiz
 {
 }
 
+#[allow(dead_code, unused)]
 pub fn process_jmp<R: crate::io::Read>(rdr: &mut R, word: &u16, index: &mut usize, value_storage: &mut HashMap<char, u16>)
 {
     log::trace!("JMP  = 66. JMP – Jump");

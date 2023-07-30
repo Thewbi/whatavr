@@ -165,6 +165,35 @@ use super::asm_record::AsmRecord;
 // encode_mov(&mut assembler_segment, &mut idx, 16u16, 17u16);
 
 //
+// Example
+//
+
+// initialize the stack
+// encode_ldi(&mut assembler_segment, &mut idx, 16u16, LOW!(RAMEND));
+// encode_out(&mut assembler_segment, &mut idx, IoDestination::SPL, 16u16);
+// encode_ldi(&mut assembler_segment, &mut idx, 16u16, HIGH!(RAMEND));
+// encode_out(&mut assembler_segment, &mut idx, IoDestination::SPH, 16u16);
+
+// create_label(&mut labels, String::from("main"), idx); // main:
+// encode_rjmp(&mut assembler_segment, &mut idx, &labels, &String::from("reset"));  // rjmp reset
+
+// create_label(&mut labels, String::from("swap"), idx); // swap:
+// encode_push(&mut assembler_segment, &mut idx, 16u16); // push r18
+// encode_mov(&mut assembler_segment, &mut idx, 18u16, 16u16); // mov r18, r16
+// encode_mov(&mut assembler_segment, &mut idx, 16u16, 17u16); // mov r16, r17
+// encode_mov(&mut assembler_segment, &mut idx, 17u16, 18u16); // mov r17, r18
+// encode_pop(&mut assembler_segment, &mut idx, 18u16); // pop r18
+// encode_ret(&mut assembler_segment, &mut idx); // ret
+
+// create_label(&mut labels, String::from("reset"), idx);  // reset:
+// encode_ldi(&mut assembler_segment, &mut idx, 18u16, 0x21); // ldi r18, 33d == 0x21
+
+// encode_ldi(&mut assembler_segment, &mut idx, 16u16, 0x0B); // ldi r16, 11
+// encode_ldi(&mut assembler_segment, &mut idx, 17u16, 0x16); // ldi r17, 22
+// encode_rcall(&mut assembler_segment, &mut idx, &labels, &String::from("swap"));
+// encode_rjmp(&mut assembler_segment, &mut idx, &labels, &String::from("main"));
+
+//
 // Example app
 //
 

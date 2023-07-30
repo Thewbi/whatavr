@@ -40,6 +40,7 @@ impl std::fmt::Display for Segment {
     }
 }
 
+#[allow(dead_code, unused)]
 pub fn parse_hex_file(segments: &mut Vec<Segment>, path: &String) -> Result<String, Box<dyn std::error::Error>>
 {
     log::info!("parse_hex_file() path: {:?} ...", path);

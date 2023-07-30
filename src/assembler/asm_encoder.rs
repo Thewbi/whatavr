@@ -92,6 +92,19 @@ use super::{asm_record::AsmRecord, io_destination::IoDestination};
     }
 }
 
+pub fn create_label(labels:&mut HashMap<String, usize>, label: String, idx: usize)
+{
+    labels.insert(label, idx);
+}
+
+// 1. enter all commands into a list
+// 2. resolve all macros and insert new entries (created from the resolved macros) into the list
+// 3. go through the list of all commands when a label is found, insert the label into a map along with the current idx
+//    but do not encode any command in this phase
+// 4. got through the list of commands and call encode for each command using the table of resolved labels
+//    but this time ignore the creation of labels and do not insert the labels int the map any more since they are already resolved in phase 1
+
+// 1. Add a cycle counter
 pub struct AsmEncoder {
 
     pub labels: HashMap<String, usize>,
@@ -104,6 +117,39 @@ impl AsmEncoder {
 
         AsmEncoder {
             labels: HashMap::new(),
+        }
+
+    }
+
+    pub fn assemble(&mut self, asm_records: &mut Vec<AsmRecord>, segment: &mut Segment)
+    {
+        //
+        // phase 1 - scan for labels
+        //
+
+        let mut idx: usize = 0usize;
+        for rec in asm_records.iter_mut() {
+
+            // assign the current address to the record
+            rec.idx = idx;
+
+            // if a label was specified for the current address,
+            // manage the mapping of the label to the current address
+            if rec.label != "" {
+                create_label(&mut self.labels, rec.label.clone(), idx);
+            }
+
+            // advance the address by the actual length of the instruction.
+            // Some instructions are 1 word (2 byte) whereas others are 2 word (4 byte)
+            idx += InstructionType::words(&rec.instruction_type);
+        }
+
+        //
+        // phase 2 - encode (with addresses resolved to labels)
+        //
+        
+        for rec in asm_records.iter() {
+            self.encode(segment, rec);
         }
 
     }
