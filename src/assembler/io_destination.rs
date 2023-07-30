@@ -24,6 +24,7 @@ impl IoDestination {
     }
 
     pub const fn from_code(code: u16) -> IoDestination {
+        
         match code {
             0x01u16 => IoDestination::SPL,
             0x02u16 => IoDestination::SPH,
