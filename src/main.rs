@@ -28,7 +28,9 @@ use std::rc::Rc;
 
 use crate::assembler::application_file_source::application_file_source;
 use crate::assembler::asm_encoder::AsmEncoder;
+use crate::assembler::asm_record;
 use crate::assembler::asm_record::AsmRecord;
+use crate::assembler::io_destination::IoDestination;
 use crate::cpu::cpu::CPU;
 use crate::cpu::cpu::RAMEND;
 use crate::ihex_mgmt::ihex_mgmt::parse_hex_file;
@@ -112,7 +114,11 @@ fn main() -> io::Result<()> {
 
     //let res = Vec<& str>();
 
-    struct DefaultAssemblerVisitor<'i>(Vec<&'i str>);
+    //let asm_record: AsmRecord;
+
+    //struct DefaultAssemblerVisitor<'i>(Vec<&'i str>);
+
+    struct DefaultAssemblerVisitor<'i>(Vec<&'i str>, AsmRecord);
 
     impl<'i> ParseTreeVisitorCompat<'i> for DefaultAssemblerVisitor<'i> {
 
@@ -147,6 +153,8 @@ fn main() -> io::Result<()> {
             
             if node.symbol.get_token_type() == parser::assemblerparser::ADD {
 
+                self.1.instruction_type = InstructionType::ADD;
+
                 //log::info!("visit_terminal(): ADD found!");
 
                 // if let Cow::Borrowed(s) = node.symbol.text {
@@ -159,6 +167,8 @@ fn main() -> io::Result<()> {
             //vec![]
 
             if node.symbol.get_token_type() == parser::assemblerparser::LDI {
+
+                self.1.instruction_type = InstructionType::LDI;
 
                 //log::info!("visit_terminal(): LDI found!");
 
@@ -175,6 +185,23 @@ fn main() -> io::Result<()> {
             // output_string.push(&node.get_text().clone().as_str());
 
             // return output_string;
+
+            log::info!("{}", node.symbol.text);
+
+            if 0xFF == self.1.reg_1 {
+                if "r16" == &node.symbol.text {
+                    self.1.reg_1 = 16u16;
+                } else if "" != &node.symbol.text && "," != &node.symbol.text && "\r\n" != &node.symbol.text {
+                    self.1.data = node.symbol.text.parse::<u16>().unwrap();
+                }
+            } else if 0xFF == self.1.reg_2 {
+                if "r16" == &node.symbol.text {
+                    self.1.reg_2 = 16u16;
+                } else if "" != &node.symbol.text && "," != &node.symbol.text && "\r\n" != &node.symbol.text {
+                    self.1.data = node.symbol.text.parse::<u16>().unwrap();
+                }
+            }
+            
 
             return vec![&node.symbol.text];
             //return vec![String::from(node.symbol.text)];
@@ -220,7 +247,7 @@ fn main() -> io::Result<()> {
 
             //log::info!("visit_row()");
 
-            self.visit_children(ctx)
+            //self.visit_children(ctx)
 
             // if 1usize <= ctx.get_child_count() {
                 
@@ -234,6 +261,17 @@ fn main() -> io::Result<()> {
             // log::info!("{:?}", children_result);
 
             // children_result
+
+
+
+
+            let children_result = self.visit_children(ctx);
+
+            // log::info!("{:?}", children_result);
+            log::info!("{:?}", self.1);
+
+
+            children_result
 
         }
 
@@ -350,7 +388,8 @@ fn main() -> io::Result<()> {
         }
     }
 
-    let mut visitor = DefaultAssemblerVisitor(Vec::new());
+    let mut visitor = DefaultAssemblerVisitor(Vec::new(), 
+        AsmRecord::new(String::from(""), InstructionType::Unknown, 0xFF, 0xFF, 0, String::from(""), IoDestination::UNKNOWN));
     let visitor_result = visitor.visit(&*root);
 
     // assert_eq!(

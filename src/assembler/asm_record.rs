@@ -3,7 +3,7 @@ use crate::instructions::instruction_type::InstructionType;
 use super::io_destination::IoDestination;
 
 /// This struct is the model for a line in a assembler source code file
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct AsmRecord {
     pub label: String,
 
@@ -22,6 +22,20 @@ pub struct AsmRecord {
 }
 
 impl AsmRecord {
+
+    // pub fn new() -> AsmRecord{
+    //     AsmRecord {
+    //         label: "",
+    //         instruction_type: InstructionType::Unknown,
+    //         reg_1: "",
+    //         reg_2: "",
+    //         data: "",
+    //         target_label: "",
+    //         io_dest: IoDestination::UNKNOWN,
+    //         idx: 0usize,
+    //     }
+    // }
+
     pub fn new(
         label: String,
         instruction_type: InstructionType,
