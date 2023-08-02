@@ -9,11 +9,10 @@ pub type LocalTokenFactory<'input> = antlr_rust::token_factory::ArenaCommonFacto
 asm_file : NEWLINE* row (NEWLINE* row)* NEWLINE* EOF ;
 
 row : 
-    (
-        label_definition?
-        ( instruction ( (IDENTIFIER | expression | asm_intrinsic_usage | macro_placeholder) ( COMMA (IDENTIFIER | expression | asm_intrinsic_usage | macro_placeholder) )? )? )
-    )
-    | 
+    label_definition
+    |
+    instruction ( (IDENTIFIER | expression | asm_intrinsic_usage | macro_placeholder) ( COMMA (IDENTIFIER | expression | asm_intrinsic_usage | macro_placeholder) )? )?
+    |
     asm_instrinsic_instruction
     |
     macro_usage
@@ -138,6 +137,7 @@ NEWLINE : '\r'? '\n' ;
 
 //WS : [ \t\n\r\f]+ -> channel(HIDDEN) ;
 WS : [ \t\n\r\f]+ -> skip  ;
+//WS : [ \t\f]+ -> skip  ;
 
 LINE_COMMENT : ';' ~[\r\n]* -> channel(HIDDEN) ;
 
