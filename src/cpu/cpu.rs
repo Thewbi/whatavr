@@ -527,6 +527,7 @@ impl CPU {
 
         }
 
+        //next steps
         // // check the interrupt queue for a interrupt
         // // but only if the CPU has not executed an interrupt right before.
         // // The CPU has to execute at least one normal instruction before
@@ -548,6 +549,10 @@ impl CPU {
         //     // disable the flag of the periphery specific interrupt in the specific interrupt register
             
         //     // execute the interrupt handler stored in the global interrupt vector at the address of the interrupt
+
+        //     // enable the specific interrupt
+
+        //     // enable the global interrupt flag
 
         // }
     }

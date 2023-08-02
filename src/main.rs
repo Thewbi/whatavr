@@ -3,17 +3,23 @@ mod file_mgmt;
 mod instructions;
 mod cpu;
 mod assembler;
+mod parser;
 
 use std::io;
 use std::io::Write;
 use std::io::Cursor;
 use std::collections::HashMap;
 
+use antlr_rust::InputStream;
+use antlr_rust::common_token_stream::CommonTokenStream;
+use antlr_rust::token_factory::ArenaCommonFactory;
+use antlr_rust::tree::ParseTreeListener;
 use env_logger::{Builder, Target};
 use instructions::instruction_definition::InstructionDefinition;
 use log::LevelFilter;
 
-use crate::assembler::asm_application::application_instruction_source;
+use crate::parser::assemblerlexer;
+use crate::assembler::application_file_source::application_file_source;
 use crate::assembler::asm_encoder::AsmEncoder;
 use crate::assembler::asm_record::AsmRecord;
 use crate::cpu::cpu::CPU;
@@ -25,9 +31,13 @@ use crate::instructions::instruction_type::InstructionType;
 use crate::instructions::instructions::INSTRUCTIONS;
 use crate::instructions::instructions::UNKNOWN;
 use crate::instructions::process::*;
+use crate::parser::assemblerparser::assemblerParserContextType;
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
+// First, build the grammar
+// cargo run --bin build_parser
+// the generated files are placed into src/parser
 fn main() -> io::Result<()> {
 
     println!("whatavr starting ...");
@@ -36,14 +46,60 @@ fn main() -> io::Result<()> {
     init_logging();
     log_start();
 
+    struct Listener {}
+
+    impl<'input> ParseTreeListener<'input, assemblerParserContextType> for Listener {
+        // fn enter_every_rule(&mut self, ctx: &dyn assemblerParserContextType<'input>) {
+        //     println!(
+        //         "rule entered {}",
+        //         csvparser::ruleNames
+        //             .get(ctx.get_rule_index())
+        //             .unwrap_or(&"error")
+        //     )
+        // }
+    }
+
+    //impl<'input> CSVListener<'input> for Listener {}
+
+    println!("test started");
+    let tf = ArenaCommonFactory::default();
+    let mut _lexer =
+        parser::assemblerlexer::assemblerLexer::new_with_token_factory(InputStream::new("V123,V2\nd1,d2\n".into()), &tf);
+    let token_source = CommonTokenStream::new(_lexer);
+    let mut parser = parser::assemblerparser::assemblerParser::new(token_source);
+    //parser.add_parse_listener(Box::new(parser::assemblerlistenerimpl::assemblerListenerImpl{}));
+    
+    parser.add_parse_listener(Box::new(parser::assemblerlistenerimpl::assemblerListenerImpl{}));
+
+    println!("\nstart parsing parser_test_csv");
+    let result = parser.csvFile();
+    assert!(result.is_ok());
+
+    // assert_eq!(
+    //     result.unwrap().to_string_tree(&*parser),
+    //     "(csvFile (hdr (row (field V123) , (field V2) \\n)) (row (field d1) , (field d2) \\n))"
+    // );
+
+
+
     //dissassemble();
 
     const EXECUTE: bool = true;
     if EXECUTE {
 
-        // create an application as a vector of instructions (mnemonics)
+        // vector of instructions
         let mut asm_application: Vec<AsmRecord> = Vec::new();
-        application_instruction_source(&mut asm_application);
+
+        // create an application as a vector of instructions (mnemonics)
+        //application_instruction_source(&mut asm_application);
+
+        let mut asm_file_path:String = String::new();
+        //hex_file_path.push_str("C:/aaa_se/rust/rust_blt_2/test_resources/output_bank1.hex");
+        //hex_file_path.push_str("C:/aaa_se/rust/rust_blt_2/test_resources/output_bank2.hex") {
+        //hex_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/GccApplication1/GccApplication1.hex");
+        asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/asm_1.asm");
+
+        application_file_source(&mut asm_application);
 
         // the ihex segment which is filled with source code bytes by the assembler
         let mut assembler_segment: Segment = Segment::new();

@@ -197,9 +197,8 @@ use super::asm_record::AsmRecord;
 // Example app
 //
 
-//pub fn application_instruction_source(asm_records: &mut Vec<&mut AsmRecord>) {
-pub fn application_instruction_source(asm_records: &mut Vec<AsmRecord>) {
-
+pub fn application_instruction_source(asm_records: &mut Vec<AsmRecord>) 
+{
     // ldi r16, 0xFF
     let asm_record_1:AsmRecord = AsmRecord::new(String::new(), InstructionType::LDI, 16u16, 0, 0xFF, String::new(), IoDestination::UNKNOWN);
     asm_records.push(asm_record_1.clone());
