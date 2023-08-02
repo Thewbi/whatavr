@@ -1,37 +1,41 @@
-mod ihex_mgmt;
-mod file_mgmt;
-mod instructions;
-mod cpu;
 mod assembler;
+mod cpu;
+mod file_mgmt;
+mod ihex_mgmt;
+mod instructions;
 mod parser;
 
-use std::io;
-use std::io::Write;
-use std::io::Cursor;
 use std::collections::HashMap;
+use std::io;
+use std::io::Cursor;
+use std::io::Write;
 
-use antlr_rust::InputStream;
 use antlr_rust::common_token_stream::CommonTokenStream;
 use antlr_rust::token_factory::ArenaCommonFactory;
 use antlr_rust::tree::ParseTreeListener;
+use antlr_rust::InputStream;
 use env_logger::{Builder, Target};
 use instructions::instruction_definition::InstructionDefinition;
 use log::LevelFilter;
 
-use crate::parser::assemblerlexer;
+use std::fs;
+use std::rc::Rc;
+
 use crate::assembler::application_file_source::application_file_source;
 use crate::assembler::asm_encoder::AsmEncoder;
 use crate::assembler::asm_record::AsmRecord;
 use crate::cpu::cpu::CPU;
 use crate::cpu::cpu::RAMEND;
-use crate::ihex_mgmt::ihex_mgmt::Segment;
 use crate::ihex_mgmt::ihex_mgmt::parse_hex_file;
+use crate::ihex_mgmt::ihex_mgmt::Segment;
 use crate::instructions::decode::decode_instruction;
 use crate::instructions::instruction_type::InstructionType;
 use crate::instructions::instructions::INSTRUCTIONS;
 use crate::instructions::instructions::UNKNOWN;
 use crate::instructions::process::*;
 use crate::parser::assemblerparser::assemblerParserContextType;
+use crate::parser::assemblerparser::AsmFileContextAll;
+use antlr_rust::tree::ParseTree;
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
@@ -39,7 +43,6 @@ use byteorder::{LittleEndian, ReadBytesExt};
 // cargo run --bin build_parser
 // the generated files are placed into src/parser
 fn main() -> io::Result<()> {
-
     println!("whatavr starting ...");
 
     // logging setup
@@ -61,39 +64,55 @@ fn main() -> io::Result<()> {
 
     //impl<'input> CSVListener<'input> for Listener {}
 
+    let mut asm_file_path: String = String::new();
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/asm_1.asm");
+    asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/asm_2.asm");
+
+    let data = fs::read_to_string(asm_file_path).expect("Unable to read file");
+    println!("{}", data);
+
+    let input_stream: InputStream<&str> = InputStream::new(data.as_str());
+
     println!("test started");
     let tf = ArenaCommonFactory::default();
-    let mut _lexer =
-        parser::assemblerlexer::assemblerLexer::new_with_token_factory(InputStream::new("V123,V2\nd1,d2\n".into()), &tf);
+    let mut _lexer = parser::assemblerlexer::assemblerLexer::new_with_token_factory(
+        //InputStream::new("V123,V2\nd1,d2\n".into()),
+        input_stream,
+        &tf,
+    );
     let token_source = CommonTokenStream::new(_lexer);
     let mut parser = parser::assemblerparser::assemblerParser::new(token_source);
     //parser.add_parse_listener(Box::new(parser::assemblerlistenerimpl::assemblerListenerImpl{}));
-    
-    parser.add_parse_listener(Box::new(parser::assemblerlistenerimpl::assemblerListenerImpl{}));
 
-    println!("\nstart parsing parser_test_csv");
-    let result = parser.csvFile();
+    parser.add_parse_listener(Box::new(
+        parser::assemblerlistenerimpl::assemblerListenerImpl {},
+    ));
+
+    //println!("start parsing");
+
+    let result = parser.asmFile();
     assert!(result.is_ok());
+
+    let root: Rc<AsmFileContextAll> = result.unwrap();
+
+    println!("string tree: {}", root.to_string_tree(&*parser));
 
     // assert_eq!(
     //     result.unwrap().to_string_tree(&*parser),
     //     "(csvFile (hdr (row (field V123) , (field V2) \\n)) (row (field d1) , (field d2) \\n))"
     // );
 
-
-
     //dissassemble();
 
     const EXECUTE: bool = true;
     if EXECUTE {
-
         // vector of instructions
         let mut asm_application: Vec<AsmRecord> = Vec::new();
 
         // create an application as a vector of instructions (mnemonics)
         //application_instruction_source(&mut asm_application);
 
-        let mut asm_file_path:String = String::new();
+        let mut asm_file_path: String = String::new();
         //hex_file_path.push_str("C:/aaa_se/rust/rust_blt_2/test_resources/output_bank1.hex");
         //hex_file_path.push_str("C:/aaa_se/rust/rust_blt_2/test_resources/output_bank2.hex") {
         //hex_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/GccApplication1/GccApplication1.hex");
@@ -109,7 +128,7 @@ fn main() -> io::Result<()> {
         // convert the mnemonic instructions into bytes to store into the ihex segment
         let mut asm_encoder: AsmEncoder = AsmEncoder::new();
         asm_encoder.assemble(&mut asm_application, &mut assembler_segment);
-        
+
         // ATmega328p cpu
         let mut cpu: CPU = CPU {
             z: false,
@@ -123,9 +142,8 @@ fn main() -> io::Result<()> {
         // main loop that executes the instruction
         let done: bool = false;
         while !done {
-
             // get the current instruction
-            let temp_pc:i32 = cpu.pc - 0x02;
+            let temp_pc: i32 = cpu.pc - 0x02;
 
             // check for end of code
             if assembler_segment.size <= temp_pc as u32 {
@@ -142,7 +160,6 @@ fn main() -> io::Result<()> {
     log_end();
 
     Ok(())
-
 }
 
 fn init_logging() {
@@ -182,11 +199,10 @@ fn log_end() {
 
 #[allow(dead_code, unused)]
 fn dissassemble() -> io::Result<()> {
-
     let hex: bool = false;
     if hex {
         // load hex file
-        let mut hex_file_path:String = String::new();
+        let mut hex_file_path: String = String::new();
         //hex_file_path.push_str("C:/aaa_se/rust/rust_blt_2/test_resources/output_bank1.hex");
         //hex_file_path.push_str("C:/aaa_se/rust/rust_blt_2/test_resources/output_bank2.hex") {
         //hex_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/GccApplication1/GccApplication1.hex");
@@ -200,7 +216,10 @@ fn dissassemble() -> io::Result<()> {
             Ok(_name) => log::info!("File read"),
             Err(err) => {
                 log::error!("An error occured while retrieving the peername: {:?}", err);
-                return Err(std::io::Error::new(std::io::ErrorKind::Other, "Error at load hex file!"));
+                return Err(std::io::Error::new(
+                    std::io::ErrorKind::Other,
+                    "Error at load hex file!",
+                ));
             }
         }
 
@@ -232,24 +251,33 @@ fn dissassemble() -> io::Result<()> {
 
         const DISSASSEMBLE: bool = false;
         if DISSASSEMBLE {
-
             let mut rdr = Cursor::new(&segment_0.data);
-            while index < segment_0.data.len()
-            {
-                let word:u16 = rdr.read_u16::<LittleEndian>().unwrap().into();
+            while index < segment_0.data.len() {
+                let word: u16 = rdr.read_u16::<LittleEndian>().unwrap().into();
                 index += 2;
 
                 log::trace!("word: {:#06x} {:b}", word, word);
 
-                let mut value_storage:HashMap<char, u16> = HashMap::new();
-                let instruction: &InstructionDefinition = decode_instruction(word, INSTRUCTIONS, &UNKNOWN, &mut value_storage);
+                let mut value_storage: HashMap<char, u16> = HashMap::new();
+                let instruction: &InstructionDefinition =
+                    decode_instruction(word, INSTRUCTIONS, &UNKNOWN, &mut value_storage);
 
                 log::info!("instruction {:?}", instruction.instruction_type);
-                if instruction.instruction_type == InstructionType::EOR || instruction.instruction_type == InstructionType::CLR {
-                    log::info!("EOR and CLR similar. CLI is implemented by EOR the register with itself!");
+                if instruction.instruction_type == InstructionType::EOR
+                    || instruction.instruction_type == InstructionType::CLR
+                {
+                    log::info!(
+                        "EOR and CLR similar. CLI is implemented by EOR the register with itself!"
+                    );
                 }
 
-                match_instruction(&instruction, &mut rdr, &word, &mut index, &mut value_storage);
+                match_instruction(
+                    &instruction,
+                    &mut rdr,
+                    &word,
+                    &mut index,
+                    &mut value_storage,
+                );
             }
         }
     }

@@ -7,17 +7,17 @@ use std::io::Write;
 use std::path::Path;
 use std::process::Command;
 
+// clone https://github.com/rrevenantt/antlr4rust/tree/master/tests
+//
 // To run this file: navigate to the folder that contains the .toml file
-// Then execute: 
+// Then execute:
 // cargo run --bin build_parser
 fn main() {
     let grammars = vec![
         //"../parser/assembler",
         "../../src/parser/assembler", // this is the path to the assembler.g4 file relative to the current working directory
     ];
-    let additional_args = vec![
-        Some("-visitor"),
-    ];
+    let additional_args = vec![Some("-visitor")];
     let antlr_path = "../../resources/antlr4/antlr4-4.8-2-SNAPSHOT-complete.jar";
 
     for (grammar, arg) in grammars.into_iter().zip(additional_args) {
@@ -66,5 +66,4 @@ fn gen_for_grammar(
     //println!("cargo:rerun-if-changed=grammars/{}", file_name);
 
     Ok(())
-
 }
