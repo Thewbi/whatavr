@@ -34,7 +34,7 @@ use crate::instructions::instructions::INSTRUCTIONS;
 use crate::instructions::instructions::UNKNOWN;
 use crate::instructions::process::*;
 use crate::parser::assemblerparser::assemblerParserContextType;
-use crate::parser::assemblerparser::AsmFileContextAll;
+use crate::parser::assemblerparser::Asm_fileContextAll;
 use antlr_rust::tree::ParseTree;
 
 use byteorder::{LittleEndian, ReadBytesExt};
@@ -90,10 +90,10 @@ fn main() -> io::Result<()> {
 
     //println!("start parsing");
 
-    let result = parser.asmFile();
+    let result = parser.asm_file();
     assert!(result.is_ok());
 
-    let root: Rc<AsmFileContextAll> = result.unwrap();
+    let root: Rc<Asm_fileContextAll> = result.unwrap();
 
     println!("string tree: {}", root.to_string_tree(&*parser));
 

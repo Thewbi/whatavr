@@ -2,14 +2,13 @@ use antlr_rust::tree::ParseTreeListener;
 
 use super::{
     assemblerlistener::assemblerListener,
-    assemblerparser::{assemblerParserContextType, RowContext},
+    assemblerparser::{assemblerParserContextType, RowContext, Asm_fileContext},
 };
-use crate::parser::assemblerparser::AsmFileContext;
 use crate::parser::assemblerparser::InstructionContext;
 use crate::parser::assemblerparser::Label_definitionContext;
 use crate::parser::assemblerparser::ParameterContext;
-use crate::parser::assemblerparser::Macro_usageContext;
-use crate::parser::assemblerparser::Macro_usageContextAttrs;
+//use crate::parser::assemblerparser::Macro_usageContext;
+//use crate::parser::assemblerparser::Macro_usageContextAttrs;
 
 pub struct assemblerListenerImpl {}
 
@@ -18,12 +17,12 @@ impl<'input> assemblerListener<'input> for assemblerListenerImpl {
      * Enter a parse tree produced by {@link assemblerParser#asmFile}.
      * @param ctx the parse tree
      */
-    fn enter_asmFile(&mut self, _ctx: &AsmFileContext<'input>) {}
+    fn enter_asm_file(&mut self, _ctx: &Asm_fileContext<'input>) {}
     /**
      * Exit a parse tree produced by {@link assemblerParser#asmFile}.
      * @param ctx the parse tree
      */
-    fn exit_asmFile(&mut self, _ctx: &AsmFileContext<'input>) {}
+    fn exit_asm_file(&mut self, _ctx: &Asm_fileContext<'input>) {}
     /**
      * Enter a parse tree produced by {@link assemblerParser#row}.
      * @param ctx the parse tree
@@ -65,14 +64,14 @@ impl<'input> assemblerListener<'input> for assemblerListenerImpl {
      */
     fn exit_instruction(&mut self, _ctx: &InstructionContext<'input>) {}
 
-    /**
-     * Enter a parse tree produced by {@link assemblerParser#macro_usage}.
-     * @param ctx the parse tree
-     */
-    fn enter_macro_usage(&mut self, _ctx: &Macro_usageContext<'input>) { 
-        println!("enter_macro_usage()");
-        println!("Macro_usageContext ident 1: {:?} ident 2: {:?}", _ctx.IDENTIFIER(0), _ctx.IDENTIFIER(1));
-    }
+    // /**
+    //  * Enter a parse tree produced by {@link assemblerParser#macro_usage}.
+    //  * @param ctx the parse tree
+    //  */
+    // fn enter_macro_usage(&mut self, _ctx: &Macro_usageContext<'input>) { 
+    //     println!("enter_macro_usage()");
+    //     println!("Macro_usageContext ident 1: {:?} ident 2: {:?}", _ctx.IDENTIFIER(0), _ctx.IDENTIFIER(1));
+    // }
 
 
 }

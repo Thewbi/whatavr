@@ -6,15 +6,20 @@ grammar assembler;
 pub type LocalTokenFactory<'input> = antlr_rust::token_factory::ArenaCommonFactory<'input>;
 }
 
-asmFile : row* EOF;
+asm_file : row (NEWLINE+ row)* NEWLINE* EOF ;
 
-row : label_definition? (instruction ((parameter | macro_usage) ( COMMA (parameter | macro_usage))? )) ;
+row : 
+    label_definition? 
+    (instruction ( (IDENTIFIER | expression | asm_intrinsic_usage) ( COMMA (IDENTIFIER | expression | asm_intrinsic_usage))? ) ) 
+    ;
 
 label_definition : IDENTIFIER COLON ;
 
-parameter : IDENTIFIER | NUMBER;
+parameter : IDENTIFIER ;
 
-macro_usage :
+expression : NUMBER ;
+
+asm_intrinsic_usage :
     IDENTIFIER OPENING_BRACKET IDENTIFIER CLOSEING_BRACKET
     ;
 
@@ -51,16 +56,33 @@ fragment Z:[zZ];
 
 LDI : L D I ;
 
-OPENING_BRACKET : '(' ;
+ASTERISK : '*';
+
 CLOSEING_BRACKET : ')' ;
 COLON : ':' ;
 COMMA : ',' ;
 
+MINUS : '-';
+
+OPENING_BRACKET : '(' ;
+
+PLUS : '+';
+
+SLASH : '/';
+
+NEWLINE : '\r'? '\n';
+
 WS : [ \t\n\r\f]+ -> channel(HIDDEN) ;
+
+LINE_COMMENT : ';' ~[\r\n]* -> channel(HIDDEN) ;
 
 NUMBER : [0-9]+ ;
 
 IDENTIFIER : [a-zA-Z]([a-zA-Z0-9_])+ ;
+
+
+
+
 
 // TEXT : ~[ ,\n\r"]+ ;
 

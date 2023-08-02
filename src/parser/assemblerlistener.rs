@@ -5,15 +5,15 @@ use super::assemblerparser::*;
 
 pub trait assemblerListener<'input> : ParseTreeListener<'input,assemblerParserContextType>{
 /**
- * Enter a parse tree produced by {@link assemblerParser#asmFile}.
+ * Enter a parse tree produced by {@link assemblerParser#asm_file}.
  * @param ctx the parse tree
  */
-fn enter_asmFile(&mut self, _ctx: &AsmFileContext<'input>) { }
+fn enter_asm_file(&mut self, _ctx: &Asm_fileContext<'input>) { }
 /**
- * Exit a parse tree produced by {@link assemblerParser#asmFile}.
+ * Exit a parse tree produced by {@link assemblerParser#asm_file}.
  * @param ctx the parse tree
  */
-fn exit_asmFile(&mut self, _ctx: &AsmFileContext<'input>) { }
+fn exit_asm_file(&mut self, _ctx: &Asm_fileContext<'input>) { }
 /**
  * Enter a parse tree produced by {@link assemblerParser#row}.
  * @param ctx the parse tree
@@ -45,15 +45,25 @@ fn enter_parameter(&mut self, _ctx: &ParameterContext<'input>) { }
  */
 fn exit_parameter(&mut self, _ctx: &ParameterContext<'input>) { }
 /**
- * Enter a parse tree produced by {@link assemblerParser#macro_usage}.
+ * Enter a parse tree produced by {@link assemblerParser#expression}.
  * @param ctx the parse tree
  */
-fn enter_macro_usage(&mut self, _ctx: &Macro_usageContext<'input>) { }
+fn enter_expression(&mut self, _ctx: &ExpressionContext<'input>) { }
 /**
- * Exit a parse tree produced by {@link assemblerParser#macro_usage}.
+ * Exit a parse tree produced by {@link assemblerParser#expression}.
  * @param ctx the parse tree
  */
-fn exit_macro_usage(&mut self, _ctx: &Macro_usageContext<'input>) { }
+fn exit_expression(&mut self, _ctx: &ExpressionContext<'input>) { }
+/**
+ * Enter a parse tree produced by {@link assemblerParser#asm_intrinsic_usage}.
+ * @param ctx the parse tree
+ */
+fn enter_asm_intrinsic_usage(&mut self, _ctx: &Asm_intrinsic_usageContext<'input>) { }
+/**
+ * Exit a parse tree produced by {@link assemblerParser#asm_intrinsic_usage}.
+ * @param ctx the parse tree
+ */
+fn exit_asm_intrinsic_usage(&mut self, _ctx: &Asm_intrinsic_usageContext<'input>) { }
 /**
  * Enter a parse tree produced by {@link assemblerParser#instruction}.
  * @param ctx the parse tree

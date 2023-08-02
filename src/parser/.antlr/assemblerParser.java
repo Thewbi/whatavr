@@ -16,28 +16,30 @@ public class assemblerParser extends Parser {
 	protected static final PredictionContextCache _sharedContextCache =
 		new PredictionContextCache();
 	public static final int
-		LDI=1, OPENING_BRACKET=2, CLOSEING_BRACKET=3, COLON=4, COMMA=5, WS=6, 
-		NUMBER=7, IDENTIFIER=8;
+		LDI=1, ASTERISK=2, CLOSEING_BRACKET=3, COLON=4, COMMA=5, MINUS=6, OPENING_BRACKET=7, 
+		PLUS=8, SLASH=9, NEWLINE=10, WS=11, LINE_COMMENT=12, NUMBER=13, IDENTIFIER=14;
 	public static final int
-		RULE_asmFile = 0, RULE_row = 1, RULE_label_definition = 2, RULE_parameter = 3, 
-		RULE_macro_usage = 4, RULE_instruction = 5;
+		RULE_asm_file = 0, RULE_row = 1, RULE_label_definition = 2, RULE_parameter = 3, 
+		RULE_expression = 4, RULE_asm_intrinsic_usage = 5, RULE_instruction = 6;
 	private static String[] makeRuleNames() {
 		return new String[] {
-			"asmFile", "row", "label_definition", "parameter", "macro_usage", "instruction"
+			"asm_file", "row", "label_definition", "parameter", "expression", "asm_intrinsic_usage", 
+			"instruction"
 		};
 	}
 	public static final String[] ruleNames = makeRuleNames();
 
 	private static String[] makeLiteralNames() {
 		return new String[] {
-			null, null, "'('", "')'", "':'", "','"
+			null, null, "'*'", "')'", "':'", "','", "'-'", "'('", "'+'", "'/'"
 		};
 	}
 	private static final String[] _LITERAL_NAMES = makeLiteralNames();
 	private static String[] makeSymbolicNames() {
 		return new String[] {
-			null, "LDI", "OPENING_BRACKET", "CLOSEING_BRACKET", "COLON", "COMMA", 
-			"WS", "NUMBER", "IDENTIFIER"
+			null, "LDI", "ASTERISK", "CLOSEING_BRACKET", "COLON", "COMMA", "MINUS", 
+			"OPENING_BRACKET", "PLUS", "SLASH", "NEWLINE", "WS", "LINE_COMMENT", 
+			"NUMBER", "IDENTIFIER"
 		};
 	}
 	private static final String[] _SYMBOLIC_NAMES = makeSymbolicNames();
@@ -91,42 +93,79 @@ public class assemblerParser extends Parser {
 		_interp = new ParserATNSimulator(this,_ATN,_decisionToDFA,_sharedContextCache);
 	}
 
-	public static class AsmFileContext extends ParserRuleContext {
-		public TerminalNode EOF() { return getToken(assemblerParser.EOF, 0); }
+	public static class Asm_fileContext extends ParserRuleContext {
 		public List<RowContext> row() {
 			return getRuleContexts(RowContext.class);
 		}
 		public RowContext row(int i) {
 			return getRuleContext(RowContext.class,i);
 		}
-		public AsmFileContext(ParserRuleContext parent, int invokingState) {
+		public TerminalNode EOF() { return getToken(assemblerParser.EOF, 0); }
+		public List<TerminalNode> NEWLINE() { return getTokens(assemblerParser.NEWLINE); }
+		public TerminalNode NEWLINE(int i) {
+			return getToken(assemblerParser.NEWLINE, i);
+		}
+		public Asm_fileContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
-		@Override public int getRuleIndex() { return RULE_asmFile; }
+		@Override public int getRuleIndex() { return RULE_asm_file; }
 	}
 
-	public final AsmFileContext asmFile() throws RecognitionException {
-		AsmFileContext _localctx = new AsmFileContext(_ctx, getState());
-		enterRule(_localctx, 0, RULE_asmFile);
+	public final Asm_fileContext asm_file() throws RecognitionException {
+		Asm_fileContext _localctx = new Asm_fileContext(_ctx, getState());
+		enterRule(_localctx, 0, RULE_asm_file);
 		int _la;
 		try {
+			int _alt;
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(15);
+			setState(14);
+			row();
+			setState(23);
+			_errHandler.sync(this);
+			_alt = getInterpreter().adaptivePredict(_input,1,_ctx);
+			while ( _alt!=2 && _alt!=org.antlr.v4.runtime.atn.ATN.INVALID_ALT_NUMBER ) {
+				if ( _alt==1 ) {
+					{
+					{
+					setState(16); 
+					_errHandler.sync(this);
+					_la = _input.LA(1);
+					do {
+						{
+						{
+						setState(15);
+						match(NEWLINE);
+						}
+						}
+						setState(18); 
+						_errHandler.sync(this);
+						_la = _input.LA(1);
+					} while ( _la==NEWLINE );
+					setState(20);
+					row();
+					}
+					} 
+				}
+				setState(25);
+				_errHandler.sync(this);
+				_alt = getInterpreter().adaptivePredict(_input,1,_ctx);
+			}
+			setState(29);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			while (_la==LDI || _la==IDENTIFIER) {
+			while (_la==NEWLINE) {
 				{
 				{
-				setState(12);
-				row();
+				setState(26);
+				match(NEWLINE);
 				}
 				}
-				setState(17);
+				setState(31);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			}
-			setState(18);
+			setState(32);
 			match(EOF);
 			}
 		}
@@ -148,17 +187,21 @@ public class assemblerParser extends Parser {
 		public Label_definitionContext label_definition() {
 			return getRuleContext(Label_definitionContext.class,0);
 		}
-		public List<ParameterContext> parameter() {
-			return getRuleContexts(ParameterContext.class);
+		public List<TerminalNode> IDENTIFIER() { return getTokens(assemblerParser.IDENTIFIER); }
+		public TerminalNode IDENTIFIER(int i) {
+			return getToken(assemblerParser.IDENTIFIER, i);
 		}
-		public ParameterContext parameter(int i) {
-			return getRuleContext(ParameterContext.class,i);
+		public List<ExpressionContext> expression() {
+			return getRuleContexts(ExpressionContext.class);
 		}
-		public List<Macro_usageContext> macro_usage() {
-			return getRuleContexts(Macro_usageContext.class);
+		public ExpressionContext expression(int i) {
+			return getRuleContext(ExpressionContext.class,i);
 		}
-		public Macro_usageContext macro_usage(int i) {
-			return getRuleContext(Macro_usageContext.class,i);
+		public List<Asm_intrinsic_usageContext> asm_intrinsic_usage() {
+			return getRuleContexts(Asm_intrinsic_usageContext.class);
+		}
+		public Asm_intrinsic_usageContext asm_intrinsic_usage(int i) {
+			return getRuleContext(Asm_intrinsic_usageContext.class,i);
 		}
 		public TerminalNode COMMA() { return getToken(assemblerParser.COMMA, 0); }
 		public RowContext(ParserRuleContext parent, int invokingState) {
@@ -174,56 +217,68 @@ public class assemblerParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(21);
+			setState(35);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			if (_la==IDENTIFIER) {
 				{
-				setState(20);
+				setState(34);
 				label_definition();
 				}
 			}
 
 			{
-			setState(23);
+			setState(37);
 			instruction();
 			{
-			setState(26);
+			setState(41);
 			_errHandler.sync(this);
-			switch ( getInterpreter().adaptivePredict(_input,2,_ctx) ) {
+			switch ( getInterpreter().adaptivePredict(_input,4,_ctx) ) {
 			case 1:
 				{
-				setState(24);
-				parameter();
+				setState(38);
+				match(IDENTIFIER);
 				}
 				break;
 			case 2:
 				{
-				setState(25);
-				macro_usage();
+				setState(39);
+				expression();
+				}
+				break;
+			case 3:
+				{
+				setState(40);
+				asm_intrinsic_usage();
 				}
 				break;
 			}
-			setState(33);
+			setState(49);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			if (_la==COMMA) {
 				{
-				setState(28);
+				setState(43);
 				match(COMMA);
-				setState(31);
+				setState(47);
 				_errHandler.sync(this);
-				switch ( getInterpreter().adaptivePredict(_input,3,_ctx) ) {
+				switch ( getInterpreter().adaptivePredict(_input,5,_ctx) ) {
 				case 1:
 					{
-					setState(29);
-					parameter();
+					setState(44);
+					match(IDENTIFIER);
 					}
 					break;
 				case 2:
 					{
-					setState(30);
-					macro_usage();
+					setState(45);
+					expression();
+					}
+					break;
+				case 3:
+					{
+					setState(46);
+					asm_intrinsic_usage();
 					}
 					break;
 				}
@@ -260,9 +315,9 @@ public class assemblerParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(35);
+			setState(51);
 			match(IDENTIFIER);
-			setState(36);
+			setState(52);
 			match(COLON);
 			}
 		}
@@ -279,7 +334,6 @@ public class assemblerParser extends Parser {
 
 	public static class ParameterContext extends ParserRuleContext {
 		public TerminalNode IDENTIFIER() { return getToken(assemblerParser.IDENTIFIER, 0); }
-		public TerminalNode NUMBER() { return getToken(assemblerParser.NUMBER, 0); }
 		public ParameterContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -289,20 +343,11 @@ public class assemblerParser extends Parser {
 	public final ParameterContext parameter() throws RecognitionException {
 		ParameterContext _localctx = new ParameterContext(_ctx, getState());
 		enterRule(_localctx, 6, RULE_parameter);
-		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(38);
-			_la = _input.LA(1);
-			if ( !(_la==NUMBER || _la==IDENTIFIER) ) {
-			_errHandler.recoverInline(this);
-			}
-			else {
-				if ( _input.LA(1)==Token.EOF ) matchedEOF = true;
-				_errHandler.reportMatch(this);
-				consume();
-			}
+			setState(54);
+			match(IDENTIFIER);
 			}
 		}
 		catch (RecognitionException re) {
@@ -316,32 +361,61 @@ public class assemblerParser extends Parser {
 		return _localctx;
 	}
 
-	public static class Macro_usageContext extends ParserRuleContext {
+	public static class ExpressionContext extends ParserRuleContext {
+		public TerminalNode NUMBER() { return getToken(assemblerParser.NUMBER, 0); }
+		public ExpressionContext(ParserRuleContext parent, int invokingState) {
+			super(parent, invokingState);
+		}
+		@Override public int getRuleIndex() { return RULE_expression; }
+	}
+
+	public final ExpressionContext expression() throws RecognitionException {
+		ExpressionContext _localctx = new ExpressionContext(_ctx, getState());
+		enterRule(_localctx, 8, RULE_expression);
+		try {
+			enterOuterAlt(_localctx, 1);
+			{
+			setState(56);
+			match(NUMBER);
+			}
+		}
+		catch (RecognitionException re) {
+			_localctx.exception = re;
+			_errHandler.reportError(this, re);
+			_errHandler.recover(this, re);
+		}
+		finally {
+			exitRule();
+		}
+		return _localctx;
+	}
+
+	public static class Asm_intrinsic_usageContext extends ParserRuleContext {
 		public List<TerminalNode> IDENTIFIER() { return getTokens(assemblerParser.IDENTIFIER); }
 		public TerminalNode IDENTIFIER(int i) {
 			return getToken(assemblerParser.IDENTIFIER, i);
 		}
 		public TerminalNode OPENING_BRACKET() { return getToken(assemblerParser.OPENING_BRACKET, 0); }
 		public TerminalNode CLOSEING_BRACKET() { return getToken(assemblerParser.CLOSEING_BRACKET, 0); }
-		public Macro_usageContext(ParserRuleContext parent, int invokingState) {
+		public Asm_intrinsic_usageContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
-		@Override public int getRuleIndex() { return RULE_macro_usage; }
+		@Override public int getRuleIndex() { return RULE_asm_intrinsic_usage; }
 	}
 
-	public final Macro_usageContext macro_usage() throws RecognitionException {
-		Macro_usageContext _localctx = new Macro_usageContext(_ctx, getState());
-		enterRule(_localctx, 8, RULE_macro_usage);
+	public final Asm_intrinsic_usageContext asm_intrinsic_usage() throws RecognitionException {
+		Asm_intrinsic_usageContext _localctx = new Asm_intrinsic_usageContext(_ctx, getState());
+		enterRule(_localctx, 10, RULE_asm_intrinsic_usage);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(40);
+			setState(58);
 			match(IDENTIFIER);
-			setState(41);
+			setState(59);
 			match(OPENING_BRACKET);
-			setState(42);
+			setState(60);
 			match(IDENTIFIER);
-			setState(43);
+			setState(61);
 			match(CLOSEING_BRACKET);
 			}
 		}
@@ -366,11 +440,11 @@ public class assemblerParser extends Parser {
 
 	public final InstructionContext instruction() throws RecognitionException {
 		InstructionContext _localctx = new InstructionContext(_ctx, getState());
-		enterRule(_localctx, 10, RULE_instruction);
+		enterRule(_localctx, 12, RULE_instruction);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(45);
+			setState(63);
 			match(LDI);
 			}
 		}
@@ -386,19 +460,24 @@ public class assemblerParser extends Parser {
 	}
 
 	public static final String _serializedATN =
-		"\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3\n\62\4\2\t\2\4\3"+
-		"\t\3\4\4\t\4\4\5\t\5\4\6\t\6\4\7\t\7\3\2\7\2\20\n\2\f\2\16\2\23\13\2\3"+
-		"\2\3\2\3\3\5\3\30\n\3\3\3\3\3\3\3\5\3\35\n\3\3\3\3\3\3\3\5\3\"\n\3\5\3"+
-		"$\n\3\3\4\3\4\3\4\3\5\3\5\3\6\3\6\3\6\3\6\3\6\3\7\3\7\3\7\2\2\b\2\4\6"+
-		"\b\n\f\2\3\3\2\t\n\2\60\2\21\3\2\2\2\4\27\3\2\2\2\6%\3\2\2\2\b(\3\2\2"+
-		"\2\n*\3\2\2\2\f/\3\2\2\2\16\20\5\4\3\2\17\16\3\2\2\2\20\23\3\2\2\2\21"+
-		"\17\3\2\2\2\21\22\3\2\2\2\22\24\3\2\2\2\23\21\3\2\2\2\24\25\7\2\2\3\25"+
-		"\3\3\2\2\2\26\30\5\6\4\2\27\26\3\2\2\2\27\30\3\2\2\2\30\31\3\2\2\2\31"+
-		"\34\5\f\7\2\32\35\5\b\5\2\33\35\5\n\6\2\34\32\3\2\2\2\34\33\3\2\2\2\35"+
-		"#\3\2\2\2\36!\7\7\2\2\37\"\5\b\5\2 \"\5\n\6\2!\37\3\2\2\2! \3\2\2\2\""+
-		"$\3\2\2\2#\36\3\2\2\2#$\3\2\2\2$\5\3\2\2\2%&\7\n\2\2&\'\7\6\2\2\'\7\3"+
-		"\2\2\2()\t\2\2\2)\t\3\2\2\2*+\7\n\2\2+,\7\4\2\2,-\7\n\2\2-.\7\5\2\2.\13"+
-		"\3\2\2\2/\60\7\3\2\2\60\r\3\2\2\2\7\21\27\34!#";
+		"\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3\20D\4\2\t\2\4\3\t"+
+		"\3\4\4\t\4\4\5\t\5\4\6\t\6\4\7\t\7\4\b\t\b\3\2\3\2\6\2\23\n\2\r\2\16\2"+
+		"\24\3\2\7\2\30\n\2\f\2\16\2\33\13\2\3\2\7\2\36\n\2\f\2\16\2!\13\2\3\2"+
+		"\3\2\3\3\5\3&\n\3\3\3\3\3\3\3\3\3\5\3,\n\3\3\3\3\3\3\3\3\3\5\3\62\n\3"+
+		"\5\3\64\n\3\3\4\3\4\3\4\3\5\3\5\3\6\3\6\3\7\3\7\3\7\3\7\3\7\3\b\3\b\3"+
+		"\b\2\2\t\2\4\6\b\n\f\16\2\2\2E\2\20\3\2\2\2\4%\3\2\2\2\6\65\3\2\2\2\b"+
+		"8\3\2\2\2\n:\3\2\2\2\f<\3\2\2\2\16A\3\2\2\2\20\31\5\4\3\2\21\23\7\f\2"+
+		"\2\22\21\3\2\2\2\23\24\3\2\2\2\24\22\3\2\2\2\24\25\3\2\2\2\25\26\3\2\2"+
+		"\2\26\30\5\4\3\2\27\22\3\2\2\2\30\33\3\2\2\2\31\27\3\2\2\2\31\32\3\2\2"+
+		"\2\32\37\3\2\2\2\33\31\3\2\2\2\34\36\7\f\2\2\35\34\3\2\2\2\36!\3\2\2\2"+
+		"\37\35\3\2\2\2\37 \3\2\2\2 \"\3\2\2\2!\37\3\2\2\2\"#\7\2\2\3#\3\3\2\2"+
+		"\2$&\5\6\4\2%$\3\2\2\2%&\3\2\2\2&\'\3\2\2\2\'+\5\16\b\2(,\7\20\2\2),\5"+
+		"\n\6\2*,\5\f\7\2+(\3\2\2\2+)\3\2\2\2+*\3\2\2\2,\63\3\2\2\2-\61\7\7\2\2"+
+		".\62\7\20\2\2/\62\5\n\6\2\60\62\5\f\7\2\61.\3\2\2\2\61/\3\2\2\2\61\60"+
+		"\3\2\2\2\62\64\3\2\2\2\63-\3\2\2\2\63\64\3\2\2\2\64\5\3\2\2\2\65\66\7"+
+		"\20\2\2\66\67\7\6\2\2\67\7\3\2\2\289\7\20\2\29\t\3\2\2\2:;\7\17\2\2;\13"+
+		"\3\2\2\2<=\7\20\2\2=>\7\t\2\2>?\7\20\2\2?@\7\5\2\2@\r\3\2\2\2AB\7\3\2"+
+		"\2B\17\3\2\2\2\t\24\31\37%+\61\63";
 	public static final ATN _ATN =
 		new ATNDeserializer().deserialize(_serializedATN.toCharArray());
 	static {

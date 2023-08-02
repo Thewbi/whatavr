@@ -40,30 +40,40 @@ use std::borrow::{Borrow,BorrowMut};
 use std::any::{Any,TypeId};
 
 		pub const LDI:isize=1; 
-		pub const OPENING_BRACKET:isize=2; 
+		pub const ASTERISK:isize=2; 
 		pub const CLOSEING_BRACKET:isize=3; 
 		pub const COLON:isize=4; 
 		pub const COMMA:isize=5; 
-		pub const WS:isize=6; 
-		pub const NUMBER:isize=7; 
-		pub const IDENTIFIER:isize=8;
-	pub const RULE_asmFile:usize = 0; 
+		pub const MINUS:isize=6; 
+		pub const OPENING_BRACKET:isize=7; 
+		pub const PLUS:isize=8; 
+		pub const SLASH:isize=9; 
+		pub const NEWLINE:isize=10; 
+		pub const WS:isize=11; 
+		pub const LINE_COMMENT:isize=12; 
+		pub const NUMBER:isize=13; 
+		pub const IDENTIFIER:isize=14;
+	pub const RULE_asm_file:usize = 0; 
 	pub const RULE_row:usize = 1; 
 	pub const RULE_label_definition:usize = 2; 
 	pub const RULE_parameter:usize = 3; 
-	pub const RULE_macro_usage:usize = 4; 
-	pub const RULE_instruction:usize = 5;
-	pub const ruleNames: [&'static str; 6] =  [
-		"asmFile", "row", "label_definition", "parameter", "macro_usage", "instruction"
+	pub const RULE_expression:usize = 4; 
+	pub const RULE_asm_intrinsic_usage:usize = 5; 
+	pub const RULE_instruction:usize = 6;
+	pub const ruleNames: [&'static str; 7] =  [
+		"asm_file", "row", "label_definition", "parameter", "expression", "asm_intrinsic_usage", 
+		"instruction"
 	];
 
 
-	pub const _LITERAL_NAMES: [Option<&'static str>;6] = [
-		None, None, Some("'('"), Some("')'"), Some("':'"), Some("','")
+	pub const _LITERAL_NAMES: [Option<&'static str>;10] = [
+		None, None, Some("'*'"), Some("')'"), Some("':'"), Some("','"), Some("'-'"), 
+		Some("'('"), Some("'+'"), Some("'/'")
 	];
-	pub const _SYMBOLIC_NAMES: [Option<&'static str>;9]  = [
-		None, Some("LDI"), Some("OPENING_BRACKET"), Some("CLOSEING_BRACKET"), 
-		Some("COLON"), Some("COMMA"), Some("WS"), Some("NUMBER"), Some("IDENTIFIER")
+	pub const _SYMBOLIC_NAMES: [Option<&'static str>;15]  = [
+		None, Some("LDI"), Some("ASTERISK"), Some("CLOSEING_BRACKET"), Some("COLON"), 
+		Some("COMMA"), Some("MINUS"), Some("OPENING_BRACKET"), Some("PLUS"), Some("SLASH"), 
+		Some("NEWLINE"), Some("WS"), Some("LINE_COMMENT"), Some("NUMBER"), Some("IDENTIFIER")
 	];
 	lazy_static!{
 	    static ref _shared_context_cache: Arc<PredictionContextCache> = Arc::new(PredictionContextCache::new());
@@ -223,107 +233,154 @@ impl<'input,I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'i
 
    	fn get_vocabulary(&self) -> &dyn Vocabulary { &**VOCABULARY }
 }
-//------------------- asmFile ----------------
-pub type AsmFileContextAll<'input> = AsmFileContext<'input>;
+//------------------- asm_file ----------------
+pub type Asm_fileContextAll<'input> = Asm_fileContext<'input>;
 
 
-pub type AsmFileContext<'input> = BaseParserRuleContext<'input,AsmFileContextExt<'input>>;
+pub type Asm_fileContext<'input> = BaseParserRuleContext<'input,Asm_fileContextExt<'input>>;
 
 #[derive(Clone)]
-pub struct AsmFileContextExt<'input>{
+pub struct Asm_fileContextExt<'input>{
 ph:PhantomData<&'input str>
 }
 
-impl<'input> assemblerParserContext<'input> for AsmFileContext<'input>{}
+impl<'input> assemblerParserContext<'input> for Asm_fileContext<'input>{}
 
-impl<'input,'a> Listenable<dyn assemblerListener<'input> + 'a> for AsmFileContext<'input>{
+impl<'input,'a> Listenable<dyn assemblerListener<'input> + 'a> for Asm_fileContext<'input>{
 		fn enter(&self,listener: &mut (dyn assemblerListener<'input> + 'a)) {
 			listener.enter_every_rule(self);
-			listener.enter_asmFile(self);
+			listener.enter_asm_file(self);
 		}
 		fn exit(&self,listener: &mut (dyn assemblerListener<'input> + 'a)) {
-			listener.exit_asmFile(self);
+			listener.exit_asm_file(self);
 			listener.exit_every_rule(self);
 		}
 }
 
-impl<'input,'a> Visitable<dyn assemblerVisitor<'input> + 'a> for AsmFileContext<'input>{
+impl<'input,'a> Visitable<dyn assemblerVisitor<'input> + 'a> for Asm_fileContext<'input>{
 	fn accept(&self,visitor: &mut (dyn assemblerVisitor<'input> + 'a)) {
-		visitor.visit_asmFile(self);
+		visitor.visit_asm_file(self);
 	}
 }
 
-impl<'input> CustomRuleContext<'input> for AsmFileContextExt<'input>{
+impl<'input> CustomRuleContext<'input> for Asm_fileContextExt<'input>{
 	type TF = LocalTokenFactory<'input>;
 	type Ctx = assemblerParserContextType;
-	fn get_rule_index(&self) -> usize { RULE_asmFile }
-	//fn type_rule_index() -> usize where Self: Sized { RULE_asmFile }
+	fn get_rule_index(&self) -> usize { RULE_asm_file }
+	//fn type_rule_index() -> usize where Self: Sized { RULE_asm_file }
 }
-antlr_rust::tid!{AsmFileContextExt<'a>}
+antlr_rust::tid!{Asm_fileContextExt<'a>}
 
-impl<'input> AsmFileContextExt<'input>{
-	fn new(parent: Option<Rc<dyn assemblerParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<AsmFileContextAll<'input>> {
+impl<'input> Asm_fileContextExt<'input>{
+	fn new(parent: Option<Rc<dyn assemblerParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Asm_fileContextAll<'input>> {
 		Rc::new(
-			BaseParserRuleContext::new_parser_ctx(parent, invoking_state,AsmFileContextExt{
+			BaseParserRuleContext::new_parser_ctx(parent, invoking_state,Asm_fileContextExt{
 				ph:PhantomData
 			}),
 		)
 	}
 }
 
-pub trait AsmFileContextAttrs<'input>: assemblerParserContext<'input> + BorrowMut<AsmFileContextExt<'input>>{
+pub trait Asm_fileContextAttrs<'input>: assemblerParserContext<'input> + BorrowMut<Asm_fileContextExt<'input>>{
 
-/// Retrieves first TerminalNode corresponding to token EOF
-/// Returns `None` if there is no child corresponding to token EOF
-fn EOF(&self) -> Option<Rc<TerminalNode<'input,assemblerParserContextType>>> where Self:Sized{
-	self.get_token(EOF, 0)
-}
 fn row_all(&self) ->  Vec<Rc<RowContextAll<'input>>> where Self:Sized{
 	self.children_of_type()
 }
 fn row(&self, i: usize) -> Option<Rc<RowContextAll<'input>>> where Self:Sized{
 	self.child_of_type(i)
 }
+/// Retrieves first TerminalNode corresponding to token EOF
+/// Returns `None` if there is no child corresponding to token EOF
+fn EOF(&self) -> Option<Rc<TerminalNode<'input,assemblerParserContextType>>> where Self:Sized{
+	self.get_token(EOF, 0)
+}
+/// Retrieves all `TerminalNode`s corresponding to token NEWLINE in current rule
+fn NEWLINE_all(&self) -> Vec<Rc<TerminalNode<'input,assemblerParserContextType>>>  where Self:Sized{
+	self.children_of_type()
+}
+/// Retrieves 'i's TerminalNode corresponding to token NEWLINE, starting from 0.
+/// Returns `None` if number of children corresponding to token NEWLINE is less or equal than `i`.
+fn NEWLINE(&self, i: usize) -> Option<Rc<TerminalNode<'input,assemblerParserContextType>>> where Self:Sized{
+	self.get_token(NEWLINE, i)
+}
 
 }
 
-impl<'input> AsmFileContextAttrs<'input> for AsmFileContext<'input>{}
+impl<'input> Asm_fileContextAttrs<'input> for Asm_fileContext<'input>{}
 
 impl<'input, I, H> assemblerParser<'input, I, H>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
     H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
-	pub fn asmFile(&mut self,)
-	-> Result<Rc<AsmFileContextAll<'input>>,ANTLRError> {
+	pub fn asm_file(&mut self,)
+	-> Result<Rc<Asm_fileContextAll<'input>>,ANTLRError> {
 		let mut recog = self;
 		let _parentctx = recog.ctx.take();
-		let mut _localctx = AsmFileContextExt::new(_parentctx.clone(), recog.base.get_state());
-        recog.base.enter_rule(_localctx.clone(), 0, RULE_asmFile);
-        let mut _localctx: Rc<AsmFileContextAll> = _localctx;
+		let mut _localctx = Asm_fileContextExt::new(_parentctx.clone(), recog.base.get_state());
+        recog.base.enter_rule(_localctx.clone(), 0, RULE_asm_file);
+        let mut _localctx: Rc<Asm_fileContextAll> = _localctx;
 		let mut _la: isize = -1;
 		let result: Result<(), ANTLRError> = (|| {
 
+			let mut _alt: isize;
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
 			{
-			recog.base.set_state(15);
+			/*InvokeRule row*/
+			recog.base.set_state(14);
+			recog.row()?;
+
+			recog.base.set_state(23);
+			recog.err_handler.sync(&mut recog.base)?;
+			_alt = recog.interpreter.adaptive_predict(1,&mut recog.base)?;
+			while { _alt!=2 && _alt!=INVALID_ALT } {
+				if _alt==1 {
+					{
+					{
+					recog.base.set_state(16); 
+					recog.err_handler.sync(&mut recog.base)?;
+					_la = recog.base.input.la(1);
+					loop {
+						{
+						{
+						recog.base.set_state(15);
+						recog.base.match_token(NEWLINE,&mut recog.err_handler)?;
+
+						}
+						}
+						recog.base.set_state(18); 
+						recog.err_handler.sync(&mut recog.base)?;
+						_la = recog.base.input.la(1);
+						if !(_la==NEWLINE) {break}
+					}
+					/*InvokeRule row*/
+					recog.base.set_state(20);
+					recog.row()?;
+
+					}
+					} 
+				}
+				recog.base.set_state(25);
+				recog.err_handler.sync(&mut recog.base)?;
+				_alt = recog.interpreter.adaptive_predict(1,&mut recog.base)?;
+			}
+			recog.base.set_state(29);
 			recog.err_handler.sync(&mut recog.base)?;
 			_la = recog.base.input.la(1);
-			while _la==LDI || _la==IDENTIFIER {
+			while _la==NEWLINE {
 				{
 				{
-				/*InvokeRule row*/
-				recog.base.set_state(12);
-				recog.row()?;
+				recog.base.set_state(26);
+				recog.base.match_token(NEWLINE,&mut recog.err_handler)?;
 
 				}
 				}
-				recog.base.set_state(17);
+				recog.base.set_state(31);
 				recog.err_handler.sync(&mut recog.base)?;
 				_la = recog.base.input.la(1);
 			}
-			recog.base.set_state(18);
+			recog.base.set_state(32);
 			recog.base.match_token(EOF,&mut recog.err_handler)?;
 
 			}
@@ -399,16 +456,25 @@ fn instruction(&self) -> Option<Rc<InstructionContextAll<'input>>> where Self:Si
 fn label_definition(&self) -> Option<Rc<Label_definitionContextAll<'input>>> where Self:Sized{
 	self.child_of_type(0)
 }
-fn parameter_all(&self) ->  Vec<Rc<ParameterContextAll<'input>>> where Self:Sized{
+/// Retrieves all `TerminalNode`s corresponding to token IDENTIFIER in current rule
+fn IDENTIFIER_all(&self) -> Vec<Rc<TerminalNode<'input,assemblerParserContextType>>>  where Self:Sized{
 	self.children_of_type()
 }
-fn parameter(&self, i: usize) -> Option<Rc<ParameterContextAll<'input>>> where Self:Sized{
+/// Retrieves 'i's TerminalNode corresponding to token IDENTIFIER, starting from 0.
+/// Returns `None` if number of children corresponding to token IDENTIFIER is less or equal than `i`.
+fn IDENTIFIER(&self, i: usize) -> Option<Rc<TerminalNode<'input,assemblerParserContextType>>> where Self:Sized{
+	self.get_token(IDENTIFIER, i)
+}
+fn expression_all(&self) ->  Vec<Rc<ExpressionContextAll<'input>>> where Self:Sized{
+	self.children_of_type()
+}
+fn expression(&self, i: usize) -> Option<Rc<ExpressionContextAll<'input>>> where Self:Sized{
 	self.child_of_type(i)
 }
-fn macro_usage_all(&self) ->  Vec<Rc<Macro_usageContextAll<'input>>> where Self:Sized{
+fn asm_intrinsic_usage_all(&self) ->  Vec<Rc<Asm_intrinsic_usageContextAll<'input>>> where Self:Sized{
 	self.children_of_type()
 }
-fn macro_usage(&self, i: usize) -> Option<Rc<Macro_usageContextAll<'input>>> where Self:Sized{
+fn asm_intrinsic_usage(&self, i: usize) -> Option<Rc<Asm_intrinsic_usageContextAll<'input>>> where Self:Sized{
 	self.child_of_type(i)
 }
 /// Retrieves first TerminalNode corresponding to token COMMA
@@ -439,13 +505,13 @@ where
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
 			{
-			recog.base.set_state(21);
+			recog.base.set_state(35);
 			recog.err_handler.sync(&mut recog.base)?;
 			_la = recog.base.input.la(1);
 			if _la==IDENTIFIER {
 				{
 				/*InvokeRule label_definition*/
-				recog.base.set_state(20);
+				recog.base.set_state(34);
 				recog.label_definition()?;
 
 				}
@@ -453,58 +519,74 @@ where
 
 			{
 			/*InvokeRule instruction*/
-			recog.base.set_state(23);
+			recog.base.set_state(37);
 			recog.instruction()?;
 
 			{
-			recog.base.set_state(26);
+			recog.base.set_state(41);
 			recog.err_handler.sync(&mut recog.base)?;
-			match  recog.interpreter.adaptive_predict(2,&mut recog.base)? {
+			match  recog.interpreter.adaptive_predict(4,&mut recog.base)? {
 				1 =>{
 					{
-					/*InvokeRule parameter*/
-					recog.base.set_state(24);
-					recog.parameter()?;
+					recog.base.set_state(38);
+					recog.base.match_token(IDENTIFIER,&mut recog.err_handler)?;
 
 					}
 				}
 			,
 				2 =>{
 					{
-					/*InvokeRule macro_usage*/
-					recog.base.set_state(25);
-					recog.macro_usage()?;
+					/*InvokeRule expression*/
+					recog.base.set_state(39);
+					recog.expression()?;
+
+					}
+				}
+			,
+				3 =>{
+					{
+					/*InvokeRule asm_intrinsic_usage*/
+					recog.base.set_state(40);
+					recog.asm_intrinsic_usage()?;
 
 					}
 				}
 
 				_ => {}
 			}
-			recog.base.set_state(33);
+			recog.base.set_state(49);
 			recog.err_handler.sync(&mut recog.base)?;
 			_la = recog.base.input.la(1);
 			if _la==COMMA {
 				{
-				recog.base.set_state(28);
+				recog.base.set_state(43);
 				recog.base.match_token(COMMA,&mut recog.err_handler)?;
 
-				recog.base.set_state(31);
+				recog.base.set_state(47);
 				recog.err_handler.sync(&mut recog.base)?;
-				match  recog.interpreter.adaptive_predict(3,&mut recog.base)? {
+				match  recog.interpreter.adaptive_predict(5,&mut recog.base)? {
 					1 =>{
 						{
-						/*InvokeRule parameter*/
-						recog.base.set_state(29);
-						recog.parameter()?;
+						recog.base.set_state(44);
+						recog.base.match_token(IDENTIFIER,&mut recog.err_handler)?;
 
 						}
 					}
 				,
 					2 =>{
 						{
-						/*InvokeRule macro_usage*/
-						recog.base.set_state(30);
-						recog.macro_usage()?;
+						/*InvokeRule expression*/
+						recog.base.set_state(45);
+						recog.expression()?;
+
+						}
+					}
+				,
+					3 =>{
+						{
+						/*InvokeRule asm_intrinsic_usage*/
+						recog.base.set_state(46);
+						recog.asm_intrinsic_usage()?;
 
 						}
 					}
@@ -615,10 +697,10 @@ where
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
 			{
-			recog.base.set_state(35);
+			recog.base.set_state(51);
 			recog.base.match_token(IDENTIFIER,&mut recog.err_handler)?;
 
-			recog.base.set_state(36);
+			recog.base.set_state(52);
 			recog.base.match_token(COLON,&mut recog.err_handler)?;
 
 			}
@@ -693,11 +775,6 @@ pub trait ParameterContextAttrs<'input>: assemblerParserContext<'input> + Borrow
 fn IDENTIFIER(&self) -> Option<Rc<TerminalNode<'input,assemblerParserContextType>>> where Self:Sized{
 	self.get_token(IDENTIFIER, 0)
 }
-/// Retrieves first TerminalNode corresponding to token NUMBER
-/// Returns `None` if there is no child corresponding to token NUMBER
-fn NUMBER(&self) -> Option<Rc<TerminalNode<'input,assemblerParserContextType>>> where Self:Sized{
-	self.get_token(NUMBER, 0)
-}
 
 }
 
@@ -715,23 +792,14 @@ where
 		let mut _localctx = ParameterContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 6, RULE_parameter);
         let mut _localctx: Rc<ParameterContextAll> = _localctx;
-		let mut _la: isize = -1;
 		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
 			{
-			recog.base.set_state(38);
-			_la = recog.base.input.la(1);
-			if { !(_la==NUMBER || _la==IDENTIFIER) } {
-				recog.err_handler.recover_inline(&mut recog.base)?;
+			recog.base.set_state(54);
+			recog.base.match_token(IDENTIFIER,&mut recog.err_handler)?;
 
-			}
-			else {
-				if  recog.base.input.la(1)==TOKEN_EOF { recog.base.matched_eof = true };
-				recog.err_handler.report_match(&mut recog.base);
-				recog.base.consume(&mut recog.err_handler);
-			}
 			}
 			Ok(())
 		})();
@@ -749,55 +817,152 @@ where
 		Ok(_localctx)
 	}
 }
-//------------------- macro_usage ----------------
-pub type Macro_usageContextAll<'input> = Macro_usageContext<'input>;
+//------------------- expression ----------------
+pub type ExpressionContextAll<'input> = ExpressionContext<'input>;
 
 
-pub type Macro_usageContext<'input> = BaseParserRuleContext<'input,Macro_usageContextExt<'input>>;
+pub type ExpressionContext<'input> = BaseParserRuleContext<'input,ExpressionContextExt<'input>>;
 
 #[derive(Clone)]
-pub struct Macro_usageContextExt<'input>{
+pub struct ExpressionContextExt<'input>{
 ph:PhantomData<&'input str>
 }
 
-impl<'input> assemblerParserContext<'input> for Macro_usageContext<'input>{}
+impl<'input> assemblerParserContext<'input> for ExpressionContext<'input>{}
 
-impl<'input,'a> Listenable<dyn assemblerListener<'input> + 'a> for Macro_usageContext<'input>{
+impl<'input,'a> Listenable<dyn assemblerListener<'input> + 'a> for ExpressionContext<'input>{
 		fn enter(&self,listener: &mut (dyn assemblerListener<'input> + 'a)) {
 			listener.enter_every_rule(self);
-			listener.enter_macro_usage(self);
+			listener.enter_expression(self);
 		}
 		fn exit(&self,listener: &mut (dyn assemblerListener<'input> + 'a)) {
-			listener.exit_macro_usage(self);
+			listener.exit_expression(self);
 			listener.exit_every_rule(self);
 		}
 }
 
-impl<'input,'a> Visitable<dyn assemblerVisitor<'input> + 'a> for Macro_usageContext<'input>{
+impl<'input,'a> Visitable<dyn assemblerVisitor<'input> + 'a> for ExpressionContext<'input>{
 	fn accept(&self,visitor: &mut (dyn assemblerVisitor<'input> + 'a)) {
-		visitor.visit_macro_usage(self);
+		visitor.visit_expression(self);
 	}
 }
 
-impl<'input> CustomRuleContext<'input> for Macro_usageContextExt<'input>{
+impl<'input> CustomRuleContext<'input> for ExpressionContextExt<'input>{
 	type TF = LocalTokenFactory<'input>;
 	type Ctx = assemblerParserContextType;
-	fn get_rule_index(&self) -> usize { RULE_macro_usage }
-	//fn type_rule_index() -> usize where Self: Sized { RULE_macro_usage }
+	fn get_rule_index(&self) -> usize { RULE_expression }
+	//fn type_rule_index() -> usize where Self: Sized { RULE_expression }
 }
-antlr_rust::tid!{Macro_usageContextExt<'a>}
+antlr_rust::tid!{ExpressionContextExt<'a>}
 
-impl<'input> Macro_usageContextExt<'input>{
-	fn new(parent: Option<Rc<dyn assemblerParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Macro_usageContextAll<'input>> {
+impl<'input> ExpressionContextExt<'input>{
+	fn new(parent: Option<Rc<dyn assemblerParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<ExpressionContextAll<'input>> {
 		Rc::new(
-			BaseParserRuleContext::new_parser_ctx(parent, invoking_state,Macro_usageContextExt{
+			BaseParserRuleContext::new_parser_ctx(parent, invoking_state,ExpressionContextExt{
 				ph:PhantomData
 			}),
 		)
 	}
 }
 
-pub trait Macro_usageContextAttrs<'input>: assemblerParserContext<'input> + BorrowMut<Macro_usageContextExt<'input>>{
+pub trait ExpressionContextAttrs<'input>: assemblerParserContext<'input> + BorrowMut<ExpressionContextExt<'input>>{
+
+/// Retrieves first TerminalNode corresponding to token NUMBER
+/// Returns `None` if there is no child corresponding to token NUMBER
+fn NUMBER(&self) -> Option<Rc<TerminalNode<'input,assemblerParserContextType>>> where Self:Sized{
+	self.get_token(NUMBER, 0)
+}
+
+}
+
+impl<'input> ExpressionContextAttrs<'input> for ExpressionContext<'input>{}
+
+impl<'input, I, H> assemblerParser<'input, I, H>
+where
+    I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
+    H: ErrorStrategy<'input,BaseParserType<'input,I>>
+{
+	pub fn expression(&mut self,)
+	-> Result<Rc<ExpressionContextAll<'input>>,ANTLRError> {
+		let mut recog = self;
+		let _parentctx = recog.ctx.take();
+		let mut _localctx = ExpressionContextExt::new(_parentctx.clone(), recog.base.get_state());
+        recog.base.enter_rule(_localctx.clone(), 8, RULE_expression);
+        let mut _localctx: Rc<ExpressionContextAll> = _localctx;
+		let result: Result<(), ANTLRError> = (|| {
+
+			//recog.base.enter_outer_alt(_localctx.clone(), 1);
+			recog.base.enter_outer_alt(None, 1);
+			{
+			recog.base.set_state(56);
+			recog.base.match_token(NUMBER,&mut recog.err_handler)?;
+
+			}
+			Ok(())
+		})();
+		match result {
+		Ok(_)=>{},
+        Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
+		Err(ref re) => {
+				//_localctx.exception = re;
+				recog.err_handler.report_error(&mut recog.base, re);
+				recog.err_handler.recover(&mut recog.base, re)?;
+			}
+		}
+		recog.base.exit_rule();
+
+		Ok(_localctx)
+	}
+}
+//------------------- asm_intrinsic_usage ----------------
+pub type Asm_intrinsic_usageContextAll<'input> = Asm_intrinsic_usageContext<'input>;
+
+
+pub type Asm_intrinsic_usageContext<'input> = BaseParserRuleContext<'input,Asm_intrinsic_usageContextExt<'input>>;
+
+#[derive(Clone)]
+pub struct Asm_intrinsic_usageContextExt<'input>{
+ph:PhantomData<&'input str>
+}
+
+impl<'input> assemblerParserContext<'input> for Asm_intrinsic_usageContext<'input>{}
+
+impl<'input,'a> Listenable<dyn assemblerListener<'input> + 'a> for Asm_intrinsic_usageContext<'input>{
+		fn enter(&self,listener: &mut (dyn assemblerListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_asm_intrinsic_usage(self);
+		}
+		fn exit(&self,listener: &mut (dyn assemblerListener<'input> + 'a)) {
+			listener.exit_asm_intrinsic_usage(self);
+			listener.exit_every_rule(self);
+		}
+}
+
+impl<'input,'a> Visitable<dyn assemblerVisitor<'input> + 'a> for Asm_intrinsic_usageContext<'input>{
+	fn accept(&self,visitor: &mut (dyn assemblerVisitor<'input> + 'a)) {
+		visitor.visit_asm_intrinsic_usage(self);
+	}
+}
+
+impl<'input> CustomRuleContext<'input> for Asm_intrinsic_usageContextExt<'input>{
+	type TF = LocalTokenFactory<'input>;
+	type Ctx = assemblerParserContextType;
+	fn get_rule_index(&self) -> usize { RULE_asm_intrinsic_usage }
+	//fn type_rule_index() -> usize where Self: Sized { RULE_asm_intrinsic_usage }
+}
+antlr_rust::tid!{Asm_intrinsic_usageContextExt<'a>}
+
+impl<'input> Asm_intrinsic_usageContextExt<'input>{
+	fn new(parent: Option<Rc<dyn assemblerParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Asm_intrinsic_usageContextAll<'input>> {
+		Rc::new(
+			BaseParserRuleContext::new_parser_ctx(parent, invoking_state,Asm_intrinsic_usageContextExt{
+				ph:PhantomData
+			}),
+		)
+	}
+}
+
+pub trait Asm_intrinsic_usageContextAttrs<'input>: assemblerParserContext<'input> + BorrowMut<Asm_intrinsic_usageContextExt<'input>>{
 
 /// Retrieves all `TerminalNode`s corresponding to token IDENTIFIER in current rule
 fn IDENTIFIER_all(&self) -> Vec<Rc<TerminalNode<'input,assemblerParserContextType>>>  where Self:Sized{
@@ -821,35 +986,35 @@ fn CLOSEING_BRACKET(&self) -> Option<Rc<TerminalNode<'input,assemblerParserConte
 
 }
 
-impl<'input> Macro_usageContextAttrs<'input> for Macro_usageContext<'input>{}
+impl<'input> Asm_intrinsic_usageContextAttrs<'input> for Asm_intrinsic_usageContext<'input>{}
 
 impl<'input, I, H> assemblerParser<'input, I, H>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
     H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
-	pub fn macro_usage(&mut self,)
-	-> Result<Rc<Macro_usageContextAll<'input>>,ANTLRError> {
+	pub fn asm_intrinsic_usage(&mut self,)
+	-> Result<Rc<Asm_intrinsic_usageContextAll<'input>>,ANTLRError> {
 		let mut recog = self;
 		let _parentctx = recog.ctx.take();
-		let mut _localctx = Macro_usageContextExt::new(_parentctx.clone(), recog.base.get_state());
-        recog.base.enter_rule(_localctx.clone(), 8, RULE_macro_usage);
-        let mut _localctx: Rc<Macro_usageContextAll> = _localctx;
+		let mut _localctx = Asm_intrinsic_usageContextExt::new(_parentctx.clone(), recog.base.get_state());
+        recog.base.enter_rule(_localctx.clone(), 10, RULE_asm_intrinsic_usage);
+        let mut _localctx: Rc<Asm_intrinsic_usageContextAll> = _localctx;
 		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
 			{
-			recog.base.set_state(40);
+			recog.base.set_state(58);
 			recog.base.match_token(IDENTIFIER,&mut recog.err_handler)?;
 
-			recog.base.set_state(41);
+			recog.base.set_state(59);
 			recog.base.match_token(OPENING_BRACKET,&mut recog.err_handler)?;
 
-			recog.base.set_state(42);
+			recog.base.set_state(60);
 			recog.base.match_token(IDENTIFIER,&mut recog.err_handler)?;
 
-			recog.base.set_state(43);
+			recog.base.set_state(61);
 			recog.base.match_token(CLOSEING_BRACKET,&mut recog.err_handler)?;
 
 			}
@@ -939,14 +1104,14 @@ where
 		let mut recog = self;
 		let _parentctx = recog.ctx.take();
 		let mut _localctx = InstructionContextExt::new(_parentctx.clone(), recog.base.get_state());
-        recog.base.enter_rule(_localctx.clone(), 10, RULE_instruction);
+        recog.base.enter_rule(_localctx.clone(), 12, RULE_instruction);
         let mut _localctx: Rc<InstructionContextAll> = _localctx;
 		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
 			{
-			recog.base.set_state(45);
+			recog.base.set_state(63);
 			recog.base.match_token(LDI,&mut recog.err_handler)?;
 
 			}
@@ -988,27 +1153,36 @@ lazy_static! {
 
 const _serializedATN:&'static str =
 	"\x03\u{608b}\u{a72a}\u{8133}\u{b9ed}\u{417c}\u{3be7}\u{7786}\u{5964}\x03\
-	\x0a\x32\x04\x02\x09\x02\x04\x03\x09\x03\x04\x04\x09\x04\x04\x05\x09\x05\
-	\x04\x06\x09\x06\x04\x07\x09\x07\x03\x02\x07\x02\x10\x0a\x02\x0c\x02\x0e\
-	\x02\x13\x0b\x02\x03\x02\x03\x02\x03\x03\x05\x03\x18\x0a\x03\x03\x03\x03\
-	\x03\x03\x03\x05\x03\x1d\x0a\x03\x03\x03\x03\x03\x03\x03\x05\x03\x22\x0a\
-	\x03\x05\x03\x24\x0a\x03\x03\x04\x03\x04\x03\x04\x03\x05\x03\x05\x03\x06\
-	\x03\x06\x03\x06\x03\x06\x03\x06\x03\x07\x03\x07\x03\x07\x02\x02\x08\x02\
-	\x04\x06\x08\x0a\x0c\x02\x03\x03\x02\x09\x0a\x02\x30\x02\x11\x03\x02\x02\
-	\x02\x04\x17\x03\x02\x02\x02\x06\x25\x03\x02\x02\x02\x08\x28\x03\x02\x02\
-	\x02\x0a\x2a\x03\x02\x02\x02\x0c\x2f\x03\x02\x02\x02\x0e\x10\x05\x04\x03\
-	\x02\x0f\x0e\x03\x02\x02\x02\x10\x13\x03\x02\x02\x02\x11\x0f\x03\x02\x02\
-	\x02\x11\x12\x03\x02\x02\x02\x12\x14\x03\x02\x02\x02\x13\x11\x03\x02\x02\
-	\x02\x14\x15\x07\x02\x02\x03\x15\x03\x03\x02\x02\x02\x16\x18\x05\x06\x04\
-	\x02\x17\x16\x03\x02\x02\x02\x17\x18\x03\x02\x02\x02\x18\x19\x03\x02\x02\
-	\x02\x19\x1c\x05\x0c\x07\x02\x1a\x1d\x05\x08\x05\x02\x1b\x1d\x05\x0a\x06\
-	\x02\x1c\x1a\x03\x02\x02\x02\x1c\x1b\x03\x02\x02\x02\x1d\x23\x03\x02\x02\
-	\x02\x1e\x21\x07\x07\x02\x02\x1f\x22\x05\x08\x05\x02\x20\x22\x05\x0a\x06\
-	\x02\x21\x1f\x03\x02\x02\x02\x21\x20\x03\x02\x02\x02\x22\x24\x03\x02\x02\
-	\x02\x23\x1e\x03\x02\x02\x02\x23\x24\x03\x02\x02\x02\x24\x05\x03\x02\x02\
-	\x02\x25\x26\x07\x0a\x02\x02\x26\x27\x07\x06\x02\x02\x27\x07\x03\x02\x02\
-	\x02\x28\x29\x09\x02\x02\x02\x29\x09\x03\x02\x02\x02\x2a\x2b\x07\x0a\x02\
-	\x02\x2b\x2c\x07\x04\x02\x02\x2c\x2d\x07\x0a\x02\x02\x2d\x2e\x07\x05\x02\
-	\x02\x2e\x0b\x03\x02\x02\x02\x2f\x30\x07\x03\x02\x02\x30\x0d\x03\x02\x02\
-	\x02\x07\x11\x17\x1c\x21\x23";
+	\x10\x44\x04\x02\x09\x02\x04\x03\x09\x03\x04\x04\x09\x04\x04\x05\x09\x05\
+	\x04\x06\x09\x06\x04\x07\x09\x07\x04\x08\x09\x08\x03\x02\x03\x02\x06\x02\
+	\x13\x0a\x02\x0d\x02\x0e\x02\x14\x03\x02\x07\x02\x18\x0a\x02\x0c\x02\x0e\
+	\x02\x1b\x0b\x02\x03\x02\x07\x02\x1e\x0a\x02\x0c\x02\x0e\x02\x21\x0b\x02\
+	\x03\x02\x03\x02\x03\x03\x05\x03\x26\x0a\x03\x03\x03\x03\x03\x03\x03\x03\
+	\x03\x05\x03\x2c\x0a\x03\x03\x03\x03\x03\x03\x03\x03\x03\x05\x03\x32\x0a\
+	\x03\x05\x03\x34\x0a\x03\x03\x04\x03\x04\x03\x04\x03\x05\x03\x05\x03\x06\
+	\x03\x06\x03\x07\x03\x07\x03\x07\x03\x07\x03\x07\x03\x08\x03\x08\x03\x08\
+	\x02\x02\x09\x02\x04\x06\x08\x0a\x0c\x0e\x02\x02\x02\x45\x02\x10\x03\x02\
+	\x02\x02\x04\x25\x03\x02\x02\x02\x06\x35\x03\x02\x02\x02\x08\x38\x03\x02\
+	\x02\x02\x0a\x3a\x03\x02\x02\x02\x0c\x3c\x03\x02\x02\x02\x0e\x41\x03\x02\
+	\x02\x02\x10\x19\x05\x04\x03\x02\x11\x13\x07\x0c\x02\x02\x12\x11\x03\x02\
+	\x02\x02\x13\x14\x03\x02\x02\x02\x14\x12\x03\x02\x02\x02\x14\x15\x03\x02\
+	\x02\x02\x15\x16\x03\x02\x02\x02\x16\x18\x05\x04\x03\x02\x17\x12\x03\x02\
+	\x02\x02\x18\x1b\x03\x02\x02\x02\x19\x17\x03\x02\x02\x02\x19\x1a\x03\x02\
+	\x02\x02\x1a\x1f\x03\x02\x02\x02\x1b\x19\x03\x02\x02\x02\x1c\x1e\x07\x0c\
+	\x02\x02\x1d\x1c\x03\x02\x02\x02\x1e\x21\x03\x02\x02\x02\x1f\x1d\x03\x02\
+	\x02\x02\x1f\x20\x03\x02\x02\x02\x20\x22\x03\x02\x02\x02\x21\x1f\x03\x02\
+	\x02\x02\x22\x23\x07\x02\x02\x03\x23\x03\x03\x02\x02\x02\x24\x26\x05\x06\
+	\x04\x02\x25\x24\x03\x02\x02\x02\x25\x26\x03\x02\x02\x02\x26\x27\x03\x02\
+	\x02\x02\x27\x2b\x05\x0e\x08\x02\x28\x2c\x07\x10\x02\x02\x29\x2c\x05\x0a\
+	\x06\x02\x2a\x2c\x05\x0c\x07\x02\x2b\x28\x03\x02\x02\x02\x2b\x29\x03\x02\
+	\x02\x02\x2b\x2a\x03\x02\x02\x02\x2c\x33\x03\x02\x02\x02\x2d\x31\x07\x07\
+	\x02\x02\x2e\x32\x07\x10\x02\x02\x2f\x32\x05\x0a\x06\x02\x30\x32\x05\x0c\
+	\x07\x02\x31\x2e\x03\x02\x02\x02\x31\x2f\x03\x02\x02\x02\x31\x30\x03\x02\
+	\x02\x02\x32\x34\x03\x02\x02\x02\x33\x2d\x03\x02\x02\x02\x33\x34\x03\x02\
+	\x02\x02\x34\x05\x03\x02\x02\x02\x35\x36\x07\x10\x02\x02\x36\x37\x07\x06\
+	\x02\x02\x37\x07\x03\x02\x02\x02\x38\x39\x07\x10\x02\x02\x39\x09\x03\x02\
+	\x02\x02\x3a\x3b\x07\x0f\x02\x02\x3b\x0b\x03\x02\x02\x02\x3c\x3d\x07\x10\
+	\x02\x02\x3d\x3e\x07\x09\x02\x02\x3e\x3f\x07\x10\x02\x02\x3f\x40\x07\x05\
+	\x02\x02\x40\x0d\x03\x02\x02\x02\x41\x42\x07\x03\x02\x02\x42\x0f\x03\x02\
+	\x02\x02\x09\x14\x19\x1f\x25\x2b\x31\x33";
 
