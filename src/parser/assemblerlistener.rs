@@ -55,6 +55,16 @@ fn enter_expression(&mut self, _ctx: &ExpressionContext<'input>) { }
  */
 fn exit_expression(&mut self, _ctx: &ExpressionContext<'input>) { }
 /**
+ * Enter a parse tree produced by {@link assemblerParser#asm_instrinsic_instruction}.
+ * @param ctx the parse tree
+ */
+fn enter_asm_instrinsic_instruction(&mut self, _ctx: &Asm_instrinsic_instructionContext<'input>) { }
+/**
+ * Exit a parse tree produced by {@link assemblerParser#asm_instrinsic_instruction}.
+ * @param ctx the parse tree
+ */
+fn exit_asm_instrinsic_instruction(&mut self, _ctx: &Asm_instrinsic_instructionContext<'input>) { }
+/**
  * Enter a parse tree produced by {@link assemblerParser#asm_intrinsic_usage}.
  * @param ctx the parse tree
  */

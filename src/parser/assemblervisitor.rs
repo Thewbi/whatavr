@@ -39,6 +39,12 @@ pub trait assemblerVisitor<'input>: ParseTreeVisitor<'input,assemblerParserConte
 	fn visit_expression(&mut self, ctx: &ExpressionContext<'input>) { self.visit_children(ctx) }
 
 	/**
+	 * Visit a parse tree produced by {@link assemblerParser#asm_instrinsic_instruction}.
+	 * @param ctx the parse tree
+	 */
+	fn visit_asm_instrinsic_instruction(&mut self, ctx: &Asm_instrinsic_instructionContext<'input>) { self.visit_children(ctx) }
+
+	/**
 	 * Visit a parse tree produced by {@link assemblerParser#asm_intrinsic_usage}.
 	 * @param ctx the parse tree
 	 */
@@ -94,6 +100,14 @@ pub trait assemblerVisitorCompat<'input>:ParseTreeVisitorCompat<'input, Node= as
 		}
 
 	/**
+	 * Visit a parse tree produced by {@link assemblerParser#asm_instrinsic_instruction}.
+	 * @param ctx the parse tree
+	 */
+		fn visit_asm_instrinsic_instruction(&mut self, ctx: &Asm_instrinsic_instructionContext<'input>) -> Self::Return {
+			self.visit_children(ctx)
+		}
+
+	/**
 	 * Visit a parse tree produced by {@link assemblerParser#asm_intrinsic_usage}.
 	 * @param ctx the parse tree
 	 */
@@ -137,6 +151,11 @@ where
 
 	fn visit_expression(&mut self, ctx: &ExpressionContext<'input>){
 		let result = <Self as assemblerVisitorCompat>::visit_expression(self, ctx);
+        *<Self as ParseTreeVisitorCompat>::temp_result(self) = result;
+	}
+
+	fn visit_asm_instrinsic_instruction(&mut self, ctx: &Asm_instrinsic_instructionContext<'input>){
+		let result = <Self as assemblerVisitorCompat>::visit_asm_instrinsic_instruction(self, ctx);
         *<Self as ParseTreeVisitorCompat>::temp_result(self) = result;
 	}
 
