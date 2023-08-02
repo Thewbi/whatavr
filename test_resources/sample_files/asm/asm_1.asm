@@ -1,10 +1,10 @@
-ldi	r16, LOW(RAMEND)		; load low byte of RAMEND into r16
-out	SPL, r16			; store r16 in stack pointer low
-ldi	r16, HIGH(RAMEND)	; load high byte of RAMEND into r16
-out	SPH, r16			; store r16 in stack pointer high
-push	r0			; push r0 to the stack
-pop	r0			; restore r0 from stack
-push	r0			; push contents of r0 to stack
+	ldi	r16, LOW(RAMEND)		; load low byte of RAMEND into r16
+	out	SPL, r16			; store r16 in stack pointer low
+	ldi	r16, HIGH(RAMEND)	; load high byte of RAMEND into r16
+	out	SPH, r16			; store r16 in stack pointer high
+	push	r0			; push r0 to the stack
+	pop	r0			; restore r0 from stack
+	push	r0			; push contents of r0 to stack
 	push	r1			; push contents of r1 to stack
 	push	r2			; push contents of r2 to stack
 
@@ -19,7 +19,7 @@ push	r0			; push contents of r0 to stack
 
 	pop	r16			; restore r16 (result = 0x02)
 	pop	r17			; restore r17 (result = 0x01)
-    ldi	r16,0x01		; load r16 with 0x01
+	ldi	r16,0x01		; load r16 with 0x01
 	ldi	r17,0x02		; load r17 with 0x02
 
 	call	addReg			; call subroutine
@@ -45,8 +45,7 @@ doSomething:
 
 	ret				; return from subroutine
 
-
-    .include "m328pdef.inc"
+	.include "m328pdef.inc"
 	.include "delayMacro.inc"
 
 	.def	mask 	= r16		; mask register
@@ -88,10 +87,12 @@ start:	eor	ledR,mask		; toggle PINB0 in led register
 	pop	r18
 	.endmacro
 
-    .macro	setStack
+ 	.macro	setStack
 	.if @0>RAMEND
 	.error "Value greater than RAMEND used for setting stack"
 	.else
+	ldi	@1
+	ldi	LOW(@0)
 	ldi	@1,LOW(@0)
 	out	SPL,@1
 	ldi	@1,LOW(@0)

@@ -21,6 +21,12 @@ pub trait assemblerVisitor<'input>: ParseTreeVisitor<'input,assemblerParserConte
 	fn visit_row(&mut self, ctx: &RowContext<'input>) { self.visit_children(ctx) }
 
 	/**
+	 * Visit a parse tree produced by {@link assemblerParser#macro_usage}.
+	 * @param ctx the parse tree
+	 */
+	fn visit_macro_usage(&mut self, ctx: &Macro_usageContext<'input>) { self.visit_children(ctx) }
+
+	/**
 	 * Visit a parse tree produced by {@link assemblerParser#label_definition}.
 	 * @param ctx the parse tree
 	 */
@@ -31,6 +37,12 @@ pub trait assemblerVisitor<'input>: ParseTreeVisitor<'input,assemblerParserConte
 	 * @param ctx the parse tree
 	 */
 	fn visit_parameter(&mut self, ctx: &ParameterContext<'input>) { self.visit_children(ctx) }
+
+	/**
+	 * Visit a parse tree produced by {@link assemblerParser#macro_placeholder}.
+	 * @param ctx the parse tree
+	 */
+	fn visit_macro_placeholder(&mut self, ctx: &Macro_placeholderContext<'input>) { self.visit_children(ctx) }
 
 	/**
 	 * Visit a parse tree produced by {@link assemblerParser#expression}.
@@ -76,6 +88,14 @@ pub trait assemblerVisitorCompat<'input>:ParseTreeVisitorCompat<'input, Node= as
 		}
 
 	/**
+	 * Visit a parse tree produced by {@link assemblerParser#macro_usage}.
+	 * @param ctx the parse tree
+	 */
+		fn visit_macro_usage(&mut self, ctx: &Macro_usageContext<'input>) -> Self::Return {
+			self.visit_children(ctx)
+		}
+
+	/**
 	 * Visit a parse tree produced by {@link assemblerParser#label_definition}.
 	 * @param ctx the parse tree
 	 */
@@ -88,6 +108,14 @@ pub trait assemblerVisitorCompat<'input>:ParseTreeVisitorCompat<'input, Node= as
 	 * @param ctx the parse tree
 	 */
 		fn visit_parameter(&mut self, ctx: &ParameterContext<'input>) -> Self::Return {
+			self.visit_children(ctx)
+		}
+
+	/**
+	 * Visit a parse tree produced by {@link assemblerParser#macro_placeholder}.
+	 * @param ctx the parse tree
+	 */
+		fn visit_macro_placeholder(&mut self, ctx: &Macro_placeholderContext<'input>) -> Self::Return {
 			self.visit_children(ctx)
 		}
 
@@ -139,6 +167,11 @@ where
         *<Self as ParseTreeVisitorCompat>::temp_result(self) = result;
 	}
 
+	fn visit_macro_usage(&mut self, ctx: &Macro_usageContext<'input>){
+		let result = <Self as assemblerVisitorCompat>::visit_macro_usage(self, ctx);
+        *<Self as ParseTreeVisitorCompat>::temp_result(self) = result;
+	}
+
 	fn visit_label_definition(&mut self, ctx: &Label_definitionContext<'input>){
 		let result = <Self as assemblerVisitorCompat>::visit_label_definition(self, ctx);
         *<Self as ParseTreeVisitorCompat>::temp_result(self) = result;
@@ -146,6 +179,11 @@ where
 
 	fn visit_parameter(&mut self, ctx: &ParameterContext<'input>){
 		let result = <Self as assemblerVisitorCompat>::visit_parameter(self, ctx);
+        *<Self as ParseTreeVisitorCompat>::temp_result(self) = result;
+	}
+
+	fn visit_macro_placeholder(&mut self, ctx: &Macro_placeholderContext<'input>){
+		let result = <Self as assemblerVisitorCompat>::visit_macro_placeholder(self, ctx);
         *<Self as ParseTreeVisitorCompat>::temp_result(self) = result;
 	}
 

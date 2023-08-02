@@ -10,18 +10,44 @@ asm_file : NEWLINE* row (NEWLINE* row)* NEWLINE* EOF ;
 
 row : 
     (
-        label_definition? 
-        ( instruction ( (IDENTIFIER | expression | asm_intrinsic_usage) ( COMMA (IDENTIFIER | expression | asm_intrinsic_usage))? ) )
+        label_definition?
+        ( instruction ( (IDENTIFIER | expression | asm_intrinsic_usage | macro_placeholder) ( COMMA (IDENTIFIER | expression | asm_intrinsic_usage | macro_placeholder) )? )? )
     )
     | 
     asm_instrinsic_instruction
+    |
+    macro_usage
     ;
+
+macro_usage : IDENTIFIER ( expression )* ;
 
 label_definition : IDENTIFIER COLON ;
 
 parameter : IDENTIFIER ;
 
-expression : NUMBER | HEX_NUMBER ;
+macro_placeholder : AT NUMBER ;
+
+expression : 
+    NUMBER 
+    | 
+    HEX_NUMBER
+    |
+    IDENTIFIER
+    |
+    macro_placeholder
+    |
+    OPENING_BRACKET expression CLOSEING_BRACKET
+    |
+    expression LEFT_SHIFT expression
+    |
+    expression RIGHT_SHIFT expression
+    |
+    expression SLASH expression
+    |
+    expression GT expression
+    |
+    expression LT expression
+    ;
 
 asm_instrinsic_instruction :
     DOT ( 
@@ -40,11 +66,27 @@ asm_instrinsic_instruction :
     ;
 
 asm_intrinsic_usage :
-    IDENTIFIER OPENING_BRACKET IDENTIFIER CLOSEING_BRACKET
+    IDENTIFIER OPENING_BRACKET (IDENTIFIER | macro_placeholder) CLOSEING_BRACKET
     ;
 
 instruction :
+    ADD
+    |
+    CALL
+    | CLR
+    |
+    EOR
+    |
     LDI
+    |
+    OUT
+    |
+    POP
+    | PUSH
+    |
+    RCALL
+    | RET
+    | RJMP
     ;
 
 fragment A:[aA];
@@ -74,13 +116,35 @@ fragment X:[xX];
 fragment Y:[yY];
 fragment Z:[zZ];
 
+ADD : A D D ;
+
+CALL : C A L L ;
+CLR : C L R ;
+
+EOR : E O R ;
+
 LDI : L D I ;
+
+OUT : O U T ;
+
+POP : P O P ;
+PUSH : P U S H ;
+
+RCALL : R C A L L ;
+RET : R E T ;
+RJMP : R J M P ;
+
+NEWLINE : '\r'? '\n' ;
+
+//WS : [ \t\n\r\f]+ -> channel(HIDDEN) ;
+WS : [ \t\n\r\f]+ -> skip  ;
 
 LINE_COMMENT : ';' ~[\r\n]* -> channel(HIDDEN) ;
 
 STRING : '"' ('""'|~'"')* '"' ; // quote-quote is an escaped quote
 
-ASTERISK : '*';
+ASTERISK : '*' ;
+AT : '@' ;
 
 CLOSEING_BRACKET : ')' ;
 COLON : ':' ;
@@ -97,8 +161,13 @@ EQUALS : '=' ;
 EQU : 'equ' ;
 ERROR : 'error' ;
 
+GT : '>' ;
+
 IF : 'if' ;
 INCLUDE : 'include' ;
+
+LEFT_SHIFT : '<<' ;
+LT : '<' ;
 
 MACRO : 'macro' ;
 MINUS : '-' ;
@@ -108,11 +177,13 @@ ORG : 'org' ;
 
 PLUS : '+' ;
 
+RIGHT_SHIFT : '>>' ;
+
 SLASH : '/' ;
 
-NEWLINE : '\r'? '\n' ;
 
-WS : [ \t\n\r\f]+ -> channel(HIDDEN) ;
+
+
 
 NUMBER : [0-9]+ ;
 HEX_NUMBER: '0' 'x' [a-fA-F0-9]+ ;

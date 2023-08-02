@@ -25,6 +25,16 @@ fn enter_row(&mut self, _ctx: &RowContext<'input>) { }
  */
 fn exit_row(&mut self, _ctx: &RowContext<'input>) { }
 /**
+ * Enter a parse tree produced by {@link assemblerParser#macro_usage}.
+ * @param ctx the parse tree
+ */
+fn enter_macro_usage(&mut self, _ctx: &Macro_usageContext<'input>) { }
+/**
+ * Exit a parse tree produced by {@link assemblerParser#macro_usage}.
+ * @param ctx the parse tree
+ */
+fn exit_macro_usage(&mut self, _ctx: &Macro_usageContext<'input>) { }
+/**
  * Enter a parse tree produced by {@link assemblerParser#label_definition}.
  * @param ctx the parse tree
  */
@@ -44,6 +54,16 @@ fn enter_parameter(&mut self, _ctx: &ParameterContext<'input>) { }
  * @param ctx the parse tree
  */
 fn exit_parameter(&mut self, _ctx: &ParameterContext<'input>) { }
+/**
+ * Enter a parse tree produced by {@link assemblerParser#macro_placeholder}.
+ * @param ctx the parse tree
+ */
+fn enter_macro_placeholder(&mut self, _ctx: &Macro_placeholderContext<'input>) { }
+/**
+ * Exit a parse tree produced by {@link assemblerParser#macro_placeholder}.
+ * @param ctx the parse tree
+ */
+fn exit_macro_placeholder(&mut self, _ctx: &Macro_placeholderContext<'input>) { }
 /**
  * Enter a parse tree produced by {@link assemblerParser#expression}.
  * @param ctx the parse tree

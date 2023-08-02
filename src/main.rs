@@ -65,8 +65,8 @@ fn main() -> io::Result<()> {
     //impl<'input> CSVListener<'input> for Listener {}
 
     let mut asm_file_path: String = String::new();
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/asm_1.asm");
-    asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/asm_2.asm");
+    asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/asm_1.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/asm_2.asm");
 
     let data = fs::read_to_string(asm_file_path).expect("Unable to read file");
     println!("{}", data);

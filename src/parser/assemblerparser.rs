@@ -39,64 +39,85 @@ use std::ops::{DerefMut, Deref};
 use std::borrow::{Borrow,BorrowMut};
 use std::any::{Any,TypeId};
 
-		pub const LDI:isize=1; 
-		pub const LINE_COMMENT:isize=2; 
-		pub const STRING:isize=3; 
-		pub const ASTERISK:isize=4; 
-		pub const CLOSEING_BRACKET:isize=5; 
-		pub const COLON:isize=6; 
-		pub const COMMA:isize=7; 
-		pub const CSEG:isize=8; 
-		pub const DEF:isize=9; 
-		pub const DOT:isize=10; 
-		pub const ELSE:isize=11; 
-		pub const END_MACRO:isize=12; 
-		pub const ENDIF:isize=13; 
-		pub const EQUALS:isize=14; 
-		pub const EQU:isize=15; 
-		pub const ERROR:isize=16; 
-		pub const IF:isize=17; 
-		pub const INCLUDE:isize=18; 
-		pub const MACRO:isize=19; 
-		pub const MINUS:isize=20; 
-		pub const OPENING_BRACKET:isize=21; 
-		pub const ORG:isize=22; 
-		pub const PLUS:isize=23; 
-		pub const SLASH:isize=24; 
-		pub const NEWLINE:isize=25; 
-		pub const WS:isize=26; 
-		pub const NUMBER:isize=27; 
-		pub const HEX_NUMBER:isize=28; 
-		pub const IDENTIFIER:isize=29;
+		pub const ADD:isize=1; 
+		pub const CALL:isize=2; 
+		pub const CLR:isize=3; 
+		pub const EOR:isize=4; 
+		pub const LDI:isize=5; 
+		pub const OUT:isize=6; 
+		pub const POP:isize=7; 
+		pub const PUSH:isize=8; 
+		pub const RCALL:isize=9; 
+		pub const RET:isize=10; 
+		pub const RJMP:isize=11; 
+		pub const NEWLINE:isize=12; 
+		pub const WS:isize=13; 
+		pub const LINE_COMMENT:isize=14; 
+		pub const STRING:isize=15; 
+		pub const ASTERISK:isize=16; 
+		pub const AT:isize=17; 
+		pub const CLOSEING_BRACKET:isize=18; 
+		pub const COLON:isize=19; 
+		pub const COMMA:isize=20; 
+		pub const CSEG:isize=21; 
+		pub const DEF:isize=22; 
+		pub const DOT:isize=23; 
+		pub const ELSE:isize=24; 
+		pub const END_MACRO:isize=25; 
+		pub const ENDIF:isize=26; 
+		pub const EQUALS:isize=27; 
+		pub const EQU:isize=28; 
+		pub const ERROR:isize=29; 
+		pub const GT:isize=30; 
+		pub const IF:isize=31; 
+		pub const INCLUDE:isize=32; 
+		pub const LEFT_SHIFT:isize=33; 
+		pub const LT:isize=34; 
+		pub const MACRO:isize=35; 
+		pub const MINUS:isize=36; 
+		pub const OPENING_BRACKET:isize=37; 
+		pub const ORG:isize=38; 
+		pub const PLUS:isize=39; 
+		pub const RIGHT_SHIFT:isize=40; 
+		pub const SLASH:isize=41; 
+		pub const NUMBER:isize=42; 
+		pub const HEX_NUMBER:isize=43; 
+		pub const IDENTIFIER:isize=44;
 	pub const RULE_asm_file:usize = 0; 
 	pub const RULE_row:usize = 1; 
-	pub const RULE_label_definition:usize = 2; 
-	pub const RULE_parameter:usize = 3; 
-	pub const RULE_expression:usize = 4; 
-	pub const RULE_asm_instrinsic_instruction:usize = 5; 
-	pub const RULE_asm_intrinsic_usage:usize = 6; 
-	pub const RULE_instruction:usize = 7;
-	pub const ruleNames: [&'static str; 8] =  [
-		"asm_file", "row", "label_definition", "parameter", "expression", "asm_instrinsic_instruction", 
-		"asm_intrinsic_usage", "instruction"
+	pub const RULE_macro_usage:usize = 2; 
+	pub const RULE_label_definition:usize = 3; 
+	pub const RULE_parameter:usize = 4; 
+	pub const RULE_macro_placeholder:usize = 5; 
+	pub const RULE_expression:usize = 6; 
+	pub const RULE_asm_instrinsic_instruction:usize = 7; 
+	pub const RULE_asm_intrinsic_usage:usize = 8; 
+	pub const RULE_instruction:usize = 9;
+	pub const ruleNames: [&'static str; 10] =  [
+		"asm_file", "row", "macro_usage", "label_definition", "parameter", "macro_placeholder", 
+		"expression", "asm_instrinsic_instruction", "asm_intrinsic_usage", "instruction"
 	];
 
 
-	pub const _LITERAL_NAMES: [Option<&'static str>;25] = [
-		None, None, None, None, Some("'*'"), Some("')'"), Some("':'"), Some("','"), 
-		Some("'cseg'"), Some("'def'"), Some("'.'"), Some("'else'"), Some("'endmacro'"), 
-		Some("'endif'"), Some("'='"), Some("'equ'"), Some("'error'"), Some("'if'"), 
-		Some("'include'"), Some("'macro'"), Some("'-'"), Some("'('"), Some("'org'"), 
-		Some("'+'"), Some("'/'")
+	pub const _LITERAL_NAMES: [Option<&'static str>;42] = [
+		None, None, None, None, None, None, None, None, None, None, None, None, 
+		None, None, None, None, Some("'*'"), Some("'@'"), Some("')'"), Some("':'"), 
+		Some("','"), Some("'cseg'"), Some("'def'"), Some("'.'"), Some("'else'"), 
+		Some("'endmacro'"), Some("'endif'"), Some("'='"), Some("'equ'"), Some("'error'"), 
+		Some("'>'"), Some("'if'"), Some("'include'"), Some("'<<'"), Some("'<'"), 
+		Some("'macro'"), Some("'-'"), Some("'('"), Some("'org'"), Some("'+'"), 
+		Some("'>>'"), Some("'/'")
 	];
-	pub const _SYMBOLIC_NAMES: [Option<&'static str>;30]  = [
-		None, Some("LDI"), Some("LINE_COMMENT"), Some("STRING"), Some("ASTERISK"), 
-		Some("CLOSEING_BRACKET"), Some("COLON"), Some("COMMA"), Some("CSEG"), 
+	pub const _SYMBOLIC_NAMES: [Option<&'static str>;45]  = [
+		None, Some("ADD"), Some("CALL"), Some("CLR"), Some("EOR"), Some("LDI"), 
+		Some("OUT"), Some("POP"), Some("PUSH"), Some("RCALL"), Some("RET"), Some("RJMP"), 
+		Some("NEWLINE"), Some("WS"), Some("LINE_COMMENT"), Some("STRING"), Some("ASTERISK"), 
+		Some("AT"), Some("CLOSEING_BRACKET"), Some("COLON"), Some("COMMA"), Some("CSEG"), 
 		Some("DEF"), Some("DOT"), Some("ELSE"), Some("END_MACRO"), Some("ENDIF"), 
-		Some("EQUALS"), Some("EQU"), Some("ERROR"), Some("IF"), Some("INCLUDE"), 
-		Some("MACRO"), Some("MINUS"), Some("OPENING_BRACKET"), Some("ORG"), Some("PLUS"), 
-		Some("SLASH"), Some("NEWLINE"), Some("WS"), Some("NUMBER"), Some("HEX_NUMBER"), 
-		Some("IDENTIFIER")
+		Some("EQUALS"), Some("EQU"), Some("ERROR"), Some("GT"), Some("IF"), Some("INCLUDE"), 
+		Some("LEFT_SHIFT"), Some("LT"), Some("MACRO"), Some("MINUS"), Some("OPENING_BRACKET"), 
+		Some("ORG"), Some("PLUS"), Some("RIGHT_SHIFT"), Some("SLASH"), Some("NUMBER"), 
+		Some("HEX_NUMBER"), Some("IDENTIFIER")
 	];
 	lazy_static!{
 	    static ref _shared_context_cache: Arc<PredictionContextCache> = Arc::new(PredictionContextCache::new());
@@ -255,6 +276,42 @@ impl<'input,I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'i
    	fn get_rule_names(&self) -> &[& str] {&ruleNames}
 
    	fn get_vocabulary(&self) -> &dyn Vocabulary { &**VOCABULARY }
+	fn sempred(_localctx: Option<&(dyn assemblerParserContext<'input> + 'input)>, rule_index: isize, pred_index: isize,
+			   recog:&mut BaseParserType<'input,I>
+	)->bool{
+		match rule_index {
+					6 => assemblerParser::<'input,I,_>::expression_sempred(_localctx.and_then(|x|x.downcast_ref()), pred_index, recog),
+			_ => true
+		}
+	}
+}
+
+impl<'input, I> assemblerParser<'input, I, DefaultErrorStrategy<'input,assemblerParserContextType>>
+where
+    I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
+{
+	fn expression_sempred(_localctx: Option<&ExpressionContext<'input>>, pred_index:isize,
+						recog:&mut <Self as Deref>::Target
+		) -> bool {
+		match pred_index {
+				0=>{
+					recog.precpred(None, 5)
+				}
+				1=>{
+					recog.precpred(None, 4)
+				}
+				2=>{
+					recog.precpred(None, 3)
+				}
+				3=>{
+					recog.precpred(None, 2)
+				}
+				4=>{
+					recog.precpred(None, 1)
+				}
+			_ => true
+		}
+	}
 }
 //------------------- asm_file ----------------
 pub type Asm_fileContextAll<'input> = Asm_fileContext<'input>;
@@ -350,74 +407,74 @@ where
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
 			{
-			recog.base.set_state(19);
+			recog.base.set_state(23);
 			recog.err_handler.sync(&mut recog.base)?;
 			_la = recog.base.input.la(1);
 			while _la==NEWLINE {
 				{
 				{
-				recog.base.set_state(16);
+				recog.base.set_state(20);
 				recog.base.match_token(NEWLINE,&mut recog.err_handler)?;
 
 				}
 				}
-				recog.base.set_state(21);
+				recog.base.set_state(25);
 				recog.err_handler.sync(&mut recog.base)?;
 				_la = recog.base.input.la(1);
 			}
 			/*InvokeRule row*/
-			recog.base.set_state(22);
+			recog.base.set_state(26);
 			recog.row()?;
 
-			recog.base.set_state(32);
+			recog.base.set_state(36);
 			recog.err_handler.sync(&mut recog.base)?;
 			_alt = recog.interpreter.adaptive_predict(2,&mut recog.base)?;
 			while { _alt!=2 && _alt!=INVALID_ALT } {
 				if _alt==1 {
 					{
 					{
-					recog.base.set_state(26);
+					recog.base.set_state(30);
 					recog.err_handler.sync(&mut recog.base)?;
 					_la = recog.base.input.la(1);
 					while _la==NEWLINE {
 						{
 						{
-						recog.base.set_state(23);
+						recog.base.set_state(27);
 						recog.base.match_token(NEWLINE,&mut recog.err_handler)?;
 
 						}
 						}
-						recog.base.set_state(28);
+						recog.base.set_state(32);
 						recog.err_handler.sync(&mut recog.base)?;
 						_la = recog.base.input.la(1);
 					}
 					/*InvokeRule row*/
-					recog.base.set_state(29);
+					recog.base.set_state(33);
 					recog.row()?;
 
 					}
 					} 
 				}
-				recog.base.set_state(34);
+				recog.base.set_state(38);
 				recog.err_handler.sync(&mut recog.base)?;
 				_alt = recog.interpreter.adaptive_predict(2,&mut recog.base)?;
 			}
-			recog.base.set_state(38);
+			recog.base.set_state(42);
 			recog.err_handler.sync(&mut recog.base)?;
 			_la = recog.base.input.la(1);
 			while _la==NEWLINE {
 				{
 				{
-				recog.base.set_state(35);
+				recog.base.set_state(39);
 				recog.base.match_token(NEWLINE,&mut recog.err_handler)?;
 
 				}
 				}
-				recog.base.set_state(40);
+				recog.base.set_state(44);
 				recog.err_handler.sync(&mut recog.base)?;
 				_la = recog.base.input.la(1);
 			}
-			recog.base.set_state(41);
+			recog.base.set_state(45);
 			recog.base.match_token(EOF,&mut recog.err_handler)?;
 
 			}
@@ -514,12 +571,21 @@ fn asm_intrinsic_usage_all(&self) ->  Vec<Rc<Asm_intrinsic_usageContextAll<'inpu
 fn asm_intrinsic_usage(&self, i: usize) -> Option<Rc<Asm_intrinsic_usageContextAll<'input>>> where Self:Sized{
 	self.child_of_type(i)
 }
+fn macro_placeholder_all(&self) ->  Vec<Rc<Macro_placeholderContextAll<'input>>> where Self:Sized{
+	self.children_of_type()
+}
+fn macro_placeholder(&self, i: usize) -> Option<Rc<Macro_placeholderContextAll<'input>>> where Self:Sized{
+	self.child_of_type(i)
+}
 /// Retrieves first TerminalNode corresponding to token COMMA
 /// Returns `None` if there is no child corresponding to token COMMA
 fn COMMA(&self) -> Option<Rc<TerminalNode<'input,assemblerParserContextType>>> where Self:Sized{
 	self.get_token(COMMA, 0)
 }
 fn asm_instrinsic_instruction(&self) -> Option<Rc<Asm_instrinsic_instructionContextAll<'input>>> where Self:Sized{
+	self.child_of_type(0)
+}
+fn macro_usage(&self) -> Option<Rc<Macro_usageContextAll<'input>>> where Self:Sized{
 	self.child_of_type(0)
 }
 
@@ -542,22 +608,21 @@ where
 		let mut _la: isize = -1;
 		let result: Result<(), ANTLRError> = (|| {
 
-			recog.base.set_state(61);
+			recog.base.set_state(70);
 			recog.err_handler.sync(&mut recog.base)?;
-			match recog.base.input.la(1) {
-			 LDI | IDENTIFIER 
-				=> {
+			match  recog.interpreter.adaptive_predict(9,&mut recog.base)? {
+				1 =>{
 					//recog.base.enter_outer_alt(_localctx.clone(), 1);
 					recog.base.enter_outer_alt(None, 1);
 					{
 					{
-					recog.base.set_state(44);
+					recog.base.set_state(48);
 					recog.err_handler.sync(&mut recog.base)?;
 					_la = recog.base.input.la(1);
 					if _la==IDENTIFIER {
 						{
 						/*InvokeRule label_definition*/
-						recog.base.set_state(43);
+						recog.base.set_state(47);
 						recog.label_definition()?;
 
 						}
@@ -565,102 +630,260 @@ where
 
 					{
 					/*InvokeRule instruction*/
-					recog.base.set_state(46);
+					recog.base.set_state(50);
 					recog.instruction()?;
 
-					{
-					recog.base.set_state(50);
+					recog.base.set_state(66);
 					recog.err_handler.sync(&mut recog.base)?;
-					match  recog.interpreter.adaptive_predict(5,&mut recog.base)? {
-						1 =>{
+					match  recog.interpreter.adaptive_predict(8,&mut recog.base)? {
+						x if x == 1=>{
 							{
-							recog.base.set_state(47);
-							recog.base.match_token(IDENTIFIER,&mut recog.err_handler)?;
+							recog.base.set_state(55);
+							recog.err_handler.sync(&mut recog.base)?;
+							match  recog.interpreter.adaptive_predict(5,&mut recog.base)? {
+								1 =>{
+									{
+									recog.base.set_state(51);
+									recog.base.match_token(IDENTIFIER,&mut recog.err_handler)?;
 
-							}
-						}
-					,
-						2 =>{
-							{
-							/*InvokeRule expression*/
-							recog.base.set_state(48);
-							recog.expression()?;
+									}
+								}
+							,
+								2 =>{
+									{
+									/*InvokeRule expression*/
+									recog.base.set_state(52);
+									recog.expression_rec(0)?;
 
+									}
+								}
+							,
+								3 =>{
+									{
+									/*InvokeRule asm_intrinsic_usage*/
+									recog.base.set_state(53);
+									recog.asm_intrinsic_usage()?;
+
+									}
+								}
+							,
+								4 =>{
+									{
+									/*InvokeRule macro_placeholder*/
+									recog.base.set_state(54);
+									recog.macro_placeholder()?;
+
+									}
+								}
+
+								_ => {}
 							}
-						}
-					,
-						3 =>{
-							{
-							/*InvokeRule asm_intrinsic_usage*/
-							recog.base.set_state(49);
-							recog.asm_intrinsic_usage()?;
+							recog.base.set_state(64);
+							recog.err_handler.sync(&mut recog.base)?;
+							_la = recog.base.input.la(1);
+							if _la==COMMA {
+								{
+								recog.base.set_state(57);
+								recog.base.match_token(COMMA,&mut recog.err_handler)?;
+
+								recog.base.set_state(62);
+								recog.err_handler.sync(&mut recog.base)?;
+								match  recog.interpreter.adaptive_predict(6,&mut recog.base)? {
+									1 =>{
+										{
+										recog.base.set_state(58);
+										recog.base.match_token(IDENTIFIER,&mut recog.err_handler)?;
+
+										}
+									}
+								,
+									2 =>{
+										{
+										/*InvokeRule expression*/
+										recog.base.set_state(59);
+										recog.expression_rec(0)?;
+
+										}
+									}
+								,
+									3 =>{
+										{
+										/*InvokeRule asm_intrinsic_usage*/
+										recog.base.set_state(60);
+										recog.asm_intrinsic_usage()?;
+
+										}
+									}
+								,
+									4 =>{
+										{
+										/*InvokeRule macro_placeholder*/
+										recog.base.set_state(61);
+										recog.macro_placeholder()?;
+
+										}
+									}
+
+									_ => {}
+								}
+								}
+							}
 
 							}
 						}
 
 						_ => {}
 					}
-					recog.base.set_state(58);
-					recog.err_handler.sync(&mut recog.base)?;
-					_la = recog.base.input.la(1);
-					if _la==COMMA {
-						{
-						recog.base.set_state(52);
-						recog.base.match_token(COMMA,&mut recog.err_handler)?;
-
-						recog.base.set_state(56);
-						recog.err_handler.sync(&mut recog.base)?;
-						match  recog.interpreter.adaptive_predict(6,&mut recog.base)? {
-							1 =>{
-								{
-								recog.base.set_state(53);
-								recog.base.match_token(IDENTIFIER,&mut recog.err_handler)?;
-
-								}
-							}
-						,
-							2 =>{
-								{
-								/*InvokeRule expression*/
-								recog.base.set_state(54);
-								recog.expression()?;
-
-								}
-							}
-						,
-							3 =>{
-								{
-								/*InvokeRule asm_intrinsic_usage*/
-								recog.base.set_state(55);
-								recog.asm_intrinsic_usage()?;
-
-								}
-							}
-
-							_ => {}
-						}
-						}
-					}
-
-					}
 					}
 					}
 					}
 				}
-
-			 DOT 
-				=> {
+			,
+				2 =>{
 					//recog.base.enter_outer_alt(_localctx.clone(), 2);
 					recog.base.enter_outer_alt(None, 2);
 					{
 					/*InvokeRule asm_instrinsic_instruction*/
-					recog.base.set_state(60);
+					recog.base.set_state(68);
 					recog.asm_instrinsic_instruction()?;
 
 					}
 				}
+			,
+				3 =>{
+					//recog.base.enter_outer_alt(_localctx.clone(), 3);
+					recog.base.enter_outer_alt(None, 3);
+					{
+					/*InvokeRule macro_usage*/
+					recog.base.set_state(69);
+					recog.macro_usage()?;
 
-				_ => Err(ANTLRError::NoAltError(NoViableAltError::new(&mut recog.base)))?
+					}
+				}
+
+				_ => {}
+			}
+			Ok(())
+		})();
+		match result {
+		Ok(_)=>{},
+        Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
+		Err(ref re) => {
+				//_localctx.exception = re;
+				recog.err_handler.report_error(&mut recog.base, re);
+				recog.err_handler.recover(&mut recog.base, re)?;
+			}
+		}
+		recog.base.exit_rule();
+
+		Ok(_localctx)
+	}
+}
+//------------------- macro_usage ----------------
+pub type Macro_usageContextAll<'input> = Macro_usageContext<'input>;
+
+
+pub type Macro_usageContext<'input> = BaseParserRuleContext<'input,Macro_usageContextExt<'input>>;
+
+#[derive(Clone)]
+pub struct Macro_usageContextExt<'input>{
+ph:PhantomData<&'input str>
+}
+
+impl<'input> assemblerParserContext<'input> for Macro_usageContext<'input>{}
+
+impl<'input,'a> Listenable<dyn assemblerListener<'input> + 'a> for Macro_usageContext<'input>{
+		fn enter(&self,listener: &mut (dyn assemblerListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_macro_usage(self);
+		}
+		fn exit(&self,listener: &mut (dyn assemblerListener<'input> + 'a)) {
+			listener.exit_macro_usage(self);
+			listener.exit_every_rule(self);
+		}
+}
+
+impl<'input,'a> Visitable<dyn assemblerVisitor<'input> + 'a> for Macro_usageContext<'input>{
+	fn accept(&self,visitor: &mut (dyn assemblerVisitor<'input> + 'a)) {
+		visitor.visit_macro_usage(self);
+	}
+}
+
+impl<'input> CustomRuleContext<'input> for Macro_usageContextExt<'input>{
+	type TF = LocalTokenFactory<'input>;
+	type Ctx = assemblerParserContextType;
+	fn get_rule_index(&self) -> usize { RULE_macro_usage }
+	//fn type_rule_index() -> usize where Self: Sized { RULE_macro_usage }
+}
+antlr_rust::tid!{Macro_usageContextExt<'a>}
+
+impl<'input> Macro_usageContextExt<'input>{
+	fn new(parent: Option<Rc<dyn assemblerParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Macro_usageContextAll<'input>> {
+		Rc::new(
+			BaseParserRuleContext::new_parser_ctx(parent, invoking_state,Macro_usageContextExt{
+				ph:PhantomData
+			}),
+		)
+	}
+}
+
+pub trait Macro_usageContextAttrs<'input>: assemblerParserContext<'input> + BorrowMut<Macro_usageContextExt<'input>>{
+
+/// Retrieves first TerminalNode corresponding to token IDENTIFIER
+/// Returns `None` if there is no child corresponding to token IDENTIFIER
+fn IDENTIFIER(&self) -> Option<Rc<TerminalNode<'input,assemblerParserContextType>>> where Self:Sized{
+	self.get_token(IDENTIFIER, 0)
+}
+fn expression_all(&self) ->  Vec<Rc<ExpressionContextAll<'input>>> where Self:Sized{
+	self.children_of_type()
+}
+fn expression(&self, i: usize) -> Option<Rc<ExpressionContextAll<'input>>> where Self:Sized{
+	self.child_of_type(i)
+}
+
+}
+
+impl<'input> Macro_usageContextAttrs<'input> for Macro_usageContext<'input>{}
+
+impl<'input, I, H> assemblerParser<'input, I, H>
+where
+    I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
+    H: ErrorStrategy<'input,BaseParserType<'input,I>>
+{
+	pub fn macro_usage(&mut self,)
+	-> Result<Rc<Macro_usageContextAll<'input>>,ANTLRError> {
+		let mut recog = self;
+		let _parentctx = recog.ctx.take();
+		let mut _localctx = Macro_usageContextExt::new(_parentctx.clone(), recog.base.get_state());
+        recog.base.enter_rule(_localctx.clone(), 4, RULE_macro_usage);
+        let mut _localctx: Rc<Macro_usageContextAll> = _localctx;
+		let result: Result<(), ANTLRError> = (|| {
+
+			let mut _alt: isize;
+			//recog.base.enter_outer_alt(_localctx.clone(), 1);
+			recog.base.enter_outer_alt(None, 1);
+			{
+			recog.base.set_state(72);
+			recog.base.match_token(IDENTIFIER,&mut recog.err_handler)?;
+
+			recog.base.set_state(76);
+			recog.err_handler.sync(&mut recog.base)?;
+			_alt = recog.interpreter.adaptive_predict(10,&mut recog.base)?;
+			while { _alt!=2 && _alt!=INVALID_ALT } {
+				if _alt==1 {
+					{
+					{
+					/*InvokeRule expression*/
+					recog.base.set_state(73);
+					recog.expression_rec(0)?;
+
+					}
+					} 
+				}
+				recog.base.set_state(78);
+				recog.err_handler.sync(&mut recog.base)?;
+				_alt = recog.interpreter.adaptive_predict(10,&mut recog.base)?;
+			}
 			}
 			Ok(())
 		})();
@@ -753,17 +976,17 @@ where
 		let mut recog = self;
 		let _parentctx = recog.ctx.take();
 		let mut _localctx = Label_definitionContextExt::new(_parentctx.clone(), recog.base.get_state());
-        recog.base.enter_rule(_localctx.clone(), 4, RULE_label_definition);
+        recog.base.enter_rule(_localctx.clone(), 6, RULE_label_definition);
         let mut _localctx: Rc<Label_definitionContextAll> = _localctx;
 		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
 			{
-			recog.base.set_state(63);
+			recog.base.set_state(79);
 			recog.base.match_token(IDENTIFIER,&mut recog.err_handler)?;
 
-			recog.base.set_state(64);
+			recog.base.set_state(80);
 			recog.base.match_token(COLON,&mut recog.err_handler)?;
 
 			}
@@ -853,15 +1076,120 @@ where
 		let mut recog = self;
 		let _parentctx = recog.ctx.take();
 		let mut _localctx = ParameterContextExt::new(_parentctx.clone(), recog.base.get_state());
-        recog.base.enter_rule(_localctx.clone(), 6, RULE_parameter);
+        recog.base.enter_rule(_localctx.clone(), 8, RULE_parameter);
         let mut _localctx: Rc<ParameterContextAll> = _localctx;
 		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
 			{
-			recog.base.set_state(66);
+			recog.base.set_state(82);
 			recog.base.match_token(IDENTIFIER,&mut recog.err_handler)?;
+
+			}
+			Ok(())
+		})();
+		match result {
+		Ok(_)=>{},
+        Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
+		Err(ref re) => {
+				//_localctx.exception = re;
+				recog.err_handler.report_error(&mut recog.base, re);
+				recog.err_handler.recover(&mut recog.base, re)?;
+			}
+		}
+		recog.base.exit_rule();
+
+		Ok(_localctx)
+	}
+}
+//------------------- macro_placeholder ----------------
+pub type Macro_placeholderContextAll<'input> = Macro_placeholderContext<'input>;
+
+
+pub type Macro_placeholderContext<'input> = BaseParserRuleContext<'input,Macro_placeholderContextExt<'input>>;
+
+#[derive(Clone)]
+pub struct Macro_placeholderContextExt<'input>{
+ph:PhantomData<&'input str>
+}
+
+impl<'input> assemblerParserContext<'input> for Macro_placeholderContext<'input>{}
+
+impl<'input,'a> Listenable<dyn assemblerListener<'input> + 'a> for Macro_placeholderContext<'input>{
+		fn enter(&self,listener: &mut (dyn assemblerListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_macro_placeholder(self);
+		}
+		fn exit(&self,listener: &mut (dyn assemblerListener<'input> + 'a)) {
+			listener.exit_macro_placeholder(self);
+			listener.exit_every_rule(self);
+		}
+}
+
+impl<'input,'a> Visitable<dyn assemblerVisitor<'input> + 'a> for Macro_placeholderContext<'input>{
+	fn accept(&self,visitor: &mut (dyn assemblerVisitor<'input> + 'a)) {
+		visitor.visit_macro_placeholder(self);
+	}
+}
+
+impl<'input> CustomRuleContext<'input> for Macro_placeholderContextExt<'input>{
+	type TF = LocalTokenFactory<'input>;
+	type Ctx = assemblerParserContextType;
+	fn get_rule_index(&self) -> usize { RULE_macro_placeholder }
+	//fn type_rule_index() -> usize where Self: Sized { RULE_macro_placeholder }
+}
+antlr_rust::tid!{Macro_placeholderContextExt<'a>}
+
+impl<'input> Macro_placeholderContextExt<'input>{
+	fn new(parent: Option<Rc<dyn assemblerParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Macro_placeholderContextAll<'input>> {
+		Rc::new(
+			BaseParserRuleContext::new_parser_ctx(parent, invoking_state,Macro_placeholderContextExt{
+				ph:PhantomData
+			}),
+		)
+	}
+}
+
+pub trait Macro_placeholderContextAttrs<'input>: assemblerParserContext<'input> + BorrowMut<Macro_placeholderContextExt<'input>>{
+
+/// Retrieves first TerminalNode corresponding to token AT
+/// Returns `None` if there is no child corresponding to token AT
+fn AT(&self) -> Option<Rc<TerminalNode<'input,assemblerParserContextType>>> where Self:Sized{
+	self.get_token(AT, 0)
+}
+/// Retrieves first TerminalNode corresponding to token NUMBER
+/// Returns `None` if there is no child corresponding to token NUMBER
+fn NUMBER(&self) -> Option<Rc<TerminalNode<'input,assemblerParserContextType>>> where Self:Sized{
+	self.get_token(NUMBER, 0)
+}
+
+}
+
+impl<'input> Macro_placeholderContextAttrs<'input> for Macro_placeholderContext<'input>{}
+
+impl<'input, I, H> assemblerParser<'input, I, H>
+where
+    I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
+    H: ErrorStrategy<'input,BaseParserType<'input,I>>
+{
+	pub fn macro_placeholder(&mut self,)
+	-> Result<Rc<Macro_placeholderContextAll<'input>>,ANTLRError> {
+		let mut recog = self;
+		let _parentctx = recog.ctx.take();
+		let mut _localctx = Macro_placeholderContextExt::new(_parentctx.clone(), recog.base.get_state());
+        recog.base.enter_rule(_localctx.clone(), 10, RULE_macro_placeholder);
+        let mut _localctx: Rc<Macro_placeholderContextAll> = _localctx;
+		let result: Result<(), ANTLRError> = (|| {
+
+			//recog.base.enter_outer_alt(_localctx.clone(), 1);
+			recog.base.enter_outer_alt(None, 1);
+			{
+			recog.base.set_state(84);
+			recog.base.match_token(AT,&mut recog.err_handler)?;
+
+			recog.base.set_state(85);
+			recog.base.match_token(NUMBER,&mut recog.err_handler)?;
 
 			}
 			Ok(())
@@ -940,6 +1268,55 @@ fn NUMBER(&self) -> Option<Rc<TerminalNode<'input,assemblerParserContextType>>> 
 fn HEX_NUMBER(&self) -> Option<Rc<TerminalNode<'input,assemblerParserContextType>>> where Self:Sized{
 	self.get_token(HEX_NUMBER, 0)
 }
+/// Retrieves first TerminalNode corresponding to token IDENTIFIER
+/// Returns `None` if there is no child corresponding to token IDENTIFIER
+fn IDENTIFIER(&self) -> Option<Rc<TerminalNode<'input,assemblerParserContextType>>> where Self:Sized{
+	self.get_token(IDENTIFIER, 0)
+}
+fn macro_placeholder(&self) -> Option<Rc<Macro_placeholderContextAll<'input>>> where Self:Sized{
+	self.child_of_type(0)
+}
+/// Retrieves first TerminalNode corresponding to token OPENING_BRACKET
+/// Returns `None` if there is no child corresponding to token OPENING_BRACKET
+fn OPENING_BRACKET(&self) -> Option<Rc<TerminalNode<'input,assemblerParserContextType>>> where Self:Sized{
+	self.get_token(OPENING_BRACKET, 0)
+}
+fn expression_all(&self) ->  Vec<Rc<ExpressionContextAll<'input>>> where Self:Sized{
+	self.children_of_type()
+}
+fn expression(&self, i: usize) -> Option<Rc<ExpressionContextAll<'input>>> where Self:Sized{
+	self.child_of_type(i)
+}
+/// Retrieves first TerminalNode corresponding to token CLOSEING_BRACKET
+/// Returns `None` if there is no child corresponding to token CLOSEING_BRACKET
+fn CLOSEING_BRACKET(&self) -> Option<Rc<TerminalNode<'input,assemblerParserContextType>>> where Self:Sized{
+	self.get_token(CLOSEING_BRACKET, 0)
+}
+/// Retrieves first TerminalNode corresponding to token LEFT_SHIFT
+/// Returns `None` if there is no child corresponding to token LEFT_SHIFT
+fn LEFT_SHIFT(&self) -> Option<Rc<TerminalNode<'input,assemblerParserContextType>>> where Self:Sized{
+	self.get_token(LEFT_SHIFT, 0)
+}
+/// Retrieves first TerminalNode corresponding to token RIGHT_SHIFT
+/// Returns `None` if there is no child corresponding to token RIGHT_SHIFT
+fn RIGHT_SHIFT(&self) -> Option<Rc<TerminalNode<'input,assemblerParserContextType>>> where Self:Sized{
+	self.get_token(RIGHT_SHIFT, 0)
+}
+/// Retrieves first TerminalNode corresponding to token SLASH
+/// Returns `None` if there is no child corresponding to token SLASH
+fn SLASH(&self) -> Option<Rc<TerminalNode<'input,assemblerParserContextType>>> where Self:Sized{
+	self.get_token(SLASH, 0)
+}
+/// Retrieves first TerminalNode corresponding to token GT
+/// Returns `None` if there is no child corresponding to token GT
+fn GT(&self) -> Option<Rc<TerminalNode<'input,assemblerParserContextType>>> where Self:Sized{
+	self.get_token(GT, 0)
+}
+/// Retrieves first TerminalNode corresponding to token LT
+/// Returns `None` if there is no child corresponding to token LT
+fn LT(&self) -> Option<Rc<TerminalNode<'input,assemblerParserContextType>>> where Self:Sized{
+	self.get_token(LT, 0)
+}
 
 }
 
@@ -950,43 +1327,218 @@ where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
     H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
-	pub fn expression(&mut self,)
+	pub fn  expression(&mut self,)
 	-> Result<Rc<ExpressionContextAll<'input>>,ANTLRError> {
-		let mut recog = self;
-		let _parentctx = recog.ctx.take();
-		let mut _localctx = ExpressionContextExt::new(_parentctx.clone(), recog.base.get_state());
-        recog.base.enter_rule(_localctx.clone(), 8, RULE_expression);
-        let mut _localctx: Rc<ExpressionContextAll> = _localctx;
-		let mut _la: isize = -1;
-		let result: Result<(), ANTLRError> = (|| {
+		self.expression_rec(0)
+	}
 
+	fn expression_rec(&mut self, _p: isize)
+	-> Result<Rc<ExpressionContextAll<'input>>,ANTLRError> {
+		let recog = self;
+		let _parentctx = recog.ctx.take();
+		let _parentState = recog.base.get_state();
+		let mut _localctx = ExpressionContextExt::new(_parentctx.clone(), recog.base.get_state());
+		recog.base.enter_recursion_rule(_localctx.clone(), 12, RULE_expression, _p);
+	    let mut _localctx: Rc<ExpressionContextAll> = _localctx;
+        let mut _prevctx = _localctx.clone();
+		let _startState = 12;
+		let result: Result<(), ANTLRError> = (|| {
+			let mut _alt: isize;
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
 			{
-			recog.base.set_state(68);
-			_la = recog.base.input.la(1);
-			if { !(_la==NUMBER || _la==HEX_NUMBER) } {
-				recog.err_handler.recover_inline(&mut recog.base)?;
+			recog.base.set_state(96);
+			recog.err_handler.sync(&mut recog.base)?;
+			match recog.base.input.la(1) {
+			 NUMBER 
+				=> {
+					{
+					recog.base.set_state(88);
+					recog.base.match_token(NUMBER,&mut recog.err_handler)?;
 
+					}
+				}
+
+			 HEX_NUMBER 
+				=> {
+					{
+					recog.base.set_state(89);
+					recog.base.match_token(HEX_NUMBER,&mut recog.err_handler)?;
+
+					}
+				}
+
+			 IDENTIFIER 
+				=> {
+					{
+					recog.base.set_state(90);
+					recog.base.match_token(IDENTIFIER,&mut recog.err_handler)?;
+
+					}
+				}
+
+			 AT 
+				=> {
+					{
+					/*InvokeRule macro_placeholder*/
+					recog.base.set_state(91);
+					recog.macro_placeholder()?;
+
+					}
+				}
+
+			 OPENING_BRACKET 
+				=> {
+					{
+					recog.base.set_state(92);
+					recog.base.match_token(OPENING_BRACKET,&mut recog.err_handler)?;
+
+					/*InvokeRule expression*/
+					recog.base.set_state(93);
+					recog.expression_rec(0)?;
+
+					recog.base.set_state(94);
+					recog.base.match_token(CLOSEING_BRACKET,&mut recog.err_handler)?;
+
+					}
+				}
+
+				_ => Err(ANTLRError::NoAltError(NoViableAltError::new(&mut recog.base)))?
 			}
-			else {
-				if  recog.base.input.la(1)==TOKEN_EOF { recog.base.matched_eof = true };
-				recog.err_handler.report_match(&mut recog.base);
-				recog.base.consume(&mut recog.err_handler);
+
+			let tmp = recog.input.lt(-1).cloned();
+			recog.ctx.as_ref().unwrap().set_stop(tmp);
+			recog.base.set_state(115);
+			recog.err_handler.sync(&mut recog.base)?;
+			_alt = recog.interpreter.adaptive_predict(13,&mut recog.base)?;
+			while { _alt!=2 && _alt!=INVALID_ALT } {
+				if _alt==1 {
+					recog.trigger_exit_rule_event();
+					_prevctx = _localctx.clone();
+					{
+					recog.base.set_state(113);
+					recog.err_handler.sync(&mut recog.base)?;
+					match  recog.interpreter.adaptive_predict(12,&mut recog.base)? {
+						1 =>{
+							{
+							/*recRuleAltStartAction*/
+							let mut tmp = ExpressionContextExt::new(_parentctx.clone(), _parentState);
+							recog.push_new_recursion_context(tmp.clone(), _startState, RULE_expression);
+							_localctx = tmp;
+							recog.base.set_state(98);
+							if !({recog.precpred(None, 5)}) {
+								Err(FailedPredicateError::new(&mut recog.base, Some("recog.precpred(None, 5)".to_owned()), None))?;
+							}
+							recog.base.set_state(99);
+							recog.base.match_token(LEFT_SHIFT,&mut recog.err_handler)?;
+
+							/*InvokeRule expression*/
+							recog.base.set_state(100);
+							recog.expression_rec(6)?;
+
+							}
+						}
+					,
+						2 =>{
+							{
+							/*recRuleAltStartAction*/
+							let mut tmp = ExpressionContextExt::new(_parentctx.clone(), _parentState);
+							recog.push_new_recursion_context(tmp.clone(), _startState, RULE_expression);
+							_localctx = tmp;
+							recog.base.set_state(101);
+							if !({recog.precpred(None, 4)}) {
+								Err(FailedPredicateError::new(&mut recog.base, Some("recog.precpred(None, 4)".to_owned()), None))?;
+							}
+							recog.base.set_state(102);
+							recog.base.match_token(RIGHT_SHIFT,&mut recog.err_handler)?;
+
+							/*InvokeRule expression*/
+							recog.base.set_state(103);
+							recog.expression_rec(5)?;
+
+							}
+						}
+					,
+						3 =>{
+							{
+							/*recRuleAltStartAction*/
+							let mut tmp = ExpressionContextExt::new(_parentctx.clone(), _parentState);
+							recog.push_new_recursion_context(tmp.clone(), _startState, RULE_expression);
+							_localctx = tmp;
+							recog.base.set_state(104);
+							if !({recog.precpred(None, 3)}) {
+								Err(FailedPredicateError::new(&mut recog.base, Some("recog.precpred(None, 3)".to_owned()), None))?;
+							}
+							recog.base.set_state(105);
+							recog.base.match_token(SLASH,&mut recog.err_handler)?;
+
+							/*InvokeRule expression*/
+							recog.base.set_state(106);
+							recog.expression_rec(4)?;
+
+							}
+						}
+					,
+						4 =>{
+							{
+							/*recRuleAltStartAction*/
+							let mut tmp = ExpressionContextExt::new(_parentctx.clone(), _parentState);
+							recog.push_new_recursion_context(tmp.clone(), _startState, RULE_expression);
+							_localctx = tmp;
+							recog.base.set_state(107);
+							if !({recog.precpred(None, 2)}) {
+								Err(FailedPredicateError::new(&mut recog.base, Some("recog.precpred(None, 2)".to_owned()), None))?;
+							}
+							recog.base.set_state(108);
+							recog.base.match_token(GT,&mut recog.err_handler)?;
+
+							/*InvokeRule expression*/
+							recog.base.set_state(109);
+							recog.expression_rec(3)?;
+
+							}
+						}
+					,
+						5 =>{
+							{
+							/*recRuleAltStartAction*/
+							let mut tmp = ExpressionContextExt::new(_parentctx.clone(), _parentState);
+							recog.push_new_recursion_context(tmp.clone(), _startState, RULE_expression);
+							_localctx = tmp;
+							recog.base.set_state(110);
+							if !({recog.precpred(None, 1)}) {
+								Err(FailedPredicateError::new(&mut recog.base, Some("recog.precpred(None, 1)".to_owned()), None))?;
+							}
+							recog.base.set_state(111);
+							recog.base.match_token(LT,&mut recog.err_handler)?;
+
+							/*InvokeRule expression*/
+							recog.base.set_state(112);
+							recog.expression_rec(2)?;
+
+							}
+						}
+
+						_ => {}
+					}
+					} 
+				}
+				recog.base.set_state(117);
+				recog.err_handler.sync(&mut recog.base)?;
+				_alt = recog.interpreter.adaptive_predict(13,&mut recog.base)?;
 			}
 			}
 			Ok(())
 		})();
 		match result {
-		Ok(_)=>{},
+		Ok(_) => {},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
-		Err(ref re) => {
-				//_localctx.exception = re;
-				recog.err_handler.report_error(&mut recog.base, re);
-				recog.err_handler.recover(&mut recog.base, re)?;
-			}
+		Err(ref re)=>{
+			//_localctx.exception = re;
+			recog.err_handler.report_error(&mut recog.base, re);
+	        recog.err_handler.recover(&mut recog.base, re)?;}
 		}
-		recog.base.exit_rule();
+		recog.base.unroll_recursion_context(_parentctx);
 
 		Ok(_localctx)
 	}
@@ -1143,27 +1695,27 @@ where
 		let mut recog = self;
 		let _parentctx = recog.ctx.take();
 		let mut _localctx = Asm_instrinsic_instructionContextExt::new(_parentctx.clone(), recog.base.get_state());
-        recog.base.enter_rule(_localctx.clone(), 10, RULE_asm_instrinsic_instruction);
+        recog.base.enter_rule(_localctx.clone(), 14, RULE_asm_instrinsic_instruction);
         let mut _localctx: Rc<Asm_instrinsic_instructionContextAll> = _localctx;
 		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
 			{
-			recog.base.set_state(70);
+			recog.base.set_state(118);
 			recog.base.match_token(DOT,&mut recog.err_handler)?;
 
-			recog.base.set_state(99);
+			recog.base.set_state(147);
 			recog.err_handler.sync(&mut recog.base)?;
 			match recog.base.input.la(1) {
 			 INCLUDE 
 				=> {
 					{
 					{
-					recog.base.set_state(71);
+					recog.base.set_state(119);
 					recog.base.match_token(INCLUDE,&mut recog.err_handler)?;
 
-					recog.base.set_state(72);
+					recog.base.set_state(120);
 					recog.base.match_token(STRING,&mut recog.err_handler)?;
 
 					}
@@ -1173,38 +1725,36 @@ where
 			 DEF 
 				=> {
 					{
-					recog.base.set_state(73);
+					recog.base.set_state(121);
 					recog.base.match_token(DEF,&mut recog.err_handler)?;
 
-					recog.base.set_state(74);
+					recog.base.set_state(122);
 					recog.base.match_token(IDENTIFIER,&mut recog.err_handler)?;
 
-					recog.base.set_state(75);
+					recog.base.set_state(123);
 					recog.base.match_token(EQUALS,&mut recog.err_handler)?;
 
-					recog.base.set_state(78);
+					recog.base.set_state(126);
 					recog.err_handler.sync(&mut recog.base)?;
-					match recog.base.input.la(1) {
-					 NUMBER | HEX_NUMBER 
-						=> {
+					match  recog.interpreter.adaptive_predict(14,&mut recog.base)? {
+						1 =>{
 							{
 							/*InvokeRule expression*/
-							recog.base.set_state(76);
-							recog.expression()?;
+							recog.base.set_state(124);
+							recog.expression_rec(0)?;
 
 							}
 						}
-
-					 IDENTIFIER 
-						=> {
+					,
+						2 =>{
 							{
-							recog.base.set_state(77);
+							recog.base.set_state(125);
 							recog.base.match_token(IDENTIFIER,&mut recog.err_handler)?;
 
 							}
 						}
 
-						_ => Err(ANTLRError::NoAltError(NoViableAltError::new(&mut recog.base)))?
+						_ => {}
 					}
 					}
 				}
@@ -1212,38 +1762,36 @@ where
 			 EQU 
 				=> {
 					{
-					recog.base.set_state(80);
+					recog.base.set_state(128);
 					recog.base.match_token(EQU,&mut recog.err_handler)?;
 
-					recog.base.set_state(81);
+					recog.base.set_state(129);
 					recog.base.match_token(IDENTIFIER,&mut recog.err_handler)?;
 
-					recog.base.set_state(82);
+					recog.base.set_state(130);
 					recog.base.match_token(EQUALS,&mut recog.err_handler)?;
 
-					recog.base.set_state(85);
+					recog.base.set_state(133);
 					recog.err_handler.sync(&mut recog.base)?;
-					match recog.base.input.la(1) {
-					 NUMBER | HEX_NUMBER 
-						=> {
+					match  recog.interpreter.adaptive_predict(15,&mut recog.base)? {
+						1 =>{
 							{
 							/*InvokeRule expression*/
-							recog.base.set_state(83);
-							recog.expression()?;
+							recog.base.set_state(131);
+							recog.expression_rec(0)?;
 
 							}
 						}
-
-					 IDENTIFIER 
-						=> {
+					,
+						2 =>{
 							{
-							recog.base.set_state(84);
+							recog.base.set_state(132);
 							recog.base.match_token(IDENTIFIER,&mut recog.err_handler)?;
 
 							}
 						}
 
-						_ => Err(ANTLRError::NoAltError(NoViableAltError::new(&mut recog.base)))?
+						_ => {}
 					}
 					}
 				}
@@ -1251,7 +1799,7 @@ where
 			 CSEG 
 				=> {
 					{
-					recog.base.set_state(87);
+					recog.base.set_state(135);
 					recog.base.match_token(CSEG,&mut recog.err_handler)?;
 
 					}
@@ -1260,10 +1808,10 @@ where
 			 ORG 
 				=> {
 					{
-					recog.base.set_state(88);
+					recog.base.set_state(136);
 					recog.base.match_token(ORG,&mut recog.err_handler)?;
 
-					recog.base.set_state(89);
+					recog.base.set_state(137);
 					recog.base.match_token(HEX_NUMBER,&mut recog.err_handler)?;
 
 					}
@@ -1272,10 +1820,10 @@ where
 			 MACRO 
 				=> {
 					{
-					recog.base.set_state(90);
+					recog.base.set_state(138);
 					recog.base.match_token(MACRO,&mut recog.err_handler)?;
 
-					recog.base.set_state(91);
+					recog.base.set_state(139);
 					recog.base.match_token(IDENTIFIER,&mut recog.err_handler)?;
 
 					}
@@ -1284,7 +1832,7 @@ where
 			 END_MACRO 
 				=> {
 					{
-					recog.base.set_state(92);
+					recog.base.set_state(140);
 					recog.base.match_token(END_MACRO,&mut recog.err_handler)?;
 
 					}
@@ -1293,12 +1841,12 @@ where
 			 IF 
 				=> {
 					{
-					recog.base.set_state(93);
+					recog.base.set_state(141);
 					recog.base.match_token(IF,&mut recog.err_handler)?;
 
 					/*InvokeRule expression*/
-					recog.base.set_state(94);
-					recog.expression()?;
+					recog.base.set_state(142);
+					recog.expression_rec(0)?;
 
 					}
 				}
@@ -1306,7 +1854,7 @@ where
 			 ELSE 
 				=> {
 					{
-					recog.base.set_state(95);
+					recog.base.set_state(143);
 					recog.base.match_token(ELSE,&mut recog.err_handler)?;
 
 					}
@@ -1315,7 +1863,7 @@ where
 			 ENDIF 
 				=> {
 					{
-					recog.base.set_state(96);
+					recog.base.set_state(144);
 					recog.base.match_token(ENDIF,&mut recog.err_handler)?;
 
 					}
@@ -1324,10 +1872,10 @@ where
 			 ERROR 
 				=> {
 					{
-					recog.base.set_state(97);
+					recog.base.set_state(145);
 					recog.base.match_token(ERROR,&mut recog.err_handler)?;
 
-					recog.base.set_state(98);
+					recog.base.set_state(146);
 					recog.base.match_token(STRING,&mut recog.err_handler)?;
 
 					}
@@ -1421,6 +1969,9 @@ fn OPENING_BRACKET(&self) -> Option<Rc<TerminalNode<'input,assemblerParserContex
 fn CLOSEING_BRACKET(&self) -> Option<Rc<TerminalNode<'input,assemblerParserContextType>>> where Self:Sized{
 	self.get_token(CLOSEING_BRACKET, 0)
 }
+fn macro_placeholder(&self) -> Option<Rc<Macro_placeholderContextAll<'input>>> where Self:Sized{
+	self.child_of_type(0)
+}
 
 }
 
@@ -1436,23 +1987,44 @@ where
 		let mut recog = self;
 		let _parentctx = recog.ctx.take();
 		let mut _localctx = Asm_intrinsic_usageContextExt::new(_parentctx.clone(), recog.base.get_state());
-        recog.base.enter_rule(_localctx.clone(), 12, RULE_asm_intrinsic_usage);
+        recog.base.enter_rule(_localctx.clone(), 16, RULE_asm_intrinsic_usage);
         let mut _localctx: Rc<Asm_intrinsic_usageContextAll> = _localctx;
 		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
 			{
-			recog.base.set_state(101);
+			recog.base.set_state(149);
 			recog.base.match_token(IDENTIFIER,&mut recog.err_handler)?;
 
-			recog.base.set_state(102);
+			recog.base.set_state(150);
 			recog.base.match_token(OPENING_BRACKET,&mut recog.err_handler)?;
 
-			recog.base.set_state(103);
-			recog.base.match_token(IDENTIFIER,&mut recog.err_handler)?;
+			recog.base.set_state(153);
+			recog.err_handler.sync(&mut recog.base)?;
+			match recog.base.input.la(1) {
+			 IDENTIFIER 
+				=> {
+					{
+					recog.base.set_state(151);
+					recog.base.match_token(IDENTIFIER,&mut recog.err_handler)?;
 
-			recog.base.set_state(104);
+					}
+				}
+
+			 AT 
+				=> {
+					{
+					/*InvokeRule macro_placeholder*/
+					recog.base.set_state(152);
+					recog.macro_placeholder()?;
+
+					}
+				}
+
+				_ => Err(ANTLRError::NoAltError(NoViableAltError::new(&mut recog.base)))?
+			}
+			recog.base.set_state(155);
 			recog.base.match_token(CLOSEING_BRACKET,&mut recog.err_handler)?;
 
 			}
@@ -1522,10 +2094,60 @@ impl<'input> InstructionContextExt<'input>{
 
 pub trait InstructionContextAttrs<'input>: assemblerParserContext<'input> + BorrowMut<InstructionContextExt<'input>>{
 
+/// Retrieves first TerminalNode corresponding to token ADD
+/// Returns `None` if there is no child corresponding to token ADD
+fn ADD(&self) -> Option<Rc<TerminalNode<'input,assemblerParserContextType>>> where Self:Sized{
+	self.get_token(ADD, 0)
+}
+/// Retrieves first TerminalNode corresponding to token CALL
+/// Returns `None` if there is no child corresponding to token CALL
+fn CALL(&self) -> Option<Rc<TerminalNode<'input,assemblerParserContextType>>> where Self:Sized{
+	self.get_token(CALL, 0)
+}
+/// Retrieves first TerminalNode corresponding to token CLR
+/// Returns `None` if there is no child corresponding to token CLR
+fn CLR(&self) -> Option<Rc<TerminalNode<'input,assemblerParserContextType>>> where Self:Sized{
+	self.get_token(CLR, 0)
+}
+/// Retrieves first TerminalNode corresponding to token EOR
+/// Returns `None` if there is no child corresponding to token EOR
+fn EOR(&self) -> Option<Rc<TerminalNode<'input,assemblerParserContextType>>> where Self:Sized{
+	self.get_token(EOR, 0)
+}
 /// Retrieves first TerminalNode corresponding to token LDI
 /// Returns `None` if there is no child corresponding to token LDI
 fn LDI(&self) -> Option<Rc<TerminalNode<'input,assemblerParserContextType>>> where Self:Sized{
 	self.get_token(LDI, 0)
+}
+/// Retrieves first TerminalNode corresponding to token OUT
+/// Returns `None` if there is no child corresponding to token OUT
+fn OUT(&self) -> Option<Rc<TerminalNode<'input,assemblerParserContextType>>> where Self:Sized{
+	self.get_token(OUT, 0)
+}
+/// Retrieves first TerminalNode corresponding to token POP
+/// Returns `None` if there is no child corresponding to token POP
+fn POP(&self) -> Option<Rc<TerminalNode<'input,assemblerParserContextType>>> where Self:Sized{
+	self.get_token(POP, 0)
+}
+/// Retrieves first TerminalNode corresponding to token PUSH
+/// Returns `None` if there is no child corresponding to token PUSH
+fn PUSH(&self) -> Option<Rc<TerminalNode<'input,assemblerParserContextType>>> where Self:Sized{
+	self.get_token(PUSH, 0)
+}
+/// Retrieves first TerminalNode corresponding to token RCALL
+/// Returns `None` if there is no child corresponding to token RCALL
+fn RCALL(&self) -> Option<Rc<TerminalNode<'input,assemblerParserContextType>>> where Self:Sized{
+	self.get_token(RCALL, 0)
+}
+/// Retrieves first TerminalNode corresponding to token RET
+/// Returns `None` if there is no child corresponding to token RET
+fn RET(&self) -> Option<Rc<TerminalNode<'input,assemblerParserContextType>>> where Self:Sized{
+	self.get_token(RET, 0)
+}
+/// Retrieves first TerminalNode corresponding to token RJMP
+/// Returns `None` if there is no child corresponding to token RJMP
+fn RJMP(&self) -> Option<Rc<TerminalNode<'input,assemblerParserContextType>>> where Self:Sized{
+	self.get_token(RJMP, 0)
 }
 
 }
@@ -1542,16 +2164,25 @@ where
 		let mut recog = self;
 		let _parentctx = recog.ctx.take();
 		let mut _localctx = InstructionContextExt::new(_parentctx.clone(), recog.base.get_state());
-        recog.base.enter_rule(_localctx.clone(), 14, RULE_instruction);
+        recog.base.enter_rule(_localctx.clone(), 18, RULE_instruction);
         let mut _localctx: Rc<InstructionContextAll> = _localctx;
+		let mut _la: isize = -1;
 		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
 			{
-			recog.base.set_state(106);
-			recog.base.match_token(LDI,&mut recog.err_handler)?;
+			recog.base.set_state(157);
+			_la = recog.base.input.la(1);
+			if { !((((_la) & !0x3f) == 0 && ((1usize << _la) & ((1usize << ADD) | (1usize << CALL) | (1usize << CLR) | (1usize << EOR) | (1usize << LDI) | (1usize << OUT) | (1usize << POP) | (1usize << PUSH) | (1usize << RCALL) | (1usize << RET) | (1usize << RJMP))) != 0)) } {
+				recog.err_handler.recover_inline(&mut recog.base)?;
 
+			}
+			else {
+				if  recog.base.input.la(1)==TOKEN_EOF { recog.base.matched_eof = true };
+				recog.err_handler.report_match(&mut recog.base);
+				recog.base.consume(&mut recog.err_handler);
+			}
 			}
 			Ok(())
 		})();
@@ -1591,60 +2222,90 @@ lazy_static! {
 
 const _serializedATN:&'static str =
 	"\x03\u{608b}\u{a72a}\u{8133}\u{b9ed}\u{417c}\u{3be7}\u{7786}\u{5964}\x03\
-	\x1f\x6f\x04\x02\x09\x02\x04\x03\x09\x03\x04\x04\x09\x04\x04\x05\x09\x05\
-	\x04\x06\x09\x06\x04\x07\x09\x07\x04\x08\x09\x08\x04\x09\x09\x09\x03\x02\
-	\x07\x02\x14\x0a\x02\x0c\x02\x0e\x02\x17\x0b\x02\x03\x02\x03\x02\x07\x02\
-	\x1b\x0a\x02\x0c\x02\x0e\x02\x1e\x0b\x02\x03\x02\x07\x02\x21\x0a\x02\x0c\
-	\x02\x0e\x02\x24\x0b\x02\x03\x02\x07\x02\x27\x0a\x02\x0c\x02\x0e\x02\x2a\
-	\x0b\x02\x03\x02\x03\x02\x03\x03\x05\x03\x2f\x0a\x03\x03\x03\x03\x03\x03\
-	\x03\x03\x03\x05\x03\x35\x0a\x03\x03\x03\x03\x03\x03\x03\x03\x03\x05\x03\
-	\x3b\x0a\x03\x05\x03\x3d\x0a\x03\x03\x03\x05\x03\x40\x0a\x03\x03\x04\x03\
-	\x04\x03\x04\x03\x05\x03\x05\x03\x06\x03\x06\x03\x07\x03\x07\x03\x07\x03\
-	\x07\x03\x07\x03\x07\x03\x07\x03\x07\x05\x07\x51\x0a\x07\x03\x07\x03\x07\
-	\x03\x07\x03\x07\x03\x07\x05\x07\x58\x0a\x07\x03\x07\x03\x07\x03\x07\x03\
-	\x07\x03\x07\x03\x07\x03\x07\x03\x07\x03\x07\x03\x07\x03\x07\x03\x07\x05\
-	\x07\x66\x0a\x07\x03\x08\x03\x08\x03\x08\x03\x08\x03\x08\x03\x09\x03\x09\
-	\x03\x09\x02\x02\x0a\x02\x04\x06\x08\x0a\x0c\x0e\x10\x02\x03\x03\x02\x1d\
-	\x1e\x02\x7d\x02\x15\x03\x02\x02\x02\x04\x3f\x03\x02\x02\x02\x06\x41\x03\
-	\x02\x02\x02\x08\x44\x03\x02\x02\x02\x0a\x46\x03\x02\x02\x02\x0c\x48\x03\
-	\x02\x02\x02\x0e\x67\x03\x02\x02\x02\x10\x6c\x03\x02\x02\x02\x12\x14\x07\
-	\x1b\x02\x02\x13\x12\x03\x02\x02\x02\x14\x17\x03\x02\x02\x02\x15\x13\x03\
-	\x02\x02\x02\x15\x16\x03\x02\x02\x02\x16\x18\x03\x02\x02\x02\x17\x15\x03\
-	\x02\x02\x02\x18\x22\x05\x04\x03\x02\x19\x1b\x07\x1b\x02\x02\x1a\x19\x03\
-	\x02\x02\x02\x1b\x1e\x03\x02\x02\x02\x1c\x1a\x03\x02\x02\x02\x1c\x1d\x03\
-	\x02\x02\x02\x1d\x1f\x03\x02\x02\x02\x1e\x1c\x03\x02\x02\x02\x1f\x21\x05\
-	\x04\x03\x02\x20\x1c\x03\x02\x02\x02\x21\x24\x03\x02\x02\x02\x22\x20\x03\
-	\x02\x02\x02\x22\x23\x03\x02\x02\x02\x23\x28\x03\x02\x02\x02\x24\x22\x03\
-	\x02\x02\x02\x25\x27\x07\x1b\x02\x02\x26\x25\x03\x02\x02\x02\x27\x2a\x03\
-	\x02\x02\x02\x28\x26\x03\x02\x02\x02\x28\x29\x03\x02\x02\x02\x29\x2b\x03\
-	\x02\x02\x02\x2a\x28\x03\x02\x02\x02\x2b\x2c\x07\x02\x02\x03\x2c\x03\x03\
-	\x02\x02\x02\x2d\x2f\x05\x06\x04\x02\x2e\x2d\x03\x02\x02\x02\x2e\x2f\x03\
-	\x02\x02\x02\x2f\x30\x03\x02\x02\x02\x30\x34\x05\x10\x09\x02\x31\x35\x07\
-	\x1f\x02\x02\x32\x35\x05\x0a\x06\x02\x33\x35\x05\x0e\x08\x02\x34\x31\x03\
-	\x02\x02\x02\x34\x32\x03\x02\x02\x02\x34\x33\x03\x02\x02\x02\x35\x3c\x03\
-	\x02\x02\x02\x36\x3a\x07\x09\x02\x02\x37\x3b\x07\x1f\x02\x02\x38\x3b\x05\
-	\x0a\x06\x02\x39\x3b\x05\x0e\x08\x02\x3a\x37\x03\x02\x02\x02\x3a\x38\x03\
-	\x02\x02\x02\x3a\x39\x03\x02\x02\x02\x3b\x3d\x03\x02\x02\x02\x3c\x36\x03\
-	\x02\x02\x02\x3c\x3d\x03\x02\x02\x02\x3d\x40\x03\x02\x02\x02\x3e\x40\x05\
-	\x0c\x07\x02\x3f\x2e\x03\x02\x02\x02\x3f\x3e\x03\x02\x02\x02\x40\x05\x03\
-	\x02\x02\x02\x41\x42\x07\x1f\x02\x02\x42\x43\x07\x08\x02\x02\x43\x07\x03\
-	\x02\x02\x02\x44\x45\x07\x1f\x02\x02\x45\x09\x03\x02\x02\x02\x46\x47\x09\
-	\x02\x02\x02\x47\x0b\x03\x02\x02\x02\x48\x65\x07\x0c\x02\x02\x49\x4a\x07\
-	\x14\x02\x02\x4a\x66\x07\x05\x02\x02\x4b\x4c\x07\x0b\x02\x02\x4c\x4d\x07\
-	\x1f\x02\x02\x4d\x50\x07\x10\x02\x02\x4e\x51\x05\x0a\x06\x02\x4f\x51\x07\
-	\x1f\x02\x02\x50\x4e\x03\x02\x02\x02\x50\x4f\x03\x02\x02\x02\x51\x66\x03\
-	\x02\x02\x02\x52\x53\x07\x11\x02\x02\x53\x54\x07\x1f\x02\x02\x54\x57\x07\
-	\x10\x02\x02\x55\x58\x05\x0a\x06\x02\x56\x58\x07\x1f\x02\x02\x57\x55\x03\
-	\x02\x02\x02\x57\x56\x03\x02\x02\x02\x58\x66\x03\x02\x02\x02\x59\x66\x07\
-	\x0a\x02\x02\x5a\x5b\x07\x18\x02\x02\x5b\x66\x07\x1e\x02\x02\x5c\x5d\x07\
-	\x15\x02\x02\x5d\x66\x07\x1f\x02\x02\x5e\x66\x07\x0e\x02\x02\x5f\x60\x07\
-	\x13\x02\x02\x60\x66\x05\x0a\x06\x02\x61\x66\x07\x0d\x02\x02\x62\x66\x07\
-	\x0f\x02\x02\x63\x64\x07\x12\x02\x02\x64\x66\x07\x05\x02\x02\x65\x49\x03\
-	\x02\x02\x02\x65\x4b\x03\x02\x02\x02\x65\x52\x03\x02\x02\x02\x65\x59\x03\
-	\x02\x02\x02\x65\x5a\x03\x02\x02\x02\x65\x5c\x03\x02\x02\x02\x65\x5e\x03\
-	\x02\x02\x02\x65\x5f\x03\x02\x02\x02\x65\x61\x03\x02\x02\x02\x65\x62\x03\
-	\x02\x02\x02\x65\x63\x03\x02\x02\x02\x66\x0d\x03\x02\x02\x02\x67\x68\x07\
-	\x1f\x02\x02\x68\x69\x07\x17\x02\x02\x69\x6a\x07\x1f\x02\x02\x6a\x6b\x07\
-	\x07\x02\x02\x6b\x0f\x03\x02\x02\x02\x6c\x6d\x07\x03\x02\x02\x6d\x11\x03\
-	\x02\x02\x02\x0e\x15\x1c\x22\x28\x2e\x34\x3a\x3c\x3f\x50\x57\x65";
+	\x2e\u{a2}\x04\x02\x09\x02\x04\x03\x09\x03\x04\x04\x09\x04\x04\x05\x09\x05\
+	\x04\x06\x09\x06\x04\x07\x09\x07\x04\x08\x09\x08\x04\x09\x09\x09\x04\x0a\
+	\x09\x0a\x04\x0b\x09\x0b\x03\x02\x07\x02\x18\x0a\x02\x0c\x02\x0e\x02\x1b\
+	\x0b\x02\x03\x02\x03\x02\x07\x02\x1f\x0a\x02\x0c\x02\x0e\x02\x22\x0b\x02\
+	\x03\x02\x07\x02\x25\x0a\x02\x0c\x02\x0e\x02\x28\x0b\x02\x03\x02\x07\x02\
+	\x2b\x0a\x02\x0c\x02\x0e\x02\x2e\x0b\x02\x03\x02\x03\x02\x03\x03\x05\x03\
+	\x33\x0a\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03\x05\x03\x3a\x0a\x03\
+	\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03\x05\x03\x41\x0a\x03\x05\x03\x43\
+	\x0a\x03\x05\x03\x45\x0a\x03\x03\x03\x03\x03\x05\x03\x49\x0a\x03\x03\x04\
+	\x03\x04\x07\x04\x4d\x0a\x04\x0c\x04\x0e\x04\x50\x0b\x04\x03\x05\x03\x05\
+	\x03\x05\x03\x06\x03\x06\x03\x07\x03\x07\x03\x07\x03\x08\x03\x08\x03\x08\
+	\x03\x08\x03\x08\x03\x08\x03\x08\x03\x08\x03\x08\x05\x08\x63\x0a\x08\x03\
+	\x08\x03\x08\x03\x08\x03\x08\x03\x08\x03\x08\x03\x08\x03\x08\x03\x08\x03\
+	\x08\x03\x08\x03\x08\x03\x08\x03\x08\x03\x08\x07\x08\x74\x0a\x08\x0c\x08\
+	\x0e\x08\x77\x0b\x08\x03\x09\x03\x09\x03\x09\x03\x09\x03\x09\x03\x09\x03\
+	\x09\x03\x09\x05\x09\u{81}\x0a\x09\x03\x09\x03\x09\x03\x09\x03\x09\x03\x09\
+	\x05\x09\u{88}\x0a\x09\x03\x09\x03\x09\x03\x09\x03\x09\x03\x09\x03\x09\x03\
+	\x09\x03\x09\x03\x09\x03\x09\x03\x09\x03\x09\x05\x09\u{96}\x0a\x09\x03\x0a\
+	\x03\x0a\x03\x0a\x03\x0a\x05\x0a\u{9c}\x0a\x0a\x03\x0a\x03\x0a\x03\x0b\x03\
+	\x0b\x03\x0b\x02\x03\x0e\x0c\x02\x04\x06\x08\x0a\x0c\x0e\x10\x12\x14\x02\
+	\x03\x03\x02\x03\x0d\x02\u{bd}\x02\x19\x03\x02\x02\x02\x04\x48\x03\x02\x02\
+	\x02\x06\x4a\x03\x02\x02\x02\x08\x51\x03\x02\x02\x02\x0a\x54\x03\x02\x02\
+	\x02\x0c\x56\x03\x02\x02\x02\x0e\x62\x03\x02\x02\x02\x10\x78\x03\x02\x02\
+	\x02\x12\u{97}\x03\x02\x02\x02\x14\u{9f}\x03\x02\x02\x02\x16\x18\x07\x0e\
+	\x02\x02\x17\x16\x03\x02\x02\x02\x18\x1b\x03\x02\x02\x02\x19\x17\x03\x02\
+	\x02\x02\x19\x1a\x03\x02\x02\x02\x1a\x1c\x03\x02\x02\x02\x1b\x19\x03\x02\
+	\x02\x02\x1c\x26\x05\x04\x03\x02\x1d\x1f\x07\x0e\x02\x02\x1e\x1d\x03\x02\
+	\x02\x02\x1f\x22\x03\x02\x02\x02\x20\x1e\x03\x02\x02\x02\x20\x21\x03\x02\
+	\x02\x02\x21\x23\x03\x02\x02\x02\x22\x20\x03\x02\x02\x02\x23\x25\x05\x04\
+	\x03\x02\x24\x20\x03\x02\x02\x02\x25\x28\x03\x02\x02\x02\x26\x24\x03\x02\
+	\x02\x02\x26\x27\x03\x02\x02\x02\x27\x2c\x03\x02\x02\x02\x28\x26\x03\x02\
+	\x02\x02\x29\x2b\x07\x0e\x02\x02\x2a\x29\x03\x02\x02\x02\x2b\x2e\x03\x02\
+	\x02\x02\x2c\x2a\x03\x02\x02\x02\x2c\x2d\x03\x02\x02\x02\x2d\x2f\x03\x02\
+	\x02\x02\x2e\x2c\x03\x02\x02\x02\x2f\x30\x07\x02\x02\x03\x30\x03\x03\x02\
+	\x02\x02\x31\x33\x05\x08\x05\x02\x32\x31\x03\x02\x02\x02\x32\x33\x03\x02\
+	\x02\x02\x33\x34\x03\x02\x02\x02\x34\x44\x05\x14\x0b\x02\x35\x3a\x07\x2e\
+	\x02\x02\x36\x3a\x05\x0e\x08\x02\x37\x3a\x05\x12\x0a\x02\x38\x3a\x05\x0c\
+	\x07\x02\x39\x35\x03\x02\x02\x02\x39\x36\x03\x02\x02\x02\x39\x37\x03\x02\
+	\x02\x02\x39\x38\x03\x02\x02\x02\x3a\x42\x03\x02\x02\x02\x3b\x40\x07\x16\
+	\x02\x02\x3c\x41\x07\x2e\x02\x02\x3d\x41\x05\x0e\x08\x02\x3e\x41\x05\x12\
+	\x0a\x02\x3f\x41\x05\x0c\x07\x02\x40\x3c\x03\x02\x02\x02\x40\x3d\x03\x02\
+	\x02\x02\x40\x3e\x03\x02\x02\x02\x40\x3f\x03\x02\x02\x02\x41\x43\x03\x02\
+	\x02\x02\x42\x3b\x03\x02\x02\x02\x42\x43\x03\x02\x02\x02\x43\x45\x03\x02\
+	\x02\x02\x44\x39\x03\x02\x02\x02\x44\x45\x03\x02\x02\x02\x45\x49\x03\x02\
+	\x02\x02\x46\x49\x05\x10\x09\x02\x47\x49\x05\x06\x04\x02\x48\x32\x03\x02\
+	\x02\x02\x48\x46\x03\x02\x02\x02\x48\x47\x03\x02\x02\x02\x49\x05\x03\x02\
+	\x02\x02\x4a\x4e\x07\x2e\x02\x02\x4b\x4d\x05\x0e\x08\x02\x4c\x4b\x03\x02\
+	\x02\x02\x4d\x50\x03\x02\x02\x02\x4e\x4c\x03\x02\x02\x02\x4e\x4f\x03\x02\
+	\x02\x02\x4f\x07\x03\x02\x02\x02\x50\x4e\x03\x02\x02\x02\x51\x52\x07\x2e\
+	\x02\x02\x52\x53\x07\x15\x02\x02\x53\x09\x03\x02\x02\x02\x54\x55\x07\x2e\
+	\x02\x02\x55\x0b\x03\x02\x02\x02\x56\x57\x07\x13\x02\x02\x57\x58\x07\x2c\
+	\x02\x02\x58\x0d\x03\x02\x02\x02\x59\x5a\x08\x08\x01\x02\x5a\x63\x07\x2c\
+	\x02\x02\x5b\x63\x07\x2d\x02\x02\x5c\x63\x07\x2e\x02\x02\x5d\x63\x05\x0c\
+	\x07\x02\x5e\x5f\x07\x27\x02\x02\x5f\x60\x05\x0e\x08\x02\x60\x61\x07\x14\
+	\x02\x02\x61\x63\x03\x02\x02\x02\x62\x59\x03\x02\x02\x02\x62\x5b\x03\x02\
+	\x02\x02\x62\x5c\x03\x02\x02\x02\x62\x5d\x03\x02\x02\x02\x62\x5e\x03\x02\
+	\x02\x02\x63\x75\x03\x02\x02\x02\x64\x65\x0c\x07\x02\x02\x65\x66\x07\x23\
+	\x02\x02\x66\x74\x05\x0e\x08\x08\x67\x68\x0c\x06\x02\x02\x68\x69\x07\x2a\
+	\x02\x02\x69\x74\x05\x0e\x08\x07\x6a\x6b\x0c\x05\x02\x02\x6b\x6c\x07\x2b\
+	\x02\x02\x6c\x74\x05\x0e\x08\x06\x6d\x6e\x0c\x04\x02\x02\x6e\x6f\x07\x20\
+	\x02\x02\x6f\x74\x05\x0e\x08\x05\x70\x71\x0c\x03\x02\x02\x71\x72\x07\x24\
+	\x02\x02\x72\x74\x05\x0e\x08\x04\x73\x64\x03\x02\x02\x02\x73\x67\x03\x02\
+	\x02\x02\x73\x6a\x03\x02\x02\x02\x73\x6d\x03\x02\x02\x02\x73\x70\x03\x02\
+	\x02\x02\x74\x77\x03\x02\x02\x02\x75\x73\x03\x02\x02\x02\x75\x76\x03\x02\
+	\x02\x02\x76\x0f\x03\x02\x02\x02\x77\x75\x03\x02\x02\x02\x78\u{95}\x07\x19\
+	\x02\x02\x79\x7a\x07\x22\x02\x02\x7a\u{96}\x07\x11\x02\x02\x7b\x7c\x07\x18\
+	\x02\x02\x7c\x7d\x07\x2e\x02\x02\x7d\u{80}\x07\x1d\x02\x02\x7e\u{81}\x05\
+	\x0e\x08\x02\x7f\u{81}\x07\x2e\x02\x02\u{80}\x7e\x03\x02\x02\x02\u{80}\x7f\
+	\x03\x02\x02\x02\u{81}\u{96}\x03\x02\x02\x02\u{82}\u{83}\x07\x1e\x02\x02\
+	\u{83}\u{84}\x07\x2e\x02\x02\u{84}\u{87}\x07\x1d\x02\x02\u{85}\u{88}\x05\
+	\x0e\x08\x02\u{86}\u{88}\x07\x2e\x02\x02\u{87}\u{85}\x03\x02\x02\x02\u{87}\
+	\u{86}\x03\x02\x02\x02\u{88}\u{96}\x03\x02\x02\x02\u{89}\u{96}\x07\x17\x02\
+	\x02\u{8a}\u{8b}\x07\x28\x02\x02\u{8b}\u{96}\x07\x2d\x02\x02\u{8c}\u{8d}\
+	\x07\x25\x02\x02\u{8d}\u{96}\x07\x2e\x02\x02\u{8e}\u{96}\x07\x1b\x02\x02\
+	\u{8f}\u{90}\x07\x21\x02\x02\u{90}\u{96}\x05\x0e\x08\x02\u{91}\u{96}\x07\
+	\x1a\x02\x02\u{92}\u{96}\x07\x1c\x02\x02\u{93}\u{94}\x07\x1f\x02\x02\u{94}\
+	\u{96}\x07\x11\x02\x02\u{95}\x79\x03\x02\x02\x02\u{95}\x7b\x03\x02\x02\x02\
+	\u{95}\u{82}\x03\x02\x02\x02\u{95}\u{89}\x03\x02\x02\x02\u{95}\u{8a}\x03\
+	\x02\x02\x02\u{95}\u{8c}\x03\x02\x02\x02\u{95}\u{8e}\x03\x02\x02\x02\u{95}\
+	\u{8f}\x03\x02\x02\x02\u{95}\u{91}\x03\x02\x02\x02\u{95}\u{92}\x03\x02\x02\
+	\x02\u{95}\u{93}\x03\x02\x02\x02\u{96}\x11\x03\x02\x02\x02\u{97}\u{98}\x07\
+	\x2e\x02\x02\u{98}\u{9b}\x07\x27\x02\x02\u{99}\u{9c}\x07\x2e\x02\x02\u{9a}\
+	\u{9c}\x05\x0c\x07\x02\u{9b}\u{99}\x03\x02\x02\x02\u{9b}\u{9a}\x03\x02\x02\
+	\x02\u{9c}\u{9d}\x03\x02\x02\x02\u{9d}\u{9e}\x07\x14\x02\x02\u{9e}\x13\x03\
+	\x02\x02\x02\u{9f}\u{a0}\x09\x02\x02\x02\u{a0}\x15\x03\x02\x02\x02\x14\x19\
+	\x20\x26\x2c\x32\x39\x40\x42\x44\x48\x4e\x62\x73\x75\u{80}\u{87}\u{95}\u{9b}";
 
