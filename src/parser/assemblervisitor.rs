@@ -21,6 +21,12 @@ pub trait assemblerVisitor<'input>: ParseTreeVisitor<'input,assemblerParserConte
 	fn visit_row(&mut self, ctx: &RowContext<'input>) { self.visit_children(ctx) }
 
 	/**
+	 * Visit a parse tree produced by {@link assemblerParser#instruction}.
+	 * @param ctx the parse tree
+	 */
+	fn visit_instruction(&mut self, ctx: &InstructionContext<'input>) { self.visit_children(ctx) }
+
+	/**
 	 * Visit a parse tree produced by {@link assemblerParser#macro_usage}.
 	 * @param ctx the parse tree
 	 */
@@ -63,10 +69,10 @@ pub trait assemblerVisitor<'input>: ParseTreeVisitor<'input,assemblerParserConte
 	fn visit_asm_intrinsic_usage(&mut self, ctx: &Asm_intrinsic_usageContext<'input>) { self.visit_children(ctx) }
 
 	/**
-	 * Visit a parse tree produced by {@link assemblerParser#instruction}.
+	 * Visit a parse tree produced by {@link assemblerParser#mnemonic}.
 	 * @param ctx the parse tree
 	 */
-	fn visit_instruction(&mut self, ctx: &InstructionContext<'input>) { self.visit_children(ctx) }
+	fn visit_mnemonic(&mut self, ctx: &MnemonicContext<'input>) { self.visit_children(ctx) }
 
 }
 
@@ -84,6 +90,14 @@ pub trait assemblerVisitorCompat<'input>:ParseTreeVisitorCompat<'input, Node= as
 	 * @param ctx the parse tree
 	 */
 		fn visit_row(&mut self, ctx: &RowContext<'input>) -> Self::Return {
+			self.visit_children(ctx)
+		}
+
+	/**
+	 * Visit a parse tree produced by {@link assemblerParser#instruction}.
+	 * @param ctx the parse tree
+	 */
+		fn visit_instruction(&mut self, ctx: &InstructionContext<'input>) -> Self::Return {
 			self.visit_children(ctx)
 		}
 
@@ -144,10 +158,10 @@ pub trait assemblerVisitorCompat<'input>:ParseTreeVisitorCompat<'input, Node= as
 		}
 
 	/**
-	 * Visit a parse tree produced by {@link assemblerParser#instruction}.
+	 * Visit a parse tree produced by {@link assemblerParser#mnemonic}.
 	 * @param ctx the parse tree
 	 */
-		fn visit_instruction(&mut self, ctx: &InstructionContext<'input>) -> Self::Return {
+		fn visit_mnemonic(&mut self, ctx: &MnemonicContext<'input>) -> Self::Return {
 			self.visit_children(ctx)
 		}
 
@@ -164,6 +178,11 @@ where
 
 	fn visit_row(&mut self, ctx: &RowContext<'input>){
 		let result = <Self as assemblerVisitorCompat>::visit_row(self, ctx);
+        *<Self as ParseTreeVisitorCompat>::temp_result(self) = result;
+	}
+
+	fn visit_instruction(&mut self, ctx: &InstructionContext<'input>){
+		let result = <Self as assemblerVisitorCompat>::visit_instruction(self, ctx);
         *<Self as ParseTreeVisitorCompat>::temp_result(self) = result;
 	}
 
@@ -202,8 +221,8 @@ where
         *<Self as ParseTreeVisitorCompat>::temp_result(self) = result;
 	}
 
-	fn visit_instruction(&mut self, ctx: &InstructionContext<'input>){
-		let result = <Self as assemblerVisitorCompat>::visit_instruction(self, ctx);
+	fn visit_mnemonic(&mut self, ctx: &MnemonicContext<'input>){
+		let result = <Self as assemblerVisitorCompat>::visit_mnemonic(self, ctx);
         *<Self as ParseTreeVisitorCompat>::temp_result(self) = result;
 	}
 

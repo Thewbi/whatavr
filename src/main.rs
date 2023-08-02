@@ -11,9 +11,14 @@ use std::io::Cursor;
 use std::io::Write;
 
 use antlr_rust::common_token_stream::CommonTokenStream;
+use antlr_rust::parser::ParserNodeType;
+use antlr_rust::token::Token;
 use antlr_rust::token_factory::ArenaCommonFactory;
 use antlr_rust::tree::ParseTreeListener;
 use antlr_rust::InputStream;
+use antlr_rust::tree::ParseTreeVisitorCompat;
+use antlr_rust::tree::Tree;
+use antlr_rust::tree::VisitChildren;
 use env_logger::{Builder, Target};
 use instructions::instruction_definition::InstructionDefinition;
 use log::LevelFilter;
@@ -33,8 +38,12 @@ use crate::instructions::instruction_type::InstructionType;
 use crate::instructions::instructions::INSTRUCTIONS;
 use crate::instructions::instructions::UNKNOWN;
 use crate::instructions::process::*;
+use crate::parser::assemblerparser::InstructionContext;
+use crate::parser::assemblerparser::assemblerParser;
 use crate::parser::assemblerparser::assemblerParserContextType;
 use crate::parser::assemblerparser::Asm_fileContextAll;
+use crate::parser::assemblervisitor::assemblerVisitor;
+use crate::parser::assemblervisitor::assemblerVisitorCompat;
 use antlr_rust::tree::ParseTree;
 
 use byteorder::{LittleEndian, ReadBytesExt};
@@ -65,8 +74,10 @@ fn main() -> io::Result<()> {
     //impl<'input> CSVListener<'input> for Listener {}
 
     let mut asm_file_path: String = String::new();
-    asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/asm_1.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/asm_1.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/asm_2.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/asm_3.asm");
+    asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/asm_4.asm");
 
     let data = fs::read_to_string(asm_file_path).expect("Unable to read file");
     println!("{}", data);
@@ -95,7 +106,252 @@ fn main() -> io::Result<()> {
 
     let root: Rc<Asm_fileContextAll> = result.unwrap();
 
-    println!("string tree: {}", root.to_string_tree(&*parser));
+    log::info!("string tree: {}", root.to_string_tree(&*parser));
+
+
+
+    //let res = Vec<& str>();
+
+    struct DefaultAssemblerVisitor<'i>(Vec<&'i str>);
+
+    impl<'i> ParseTreeVisitorCompat<'i> for DefaultAssemblerVisitor<'i> {
+
+        type Node = assemblerParserContextType;
+        type Return = Vec<&'i str>;
+        //type Return = Vec<&'i String>;
+        //type Return = Vec<String>;
+
+        fn temp_result(&mut self) -> &mut Self::Return {
+            
+            &mut self.0
+            //&mut vec![&String::from(self.0[0])]
+
+            //return &mut vec![&String::from("ADD")];
+
+            //self.
+
+            //todo!()
+
+        }
+
+        // fn visit(&mut self, node: &<Self::Node as antlr_rust::parser::ParserNodeType<'i>>::Type) -> Self::Return {
+            
+        //     //log::info!("visit(): {:?} child_count: {:?}", node, node.get_child_count());
+            
+        //     self.visit_node(node);
+            
+        //     self.temp_result().to_vec()
+        // }
+
+        fn visit_terminal(&mut self, node: &antlr_rust::tree::TerminalNode<'i, Self::Node>) -> Self::Return {
+            
+            if node.symbol.get_token_type() == parser::assemblerparser::ADD {
+
+                //log::info!("visit_terminal(): ADD found!");
+
+                // if let Cow::Borrowed(s) = node.symbol.text {
+                //     return vec![s];
+                // }
+
+                return vec!["ADD"];
+                //return vec![String::from("ADD")];
+            }
+            //vec![]
+
+            if node.symbol.get_token_type() == parser::assemblerparser::LDI {
+
+                //log::info!("visit_terminal(): LDI found!");
+
+                // if let Cow::Borrowed(s) = node.symbol.text {
+                //     return vec![s];
+                // }
+
+                return vec!["LDI"];
+                //return vec![String::from("LDI")];
+            }
+            
+            //Self::Return::default()
+            // let mut output_string:Vec<&str> = Vec::new();
+            // output_string.push(&node.get_text().clone().as_str());
+
+            // return output_string;
+
+            return vec![&node.symbol.text];
+            //return vec![String::from(node.symbol.text)];
+
+        }
+
+        fn visit_error_node(&mut self, _node: &antlr_rust::tree::ErrorNode<'i, Self::Node>) -> Self::Return {
+            Self::Return::default()
+        }
+
+        fn aggregate_results(&self, aggregate: Self::Return, next: Self::Return) -> Self::Return {
+            //next
+            //self.aggregate_results(aggregate, next)
+            //aggregate[1] = next[0];
+            //aggregate
+
+            // https://stackoverflow.com/questions/40792801/what-is-the-best-way-to-concatenate-vectors-in-rust
+            let c: Vec<&'i str> = aggregate.iter().cloned().chain(next.iter().cloned()).collect(); // Cloned
+            c
+
+            // let c: Vec<String> = aggregate.iter().cloned().chain(next.iter().cloned()).collect(); // Cloned
+            // c
+        }
+
+        fn should_visit_next_child(
+            &self,
+            node: &<Self::Node as antlr_rust::parser::ParserNodeType<'i>>::Type,
+            current: &Self::Return,
+        ) -> bool {
+            true
+        }
+
+    }
+
+    impl<'i> assemblerVisitorCompat<'i> for DefaultAssemblerVisitor<'i> {
+
+        fn visit_asm_file(&mut self, ctx: &parser::assemblerparser::Asm_fileContext<'i>) -> Self::Return {
+            //log::info!("visit_asm_file()");
+            self.visit_children(ctx)
+        }
+
+        fn visit_row(&mut self, ctx: &parser::assemblerparser::RowContext<'i>) -> Self::Return {
+
+            //log::info!("visit_row()");
+
+            self.visit_children(ctx)
+
+            // if 1usize <= ctx.get_child_count() {
+                
+            //     let first_child = ctx.get_child(0usize);
+
+            //     log::info!("{:?}", first_child);
+            // }
+
+            // let children_result = self.visit_children(ctx);
+
+            // log::info!("{:?}", children_result);
+
+            // children_result
+
+        }
+
+        fn visit_instruction(&mut self, ctx: &InstructionContext<'i>) -> Self::Return {
+			//self.visit_children(ctx)
+
+            //log::info!("visit_instruction()");
+
+            // for child in ctx.get_children() {
+            //     let child_result = self.visit(child);
+            // }
+            
+
+
+
+            let children_result = self.visit_children(ctx);
+
+            log::info!("visit_instruction() - {:?}", children_result);
+
+            children_result
+		}
+
+        fn visit_macro_usage(&mut self, ctx: &parser::assemblerparser::Macro_usageContext<'i>) -> Self::Return {
+            log::info!("visit_macro_usage()");
+            //self.visit_children(ctx)
+
+            let children_result = self.visit_children(ctx);
+
+            log::info!("visit_macro_usage() - {:?}", children_result);
+
+            children_result
+        }
+
+        fn visit_label_definition(&mut self, ctx: &parser::assemblerparser::Label_definitionContext<'i>) -> Self::Return {
+            //log::info!("visit_label_definition()");
+            //self.visit_children(ctx)
+
+            let children_result = self.visit_children(ctx);
+
+            log::info!("visit_label_definition() - {:?}", children_result);
+
+            children_result
+        }
+
+        fn visit_parameter(&mut self, ctx: &parser::assemblerparser::ParameterContext<'i>) -> Self::Return {
+            //log::info!("visit_parameter()");
+            self.visit_children(ctx)
+        }
+
+        fn visit_macro_placeholder(&mut self, ctx: &parser::assemblerparser::Macro_placeholderContext<'i>) -> Self::Return {
+            //log::info!("visit_macro_placeholder()");
+            self.visit_children(ctx)
+        }
+
+        fn visit_expression(&mut self, ctx: &parser::assemblerparser::ExpressionContext<'i>) -> Self::Return {
+            //log::info!("visit_expression()");
+            self.visit_children(ctx)
+        }
+
+        fn visit_asm_instrinsic_instruction(&mut self, ctx: &parser::assemblerparser::Asm_instrinsic_instructionContext<'i>) -> Self::Return {
+            //log::info!("visit_asm_instrinsic_instruction()");
+            //self.visit_children(ctx)
+
+            let children_result = self.visit_children(ctx);
+
+            log::info!("visit_asm_instrinsic_instruction() - {:?}", children_result);
+
+            children_result
+        }
+
+        fn visit_asm_intrinsic_usage(&mut self, ctx: &parser::assemblerparser::Asm_intrinsic_usageContext<'i>) -> Self::Return {
+            
+            //log::info!("visit_asm_intrinsic_usage()");
+            
+            self.visit_children(ctx)
+
+            // working
+            // let children_result = self.visit_children(ctx);
+            // log::info!("visit_asm_intrinsic_usage() - {:?}", children_result);
+            // children_result
+
+            // todo either resolve the instrinsic right here and return the result or just return the string
+
+            // for str in &children_result {
+            //     log::info!("{}", str);
+            // }
+
+            // // https://stackoverflow.com/questions/28311868/what-is-the-equivalent-of-the-join-operator-over-a-vector-of-strings
+            // let children_result = self.visit_children(ctx);
+            // //let joined = children_result.iter().copied().collect::<Vec<_>>();
+
+            // let joined = children_result.iter().collect::<Vec<String>>();
+
+            // return joined;
+            //let joined = String::from(children_result.join("-"));
+
+            //return vec![joined];
+
+            //return vec![&children_result.join("-")];
+        }
+
+        /// is the rule that directly selects the TOKEN of an instruction (ADD; CALL, EOR; LDI; ...)
+        fn visit_mnemonic(&mut self, ctx: &parser::assemblerparser::MnemonicContext<'i>) -> Self::Return {
+
+            //log::info!("visit_mnemonic()");
+
+            let result = self.visit_children(ctx);
+
+            // for str in &result {
+            //     log::info!("{}", str);
+            // }
+
+            result
+        }
+    }
+
+    let mut visitor = DefaultAssemblerVisitor(Vec::new());
+    let visitor_result = visitor.visit(&*root);
 
     // assert_eq!(
     //     result.unwrap().to_string_tree(&*parser),
@@ -118,6 +374,10 @@ fn main() -> io::Result<()> {
         //hex_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/GccApplication1/GccApplication1.hex");
         asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/asm_1.asm");
 
+        // this function uses a parser to retrieve source code from a .asm file and
+        // it will produce AsmRecord out of the source code. The AsmRecords can then
+        // be put into an assembler that will fill a segment with machine code assembled
+        // from the instructions
         application_file_source(&mut asm_application);
 
         // the ihex segment which is filled with source code bytes by the assembler

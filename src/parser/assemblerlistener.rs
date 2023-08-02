@@ -25,6 +25,16 @@ fn enter_row(&mut self, _ctx: &RowContext<'input>) { }
  */
 fn exit_row(&mut self, _ctx: &RowContext<'input>) { }
 /**
+ * Enter a parse tree produced by {@link assemblerParser#instruction}.
+ * @param ctx the parse tree
+ */
+fn enter_instruction(&mut self, _ctx: &InstructionContext<'input>) { }
+/**
+ * Exit a parse tree produced by {@link assemblerParser#instruction}.
+ * @param ctx the parse tree
+ */
+fn exit_instruction(&mut self, _ctx: &InstructionContext<'input>) { }
+/**
  * Enter a parse tree produced by {@link assemblerParser#macro_usage}.
  * @param ctx the parse tree
  */
@@ -95,15 +105,15 @@ fn enter_asm_intrinsic_usage(&mut self, _ctx: &Asm_intrinsic_usageContext<'input
  */
 fn exit_asm_intrinsic_usage(&mut self, _ctx: &Asm_intrinsic_usageContext<'input>) { }
 /**
- * Enter a parse tree produced by {@link assemblerParser#instruction}.
+ * Enter a parse tree produced by {@link assemblerParser#mnemonic}.
  * @param ctx the parse tree
  */
-fn enter_instruction(&mut self, _ctx: &InstructionContext<'input>) { }
+fn enter_mnemonic(&mut self, _ctx: &MnemonicContext<'input>) { }
 /**
- * Exit a parse tree produced by {@link assemblerParser#instruction}.
+ * Exit a parse tree produced by {@link assemblerParser#mnemonic}.
  * @param ctx the parse tree
  */
-fn exit_instruction(&mut self, _ctx: &InstructionContext<'input>) { }
+fn exit_mnemonic(&mut self, _ctx: &MnemonicContext<'input>) { }
 
 }
 

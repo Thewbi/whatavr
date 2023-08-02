@@ -9,15 +9,18 @@ pub type LocalTokenFactory<'input> = antlr_rust::token_factory::ArenaCommonFacto
 asm_file : NEWLINE* row (NEWLINE* row)* NEWLINE* EOF ;
 
 row : 
+    macro_usage
+    |
     label_definition
     |
-    instruction ( (IDENTIFIER | expression | asm_intrinsic_usage | macro_placeholder) ( COMMA (IDENTIFIER | expression | asm_intrinsic_usage | macro_placeholder) )? )?
+    instruction
     |
     asm_instrinsic_instruction
-    |
-    macro_usage
     ;
 
+instruction : mnemonic ( (IDENTIFIER | expression | asm_intrinsic_usage | macro_placeholder) ( COMMA (IDENTIFIER | expression | asm_intrinsic_usage | macro_placeholder) )? )?;
+
+// examples: delayms 500
 macro_usage : IDENTIFIER ( expression )* ;
 
 label_definition : IDENTIFIER COLON ;
@@ -68,7 +71,7 @@ asm_intrinsic_usage :
     IDENTIFIER OPENING_BRACKET (IDENTIFIER | macro_placeholder) CLOSEING_BRACKET
     ;
 
-instruction :
+mnemonic :
     ADD
     |
     CALL

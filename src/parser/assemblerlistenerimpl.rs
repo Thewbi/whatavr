@@ -32,7 +32,10 @@ impl<'input> assemblerListener<'input> for assemblerListenerImpl {
      * Exit a parse tree produced by {@link assemblerParser#row}.
      * @param ctx the parse tree
      */
-    fn exit_row(&mut self, _ctx: &RowContext<'input>) {}
+    fn exit_row(&mut self, _ctx: &RowContext<'input>) {
+
+        //println!("exit_row");
+    }
     /**
      * Enter a parse tree produced by {@link assemblerParser#label_definition}.
      * @param ctx the parse tree
