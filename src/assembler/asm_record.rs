@@ -5,6 +5,7 @@ use super::io_destination::IoDestination;
 /// This struct is the model for a line in a assembler source code file
 #[derive(Debug, Clone)]
 pub struct AsmRecord {
+
     pub label: String,
 
     pub reg_1: u16,

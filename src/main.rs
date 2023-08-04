@@ -49,6 +49,13 @@ use crate::parser::assemblervisitor::assemblerVisitorCompat;
 use antlr_rust::tree::ParseTree;
 use crate::parser::assemblerparser::ParamContext;
 
+use crate::fs::File;
+//use std::fs::File;
+
+use std::io::BufRead;
+use crate::io::BufReader;
+//use std::io::BufReader;
+
 use byteorder::{LittleEndian, ReadBytesExt};
 
 // rustup default stable
@@ -64,6 +71,7 @@ use byteorder::{LittleEndian, ReadBytesExt};
 //
 // cargo fmt
 fn main() -> io::Result<()> {
+
     println!("whatavr starting ...");
 
     // logging setup
@@ -84,6 +92,49 @@ fn main() -> io::Result<()> {
     }
 
     //impl<'input> CSVListener<'input> for Listener {}
+
+    //
+    // load token into a hashmap
+    //
+
+    let mut token_storage: HashMap<isize, String> = HashMap::new();
+
+    let mut token_file_path: String = String::new();
+    token_file_path.push_str("C:/aaa_se/rust/whatavr/src/parser/assembler.tokens");
+
+    // open the file in read-only mode (ignoring errors).
+    let file = File::open(token_file_path).unwrap();
+    let reader = BufReader::new(file);
+
+    // read the file line by line using the lines() iterator from std::io::BufRead.
+    for (index, line) in reader.lines().enumerate() {
+
+        // ignore errors.
+        let line = line.unwrap();
+
+        // show the line and its number.
+        println!("{}. {}", index + 1, line);
+
+        // https://stackoverflow.com/questions/26643688/how-do-i-split-a-string-in-rust
+        let collection: Vec<&str> = line.split('=').collect::<Vec<_>>();
+        
+        let token:&str = collection[0];
+        let token_idx:i16 = collection[1].parse::<i16>().unwrap();
+        let token_idx_as_usize:isize = token_idx.into();
+
+        // at the end of the token file, the individual characters are repeasted but
+        // the purpose of the token map is to just contain the token labels/names and not
+        // the individual characters so break on the first duplicate
+        if token_storage.contains_key(&token_idx_as_usize) {
+            break;
+        }
+
+        token_storage.insert(token_idx_as_usize, token.to_string());
+    }
+
+    //
+    // read the .asm file which will be the input to the assembler
+    // 
 
     let mut asm_file_path: String = String::new();
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/asm_1.asm");
@@ -121,14 +172,15 @@ fn main() -> io::Result<()> {
     log::info!("string tree: {}", root.to_string_tree(&*parser));
 
 
-
+    
     //let res = Vec<& str>();
 
     //let asm_record: AsmRecord;
 
     //struct DefaultAssemblerVisitor<'i>(Vec<&'i str>);
 
-    struct DefaultAssemblerVisitor<'i>(Vec<&'i str>, AsmRecord);
+    // structs with parethesis are tuple structs (https://stackoverflow.com/questions/49716865/what-are-structs-with-round-brackets-in-rust-for)
+    struct DefaultAssemblerVisitor<'i>(Vec<&'i str>, AsmRecord, HashMap<isize, String>, Vec<AsmRecord>);
 
     impl<'i> ParseTreeVisitorCompat<'i> for DefaultAssemblerVisitor<'i> {
 
@@ -136,6 +188,8 @@ fn main() -> io::Result<()> {
         type Return = Vec<&'i str>;
         //type Return = Vec<&'i String>;
         //type Return = Vec<String>;
+
+        
 
         fn temp_result(&mut self) -> &mut Self::Return {
             
@@ -160,61 +214,47 @@ fn main() -> io::Result<()> {
         // }
 
         fn visit_terminal(&mut self, node: &antlr_rust::tree::TerminalNode<'i, Self::Node>) -> Self::Return {
-            
-            if node.symbol.get_token_type() == parser::assemblerparser::ADD {
 
-                self.1.instruction_type = InstructionType::ADD;
+            let token_type:isize = node.symbol.get_token_type();
 
-                //log::info!("visit_terminal(): ADD found!");
-
-                // if let Cow::Borrowed(s) = node.symbol.text {
-                //     return vec![s];
-                // }
-
-                return vec!["ADD"];
-                //return vec![String::from("ADD")];
+            if token_type < 0 {
+                return vec![&node.symbol.text];
             }
-            //vec![]
 
-            if node.symbol.get_token_type() == parser::assemblerparser::LDI {
+            let token_name:&String = self.2.get(&token_type).unwrap();
 
-                self.1.instruction_type = InstructionType::LDI;
+            let instruction_type: InstructionType = InstructionType::from_string(token_name);
 
-                //log::info!("visit_terminal(): LDI found!");
-
-                // if let Cow::Borrowed(s) = node.symbol.text {
-                //     return vec![s];
-                // }
-
-                return vec!["LDI"];
-                //return vec![String::from("LDI")];
+            if InstructionType::Unknown == instruction_type {
+                return vec![&node.symbol.text];
             }
+
+            self.1.instruction_type = instruction_type;
+
+            //return vec![token_name.as_str()];
+
+            let ssval:String = self.1.instruction_type.to_string_string();
+            //return vec![&ssval.as_str()];
+
+            //return vec![&self.1.instruction_type.to_string_string().clone()];
+            return vec![&node.symbol.text];
             
-            //Self::Return::default()
-            // let mut output_string:Vec<&str> = Vec::new();
-            // output_string.push(&node.get_text().clone().as_str());
+            // if node.symbol.get_token_type() == parser::assemblerparser::ADD {
 
-            // return output_string;
+            //     self.1.instruction_type = InstructionType::ADD;
 
-            // log::info!("{}", node.symbol.text);
+            //     return vec!["ADD"];
+            // }
 
-            // if 0xFF == self.1.reg_1 {
-            //     if "r16" == &node.symbol.text {
-            //         self.1.reg_1 = 16u16;
-            //     } else if "" != &node.symbol.text && "," != &node.symbol.text && "\r\n" != &node.symbol.text {
-            //         self.1.data = node.symbol.text.parse::<u16>().unwrap();
-            //     }
-            // } else if 0xFF == self.1.reg_2 {
-            //     if "r16" == &node.symbol.text {
-            //         self.1.reg_2 = 16u16;
-            //     } else if "" != &node.symbol.text && "," != &node.symbol.text && "\r\n" != &node.symbol.text {
-            //         self.1.data = node.symbol.text.parse::<u16>().unwrap();
-            //     }
+            // if node.symbol.get_token_type() == parser::assemblerparser::LDI {
+
+            //     self.1.instruction_type = InstructionType::LDI;
+
+            //     return vec!["LDI"];
             // }
             
 
-            return vec![&node.symbol.text];
-            //return vec![String::from(node.symbol.text)];
+            //return vec![&node.symbol.text];
 
         }
 
@@ -245,6 +285,8 @@ fn main() -> io::Result<()> {
         }
 
     }
+
+    
 
     impl<'i> assemblerVisitorCompat<'i> for DefaultAssemblerVisitor<'i> {
 
@@ -279,6 +321,9 @@ fn main() -> io::Result<()> {
 
             // log::info!("{:?}", children_result);
             log::info!("{:?}", self.1);
+
+            
+            self.3.push(self.1.clone());
 
             // clear for the next record
             self.1.clear();
@@ -447,9 +492,17 @@ fn main() -> io::Result<()> {
         }
     }
 
+    // vector of instructions
+    let mut asm_application: Vec<AsmRecord> = Vec::new();
+
     let mut visitor = DefaultAssemblerVisitor(Vec::new(), 
-        AsmRecord::new(String::from(""), InstructionType::Unknown, 0xFF, 0xFF, 0, String::from(""), IoDestination::UNKNOWN));
+        AsmRecord::new(String::from(""), InstructionType::Unknown, 0xFF, 0xFF, 0, String::from(""), IoDestination::UNKNOWN),
+        token_storage,
+        asm_application);
+    
     let visitor_result = visitor.visit(&*root);
+
+    log::info!("{:?}", visitor_result);
 
     // assert_eq!(
     //     result.unwrap().to_string_tree(&*parser),
@@ -457,6 +510,16 @@ fn main() -> io::Result<()> {
     // );
 
     //dissassemble();
+
+    // fn lul(&self) {
+        //     // for asm_record in asm_application {
+        //     //     log::info!("{:?}", asm_record);
+        //     // }
+        // }
+
+    // for asm_record in asm_application {
+    //     log::info!("{:?}", asm_record);
+    // }
 
     const EXECUTE: bool = true;
     if EXECUTE {

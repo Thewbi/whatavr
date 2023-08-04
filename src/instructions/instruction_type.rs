@@ -299,6 +299,150 @@ impl InstructionType {
         }
     }
 
+    pub fn from_string(code: &str) -> InstructionType {
+
+        let uc = code.to_uppercase();
+
+        let upper_case: &str = uc.as_str();
+
+        match upper_case {
+            "ADC" => InstructionType::ADC,
+            "ADD" => InstructionType::ADD,
+            "ADIW" => InstructionType::ADIW,
+            "AND" => InstructionType::AND,
+            "ANDI" => InstructionType::ANDI,
+            "ASR" => InstructionType::ASR,
+            "BCLR" => InstructionType::BCLR,
+            "BLD" => InstructionType::BLD,
+            "BRBC" => InstructionType::BRBC,
+            "BRBS" => InstructionType::BRBS,
+            "BRCC" => InstructionType::BRCC,
+            "BRCS" => InstructionType::BRCS,
+            "BREAK" => InstructionType::BREAK, 
+            "BREQ" => InstructionType::BREQ,
+            "BRGE" => InstructionType::BRGE,
+            "BRHC" => InstructionType::BRHC,
+            "BRHS" => InstructionType::BRHS,
+            "BRID" => InstructionType::BRID,
+            "BRIE" => InstructionType::BRIE,
+            "BRLO" => InstructionType::BRLO,
+            "BRLT" => InstructionType::BRLT,
+            "BRMI" => InstructionType::BRMI,
+            "BRNE" => InstructionType::BRNE,
+            "BRPL" => InstructionType::BRPL,
+            "BRSH" => InstructionType::BRSH,
+            "BRTC" => InstructionType::BRTC,
+            "BRTS" => InstructionType::BRTS,
+            "BRVC" => InstructionType::BRVC,
+            "BRVS" => InstructionType::BRVS,
+            "BSET" => InstructionType::BSET,
+            "BST" => InstructionType::BST,
+            "CALL" => InstructionType::CALL,
+            "CBI" => InstructionType::CBI, 
+            "CBR" => InstructionType::CBR,
+            "CLC" => InstructionType::CLC,
+            "CLH" => InstructionType::CLH,
+            "CLI" => InstructionType::CLI,
+            "CLN" => InstructionType::CLN,
+            "CLR" => InstructionType::CLR,
+            "CLS" => InstructionType::CLS,
+            "CLT" => InstructionType::CLT,
+            "CLV" => InstructionType::CLV,
+            "CLZ" => InstructionType::CLZ,
+            "COM" => InstructionType::COM,
+            "CP" => InstructionType::CP,
+            "CPC" => InstructionType::CPC,
+            "CPI" => InstructionType::CPI,
+            "CPSE" => InstructionType::CPSE,
+            "DEC" => InstructionType::DEC,
+            "DES" => InstructionType::DES,
+            "EICALL" => InstructionType::EICALL,
+            "EIJMP" => InstructionType::EIJMP,
+            "ELPM" => InstructionType::ELPM,
+            "EOR" => InstructionType::EOR,
+            "FMUL" => InstructionType::FMUL,
+            "FMULS" => InstructionType::FMULS,
+            "FMULSU" => InstructionType::FMULSU,
+            "ICALL" => InstructionType::ICALL,
+            "IJMP" => InstructionType::IJMP,
+            "IN" => InstructionType::IN,
+            "INC" => InstructionType::INC,
+            "JMP" => InstructionType::JMP,
+            "LAC" => InstructionType::LAC,
+            "LAS" => InstructionType::LAS,
+            "LAT" => InstructionType::LAT, 
+            "LD" => InstructionType::LD,
+            "LD_LDD_Y" => InstructionType::LD_LDD_Y,
+            "LD_LDD_Z" => InstructionType::LD_LDD_Z,
+            "LDI" => InstructionType::LDI,
+            "LDS" => InstructionType::LDS,
+            "LDS_16bit" => InstructionType::LDS_16bit, // (16-bit) – Load Direct from Data Space......................................................... 117
+            "LPM" => InstructionType::LPM, // – Load Program Memory...............................................................................118
+            "LSL" => InstructionType::LSL, // – Logical Shift Left..........................................................................................120
+            "LSR" => InstructionType::LSR, // – Logical Shift Right.......................................................................................122
+            "MOV" => InstructionType::MOV, // – Copy Register............................................................................................123
+            "MOVW" => InstructionType::MOVW, // – Copy Register Word...............................................................................124
+            "MUL" => InstructionType::MUL, // – Multiply Unsigned.......................................................................................125
+            "MULS" => InstructionType::MULS, // – Multiply Signed........................................................................................ 126
+            "MULSU" => InstructionType::MULSU , //
+            "NEG" => InstructionType::NEG,
+            "NOP" => InstructionType::NOP, 
+            "OR" => InstructionType::OR,
+            "ORI" => InstructionType::ORI,
+            "OUT" => InstructionType::OUT,
+            "POP" => InstructionType::POP,
+            "PUSH" => InstructionType::PUSH,
+            "RCALL" => InstructionType::RCALL,
+            "RET" => InstructionType::RET,
+            "RETI" => InstructionType::RETI, 
+            "RJMP" => InstructionType::RJMP,
+            "ROL" => InstructionType::ROL, //
+            "ROR" => InstructionType::ROR, // – Rotate Right through Carry........................................................................145
+            "SBC" => InstructionType::SBC, 
+            "SBCI" => InstructionType::SBCI,
+            "SBI" => InstructionType::SBI, // – Set Bit in I/O Register.................................................................................. 151
+            "SBIC" => InstructionType::SBIC, // – Skip if Bit in I/O Register is Cleared........................................................ 152
+            "SBIS" => InstructionType::SBIS, // – Skip if Bit in I/O Register is Set............................................................... 153
+            "SBIW" => InstructionType::SBIW, // – Subtract Immediate from Word...............................................................154
+            "SBR" => InstructionType::SBR, // – Set Bits in Register...................................................................................156
+            "SBRC" => InstructionType::SBRC, // – Skip if Bit in Register is Cleared............................................................ 157
+            "SBRS" => InstructionType::SBRS, // – Skip if Bit in Register is Set....................................................................158
+            "SEC" => InstructionType::SEC, // – Set Carry Flag.......................................................................................... 159
+            "SEH" => InstructionType::SEH, // – Set Half Carry Flag...................................................................................160
+            "SEI" => InstructionType::SEI, //
+            "SEN" => InstructionType::SEN, // – Set Negative Flag.....................................................................................162
+            "SER" => InstructionType::SER, // – Set all Bits in Register.............................................................................. 163
+            "SES" => InstructionType::SES, // – Set Signed Flag........................................................................................ 164
+            "SET" => InstructionType::SET, // – Set T Flag................................................................................................. 165
+            "SEV" => InstructionType::SEV, // – Set Overflow Flag..................................................................................... 166
+            "SEZ" => InstructionType::SEZ, // – Set Zero Flag............................................................................................ 167
+            "SLEEP" => InstructionType::SLEEP, //................................................................................................................. 168
+            "SPM" => InstructionType::SPM, // – Store Program Memory............................................................................169
+            "SPM_2" => InstructionType::SPM_2, // SPM #2 – Store Program Memory.......................................................................171
+            "ST" => InstructionType::ST,
+            "ST_STD_Y_1" => InstructionType::ST_STD_Y_1, 
+            "ST_STD_Z_1" => InstructionType::ST_STD_Z_1, 
+            "STS" => InstructionType::STS, // STS – Store Direct to Data Space.......................................................................179
+            "STS_16bit" => InstructionType::STS_16bit, // STS (16-bit) – Store Direct to Data Space.......................................................... 180
+            "SUB" => InstructionType::SUB, // – Subtract Without Carry.............................................................................181
+            "SUBI" => InstructionType::SUBI, // – Subtract Immediate................................................................................. 183
+            "SWAP" => InstructionType::SWAP, // – Swap Nibbles........................................................................................ 185
+            "TST" => InstructionType::TST, // – Test for Zero or Minus...............................................................................186
+            "WDR" => InstructionType::WDR, // – Watchdog Reset......................................................................................187
+            "XCH" => InstructionType::XCH,
+
+            // STD Y (B) = 119. 
+            // STD Y (C) = 119.
+            // STD Y (D) = 119.
+            // STD Z (A) = 120.
+            // STD Z (B) = 120.
+            // STD Z (C) = 120.
+            // STD Z (D) = 120.
+            
+            _ => InstructionType::Unknown,
+        }
+    }
+
     pub const fn to_code(instruction_type: &InstructionType) -> u8 {
         match instruction_type {
 
@@ -310,6 +454,21 @@ impl InstructionType {
             // InstructionType::Unknown => 0xFF,
             _ => 0xFF,
         }
+    }
+
+    pub fn to_string_string(&self) -> String {
+
+        String::from("ADD")
+        // match instruction_type {
+
+        //     //TODO:
+        //     // InstructionType::IN => 64,
+        //     // InstructionType::JMP => 66,
+        //     // InstructionType::LDI => 73,
+        //     // InstructionType::OUT => 88,
+        //     // InstructionType::Unknown => 0xFF,
+        //     _ => 0xFF,
+        // }
     }
 
     #[allow(dead_code)]
