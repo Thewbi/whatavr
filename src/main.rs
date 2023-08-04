@@ -47,12 +47,22 @@ use crate::parser::assemblerparser::Asm_fileContextAll;
 use crate::parser::assemblervisitor::assemblerVisitor;
 use crate::parser::assemblervisitor::assemblerVisitorCompat;
 use antlr_rust::tree::ParseTree;
+use crate::parser::assemblerparser::ParamContext;
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
+// rustup default stable
+//
 // First, build the grammar
 // cargo run --bin build_parser
 // the generated files are placed into src/parser
+//
+// cargo build
+// cargo run
+// cargo run --bin whatavr
+// cargo run --bin build_parser
+//
+// cargo fmt
 fn main() -> io::Result<()> {
     println!("whatavr starting ...");
 
@@ -186,21 +196,21 @@ fn main() -> io::Result<()> {
 
             // return output_string;
 
-            log::info!("{}", node.symbol.text);
+            // log::info!("{}", node.symbol.text);
 
-            if 0xFF == self.1.reg_1 {
-                if "r16" == &node.symbol.text {
-                    self.1.reg_1 = 16u16;
-                } else if "" != &node.symbol.text && "," != &node.symbol.text && "\r\n" != &node.symbol.text {
-                    self.1.data = node.symbol.text.parse::<u16>().unwrap();
-                }
-            } else if 0xFF == self.1.reg_2 {
-                if "r16" == &node.symbol.text {
-                    self.1.reg_2 = 16u16;
-                } else if "" != &node.symbol.text && "," != &node.symbol.text && "\r\n" != &node.symbol.text {
-                    self.1.data = node.symbol.text.parse::<u16>().unwrap();
-                }
-            }
+            // if 0xFF == self.1.reg_1 {
+            //     if "r16" == &node.symbol.text {
+            //         self.1.reg_1 = 16u16;
+            //     } else if "" != &node.symbol.text && "," != &node.symbol.text && "\r\n" != &node.symbol.text {
+            //         self.1.data = node.symbol.text.parse::<u16>().unwrap();
+            //     }
+            // } else if 0xFF == self.1.reg_2 {
+            //     if "r16" == &node.symbol.text {
+            //         self.1.reg_2 = 16u16;
+            //     } else if "" != &node.symbol.text && "," != &node.symbol.text && "\r\n" != &node.symbol.text {
+            //         self.1.data = node.symbol.text.parse::<u16>().unwrap();
+            //     }
+            // }
             
 
             return vec![&node.symbol.text];
@@ -270,6 +280,9 @@ fn main() -> io::Result<()> {
             // log::info!("{:?}", children_result);
             log::info!("{:?}", self.1);
 
+            // clear for the next record
+            self.1.clear();
+
 
             children_result
 
@@ -316,8 +329,54 @@ fn main() -> io::Result<()> {
             children_result
         }
 
+        // parameter inside an instruction
+        fn visit_param(&mut self, ctx: &ParamContext<'i>) -> Self::Return {
+			//self.visit_children(ctx)
+
+            let children_result = self.visit_children(ctx);
+
+            log::info!("{:?}", children_result);
+
+            let text = children_result[0];
+
+            
+
+            // log::info!("{}", node.symbol.text);
+
+            if 0xFF == self.1.reg_1 {
+
+                if text.starts_with("r")
+                {
+                    self.1.reg_1 = text[1..].parse::<u16>().unwrap();
+                }
+                else if "" != text && "," != text && "\r\n" != text 
+                {
+                    self.1.data = text.parse::<u16>().unwrap();
+                }
+
+            } else if 0xFF == self.1.reg_2 {
+
+                if text.starts_with("r")
+                {
+                    self.1.reg_2 = text[1..].parse::<u16>().unwrap();
+                } 
+                else if "" != text && "," != text && "\r\n" != text 
+                {
+                    self.1.data = text.parse::<u16>().unwrap();
+                }
+
+            }
+
+
+
+            children_result
+		}
+
         fn visit_parameter(&mut self, ctx: &parser::assemblerparser::ParameterContext<'i>) -> Self::Return {
             //log::info!("visit_parameter()");
+
+            
+
             self.visit_children(ctx)
         }
 

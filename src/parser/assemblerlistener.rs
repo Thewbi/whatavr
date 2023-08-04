@@ -35,6 +35,16 @@ fn enter_instruction(&mut self, _ctx: &InstructionContext<'input>) { }
  */
 fn exit_instruction(&mut self, _ctx: &InstructionContext<'input>) { }
 /**
+ * Enter a parse tree produced by {@link assemblerParser#param}.
+ * @param ctx the parse tree
+ */
+fn enter_param(&mut self, _ctx: &ParamContext<'input>) { }
+/**
+ * Exit a parse tree produced by {@link assemblerParser#param}.
+ * @param ctx the parse tree
+ */
+fn exit_param(&mut self, _ctx: &ParamContext<'input>) { }
+/**
  * Enter a parse tree produced by {@link assemblerParser#macro_usage}.
  * @param ctx the parse tree
  */

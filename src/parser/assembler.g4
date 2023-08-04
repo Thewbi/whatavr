@@ -18,7 +18,9 @@ row :
     asm_instrinsic_instruction
     ;
 
-instruction : mnemonic ( (IDENTIFIER | expression | asm_intrinsic_usage | macro_placeholder) ( COMMA (IDENTIFIER | expression | asm_intrinsic_usage | macro_placeholder) )? )?;
+instruction : mnemonic ( param ( COMMA param )? )? ;
+
+param : IDENTIFIER | expression | asm_intrinsic_usage | macro_placeholder ;
 
 // examples: delayms 500
 macro_usage : IDENTIFIER ( expression )* ;

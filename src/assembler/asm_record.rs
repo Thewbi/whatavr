@@ -56,4 +56,17 @@ impl AsmRecord {
             idx: 0usize,
         }
     }
+
+    pub fn clear(&mut self) {
+        self.label = String::default();
+        self.instruction_type = InstructionType::Unknown;
+        //self.reg_1 = u16::default();
+        self.reg_1 = 0xFF;
+        //self.reg_2 = u16::default();
+        self.reg_2 = 0xFF;
+        self.data = u16::default();
+        self.target_label = String::default();
+        self.io_dest = IoDestination::UNKNOWN;
+        self.idx = usize::default();
+    }
 }
