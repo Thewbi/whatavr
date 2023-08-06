@@ -153,7 +153,7 @@ pub enum InstructionType {
     
     /* 128 */ XCH, // 
     
-    Unknown,
+    UNKNOWN,
 }
 
 impl InstructionType {
@@ -295,7 +295,7 @@ impl InstructionType {
             // STD Z (C) = 120.
             // STD Z (D) = 120.
             
-            _ => InstructionType::Unknown,
+            _ => InstructionType::UNKNOWN,
         }
     }
 
@@ -439,7 +439,7 @@ impl InstructionType {
             // STD Z (C) = 120.
             // STD Z (D) = 120.
             
-            _ => InstructionType::Unknown,
+            _ => InstructionType::UNKNOWN,
         }
     }
 
@@ -456,20 +456,20 @@ impl InstructionType {
         }
     }
 
-    pub fn to_string_string(&self) -> String {
+    // pub fn to_string_string(&self) -> String {
 
-        String::from("ADD")
-        // match instruction_type {
+    //     String::from("ADD")
+    //     // match instruction_type {
 
-        //     //TODO:
-        //     // InstructionType::IN => 64,
-        //     // InstructionType::JMP => 66,
-        //     // InstructionType::LDI => 73,
-        //     // InstructionType::OUT => 88,
-        //     // InstructionType::Unknown => 0xFF,
-        //     _ => 0xFF,
-        // }
-    }
+    //     //     //TODO:
+    //     //     // InstructionType::IN => 64,
+    //     //     // InstructionType::JMP => 66,
+    //     //     // InstructionType::LDI => 73,
+    //     //     // InstructionType::OUT => 88,
+    //     //     // InstructionType::Unknown => 0xFF,
+    //     //     _ => 0xFF,
+    //     // }
+    // }
 
     #[allow(dead_code)]
     pub const fn cycles(instruction_type: &InstructionType) -> usize {

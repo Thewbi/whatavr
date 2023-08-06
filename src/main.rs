@@ -17,6 +17,7 @@ use antlr_rust::token_factory::ArenaCommonFactory;
 use antlr_rust::tree::ParseTreeListener;
 use antlr_rust::InputStream;
 use antlr_rust::tree::ParseTreeVisitorCompat;
+use antlr_rust::tree::ParseTreeWalker;
 use antlr_rust::tree::Tree;
 use antlr_rust::tree::VisitChildren;
 use env_logger::{Builder, Target};
@@ -26,7 +27,7 @@ use log::LevelFilter;
 use std::fs;
 use std::rc::Rc;
 
-use crate::assembler::application_file_source::application_file_source;
+//use crate::assembler::application_file_source::application_file_source;
 use crate::assembler::asm_encoder::AsmEncoder;
 use crate::assembler::asm_record;
 use crate::assembler::asm_record::AsmRecord;
@@ -40,10 +41,13 @@ use crate::instructions::instruction_type::InstructionType;
 use crate::instructions::instructions::INSTRUCTIONS;
 use crate::instructions::instructions::UNKNOWN;
 use crate::instructions::process::*;
+use crate::parser::assemblerlistenerimpl::assemblerListenerImpl;
 use crate::parser::assemblerparser::InstructionContext;
 use crate::parser::assemblerparser::assemblerParser;
+use crate::parser::assemblerparser::assemblerParserContext;
 use crate::parser::assemblerparser::assemblerParserContextType;
 use crate::parser::assemblerparser::Asm_fileContextAll;
+use crate::parser::assemblerparser::assemblerTreeWalker;
 use crate::parser::assemblervisitor::assemblerVisitor;
 use crate::parser::assemblervisitor::assemblerVisitorCompat;
 use antlr_rust::tree::ParseTree;
@@ -58,6 +62,36 @@ use crate::io::BufReader;
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
+//static token_factory: ArenaCommonFactory = ArenaCommonFactory::default();
+
+// fn recurse_child(node: Rc<Asm_fileContextAll>) {
+
+//     for child in node.get_children() {
+//         //println!("{:?}", child);
+
+//         recurse_child(child);
+//     }
+
+// }
+
+// fn recurse_node(node: &Node::Type) {
+
+//     for child in node.get_children() {
+//         //println!("{:?}", child);
+
+//        // recurse_child(child);
+//     }
+
+// }
+
+// fn recurse(cc: &Rc<dyn assemblerParserContext>) {
+//     println!("cc: {:?}", cc)
+// }
+
+// fn recurse(cc: Rc<dyn assemblerParserContext>) {
+//     println!("cc: {:?}", cc)
+// }
+
 // rustup default stable
 //
 // First, build the grammar
@@ -71,6 +105,8 @@ use byteorder::{LittleEndian, ReadBytesExt};
 //
 // cargo fmt
 fn main() -> io::Result<()> {
+
+unsafe {
 
     println!("whatavr starting ...");
 
@@ -140,7 +176,9 @@ fn main() -> io::Result<()> {
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/asm_1.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/asm_2.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/asm_3.asm");
-    asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/asm_4.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/asm_4.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/jmp.asm");
+    asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/push_pop.asm");
 
     let data = fs::read_to_string(asm_file_path).expect("Unable to read file");
     println!("{}", data);
@@ -148,31 +186,119 @@ fn main() -> io::Result<()> {
     let input_stream: InputStream<&str> = InputStream::new(data.as_str());
 
     println!("test started");
-    let tf = ArenaCommonFactory::default();
+    // vector of instructions
+    //let mut asm_application: Vec<&AsmRecord/*<&str>*/> = Vec::new();
+    //let mut asa: Vec<&AsmRecord/*<&str>*/> = Vec::new();
+
+    //let rec1 = AsmRecord{ label: String::from("val"), reg_1: 0x00, reg_2: 0x00, instruction_type: InstructionType::Unknown, data: 0x00, target_label: "".to_string(), io_dest: IoDestination::UNKNOWN, idx: 0, text: "", reffff: &asm_application };
+    //asm_application.push(&rec1);
+
+    let token_factory = ArenaCommonFactory::default();
     let mut _lexer = parser::assemblerlexer::assemblerLexer::new_with_token_factory(
         //InputStream::new("V123,V2\nd1,d2\n".into()),
         input_stream,
-        &tf,
+        &token_factory,
     );
     let token_source = CommonTokenStream::new(_lexer);
     let mut parser = parser::assemblerparser::assemblerParser::new(token_source);
     //parser.add_parse_listener(Box::new(parser::assemblerlistenerimpl::assemblerListenerImpl{}));
 
-    parser.add_parse_listener(Box::new(
-        parser::assemblerlistenerimpl::assemblerListenerImpl {},
-    ));
+    // let mut asm_records: Vec<AsmRecord> = Vec::new();
+    // //let mut asm_apps: Rc<Vec<AsmRecord>> = asm_application.into();
+    // //asm_application.push(AsmRecord::new(String::from(""), InstructionType::Unknown, 0xFF, 0xFF, 0, String::from(""), IoDestination::UNKNOWN));
 
-    //println!("start parsing");
+    // //let mut asm_application: Vec<Rc<AsmRecord>> = Vec::new();
+    // //let mut asm_application: Vec<AsmRecord> = Vec::new();
+    // //let bbox = Box::new(asm_application);
 
-    let result = parser.asm_file();
-    assert!(result.is_ok());
+    // let mut listener_impl = parser::assemblerlistenerimpl::assemblerListenerImpl {
+    //     reg_1: String::default(),
+    //     reg_2: String::default(),
+    //     data: String::default(),
+    //     instruction: String::default(),
+    //     last_terminal: String::default(),
+    //     mnemonic: String::default(),
+    //     asm_records: asm_records,
+    //     //asm_records: bbox,
+    //     //asm_apps: asm_apps,
+    // };
 
-    let root: Rc<Asm_fileContextAll> = result.unwrap();
+    // // https://dhghomon.github.io/easy_rust/Chapter_53.html
+    // // put the listener onto the heap
+    // let listener_box = Box::new(listener_impl);
 
-    log::info!("string tree: {}", root.to_string_tree(&*parser));
+    // parser.add_parse_listener(listener_box);
 
+    // //let test = (*listener_box).get_clone();
+
+    // println!("start parsing");
+
+    // let result = parser.asm_file();
+    // assert!(result.is_ok());
 
     
+
+    //let root: Rc<Asm_fileContextAll> = result.unwrap();
+
+    //recurse_node(root);
+
+    // for child in root.get_children() {
+    //     println!("{:?}", child);
+    // }
+
+    //assemblerTreeWalker parse_tree_walker = assemblerTreeWalker::new();
+
+    //let ptl: assemblerListenerImpl;
+
+    //let parse_tree_walker: assemblerTreeWalker<'input, 'a> = assemblerTreeWalker::default();
+    //let parse_tree_walker: assemblerTreeWalker;
+    //parse_tree_walker.walk(ptl, &root);
+
+    //assemblerTreeWalker::walk(Box::new(ptl), result);
+    //assemblerTreeWalker::walk(Box::new(ptl), &result);
+    //assemblerTreeWalker::walk(Box::new(ptl), root);
+    //assemblerTreeWalker::walk(Box::new(ptl), &root);
+
+    //assemblerTreeWalker::walk(Box::new(ptl), root.);
+
+    //log::info!("string tree: {}", root.to_string_tree(&*parser));
+
+    // fn recurse<'a>(cc: &'a Rc<dyn assemblerParserContext>) {
+    //     println!("cc: {:?}", cc)
+    // }
+
+    //unsafe {
+        // println!("{:?}", root);
+        // //let child_0 = root.get_child(0);
+        // //recurse(child_0.unwrap());
+        // for child in root.get_children() {
+        //     //println!("child {:?}", child);
+
+        //     let cc: Rc<dyn assemblerParserContext> = child;
+
+        //     //println!("cc {:?}", cc.get_text());
+
+        //     //found struct `Rc<dyn assemblerParserContext<'_, TF = ArenaFactory<'_, CommonTokenFactory, GenericToken<Cow<'_, str>>>, Ctx
+
+        //     //recurse_child(child);
+
+        //     recurse(&cc);
+
+        //     //let r = Rc::clone(&cc);
+        //     //recurse(r);
+
+        //     // for cchild in cc.get_children() {
+        //     //     println!("cchild {:?}", cchild);
+        //     // }
+        // }
+    //}
+
+    //recurse_node(root)
+
+    //root.get_rule_names();
+
+
+/* 
     //let res = Vec<& str>();
 
     //let asm_record: AsmRecord;
@@ -180,20 +306,26 @@ fn main() -> io::Result<()> {
     //struct DefaultAssemblerVisitor<'i>(Vec<&'i str>);
 
     // structs with parethesis are tuple structs (https://stackoverflow.com/questions/49716865/what-are-structs-with-round-brackets-in-rust-for)
-    struct DefaultAssemblerVisitor<'i>(Vec<&'i str>, AsmRecord, HashMap<isize, String>, Vec<AsmRecord>);
+    //struct DefaultAssemblerVisitor<'i>(Vec<&'i str>, AsmRecord<&'i str>, HashMap<isize, String>, &'i mut Vec<&'i AsmRecord<&'i str>>);
+    struct DefaultAssemblerVisitor<'i>(Vec<&'i str>, AsmRecord<'i, &'i str>, HashMap<isize, String>, Vec<&'i AsmRecord<'i, &'i str>>);
+
 
     impl<'i> ParseTreeVisitorCompat<'i> for DefaultAssemblerVisitor<'i> {
 
         type Node = assemblerParserContextType;
-        type Return = Vec<&'i str>;
+        //type Return = Vec<&'i str>;
         //type Return = Vec<&'i String>;
         //type Return = Vec<String>;
 
-        
+        type Return = Vec<&'i AsmRecord<'i, &'i str>>;
+
+        //let temp: &mut Vec<&'i AsmRecord<&'i str>>;
 
         fn temp_result(&mut self) -> &mut Self::Return {
+        //fn temp_result(&mut self) -> Self::Return {
             
-            &mut self.0
+            //&mut self.3
+
             //&mut vec![&String::from(self.0[0])]
 
             //return &mut vec![&String::from("ADD")];
@@ -201,6 +333,18 @@ fn main() -> io::Result<()> {
             //self.
 
             //todo!()
+
+            //return vec![];
+            //return &mut Self::Return::default();
+            //()
+
+            //return self.3;
+
+            //&mut vec![AsmRecord<&str>>]
+            //&mut Vec<&AsmRecord<&str>>
+
+            //return self.3;
+            &mut self.3
 
         }
 
@@ -218,7 +362,11 @@ fn main() -> io::Result<()> {
             let token_type:isize = node.symbol.get_token_type();
 
             if token_type < 0 {
-                return vec![&node.symbol.text];
+
+                //return vec![&node.symbol.text];
+                self.1.text = &node.symbol.text;
+                //return vec![&self.1];
+                return vec![];
             }
 
             let token_name:&String = self.2.get(&token_type).unwrap();
@@ -226,7 +374,10 @@ fn main() -> io::Result<()> {
             let instruction_type: InstructionType = InstructionType::from_string(token_name);
 
             if InstructionType::Unknown == instruction_type {
-                return vec![&node.symbol.text];
+                //return vec![&node.symbol.text];
+                self.1.text = &node.symbol.text;
+                //return vec![&self.1];
+                return vec![];
             }
 
             self.1.instruction_type = instruction_type;
@@ -237,7 +388,9 @@ fn main() -> io::Result<()> {
             //return vec![&ssval.as_str()];
 
             //return vec![&self.1.instruction_type.to_string_string().clone()];
-            return vec![&node.symbol.text];
+            //return vec![&node.symbol.text];
+            //return vec![&self.1];
+            return vec![];
             
             // if node.symbol.get_token_type() == parser::assemblerparser::ADD {
 
@@ -269,11 +422,13 @@ fn main() -> io::Result<()> {
             //aggregate
 
             // https://stackoverflow.com/questions/40792801/what-is-the-best-way-to-concatenate-vectors-in-rust
-            let c: Vec<&'i str> = aggregate.iter().cloned().chain(next.iter().cloned()).collect(); // Cloned
-            c
+            //let c: Vec<&'i str> = aggregate.iter().cloned().chain(next.iter().cloned()).collect(); // Cloned
+            //c
 
             // let c: Vec<String> = aggregate.iter().cloned().chain(next.iter().cloned()).collect(); // Cloned
             // c
+
+            return vec![];
         }
 
         fn should_visit_next_child(
@@ -316,20 +471,59 @@ fn main() -> io::Result<()> {
 
 
 
+            // type Return = Vec<&'i AsmRecord<&'i str>>;
 
-            let children_result = self.visit_children(ctx);
+
+
+            let mut children_result = self.visit_children(ctx);
+
 
             // log::info!("{:?}", children_result);
             log::info!("{:?}", self.1);
 
+            self.1.emit();
+
+            //children_result.push(self.1);
+            //children_result.push(&mut self.1);
+            //children_result.push(&AsmRecord{ label: String::from("val"), reg_1: 0x00, reg_2: 0x00, instruction_type: InstructionType::Unknown, data: 0x00, target_label: "".to_string(), io_dest: IoDestination::UNKNOWN, idx: 0, text: "" });
+
+           // let ar = AsmRecord{ label: String::from("val"), reg_1: 0x00, reg_2: 0x00, instruction_type: InstructionType::Unknown, data: 0x00, target_label: "".to_string(), io_dest: IoDestination::UNKNOWN, idx: 0, text: "" };
+
             
-            self.3.push(self.1.clone());
+            
+            //self.3.push(&self.1);
+            //self.3.push(&self.1);
+
+            //log::info!("00: {:?}", self.3.get(0));
+
+            //self.temp_result().push(&self.1);
+            //self.temp_result().push(&ar);
+            
+            //log::info!("00: {:?}", self.temp_result().get(0));
+
+           // let testttt = self.temp_result().get(0);
+            //log::info!("00: {:?}", testttt);
+
+            //self.aggregate_results(children_result, vec![]);
+            //self.aggregate_results(children_result, self.temp_result());
 
             // clear for the next record
             self.1.clear();
 
 
-            children_result
+            //children_result
+            //return vec![&self.1];
+            //return vec![];
+
+            // works
+            //return children_result;
+
+            // works
+            return vec![];
+
+            //self.3
+
+            //return vec![&AsmRecord{ label: String::from("val"), reg_1: 0x00, reg_2: 0x00, instruction_type: InstructionType::Unknown, data: 0x00, target_label: "".to_string(), io_dest: IoDestination::UNKNOWN, idx: 0, text: "" }];
 
         }
 
@@ -382,7 +576,7 @@ fn main() -> io::Result<()> {
 
             log::info!("{:?}", children_result);
 
-            let text = children_result[0];
+           // let text = children_result[0];
 
             
 
@@ -390,24 +584,24 @@ fn main() -> io::Result<()> {
 
             if 0xFF == self.1.reg_1 {
 
-                if text.starts_with("r")
+                if self.1.text.starts_with("r")
                 {
-                    self.1.reg_1 = text[1..].parse::<u16>().unwrap();
+                    self.1.reg_1 = self.1.text[1..].parse::<u16>().unwrap();
                 }
-                else if "" != text && "," != text && "\r\n" != text 
+                else if "" != self.1.text && "," != self.1.text && "\r\n" != self.1.text 
                 {
-                    self.1.data = text.parse::<u16>().unwrap();
+                    self.1.data = self.1.text.parse::<u16>().unwrap();
                 }
 
             } else if 0xFF == self.1.reg_2 {
 
-                if text.starts_with("r")
+                if self.1.text.starts_with("r")
                 {
-                    self.1.reg_2 = text[1..].parse::<u16>().unwrap();
+                    self.1.reg_2 = self.1.text[1..].parse::<u16>().unwrap();
                 } 
-                else if "" != text && "," != text && "\r\n" != text 
+                else if "" != self.1.text && "," != self.1.text && "\r\n" != self.1.text 
                 {
-                    self.1.data = text.parse::<u16>().unwrap();
+                    self.1.data = self.1.text.parse::<u16>().unwrap();
                 }
 
             }
@@ -492,12 +686,14 @@ fn main() -> io::Result<()> {
         }
     }
 
-    // vector of instructions
-    let mut asm_application: Vec<AsmRecord> = Vec::new();
+    
+    let tempAsmRecord = AsmRecord::new(String::from(""), InstructionType::Unknown, 0xFF, 0xFF, 0, String::from(""), IoDestination::UNKNOWN, "", &asa);
+        
 
-    let mut visitor = DefaultAssemblerVisitor(Vec::new(), 
-        AsmRecord::new(String::from(""), InstructionType::Unknown, 0xFF, 0xFF, 0, String::from(""), IoDestination::UNKNOWN),
+    let mut visitor = DefaultAssemblerVisitor(Vec::new(),
+        tempAsmRecord,
         token_storage,
+        //&mut asm_application);
         asm_application);
     
     let visitor_result = visitor.visit(&*root);
@@ -520,67 +716,117 @@ fn main() -> io::Result<()> {
     // for asm_record in asm_application {
     //     log::info!("{:?}", asm_record);
     // }
-
+ */   
     const EXECUTE: bool = true;
     if EXECUTE {
         // vector of instructions
-        let mut asm_application: Vec<AsmRecord> = Vec::new();
+        //let mut asm_application: Vec<AsmRecord> = Vec::new();
 
         // create an application as a vector of instructions (mnemonics)
         //application_instruction_source(&mut asm_application);
 
-        let mut asm_file_path: String = String::new();
-        //hex_file_path.push_str("C:/aaa_se/rust/rust_blt_2/test_resources/output_bank1.hex");
-        //hex_file_path.push_str("C:/aaa_se/rust/rust_blt_2/test_resources/output_bank2.hex") {
-        //hex_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/GccApplication1/GccApplication1.hex");
-        asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/asm_1.asm");
+        // let mut asm_file_path: String = String::new();
+        // //hex_file_path.push_str("C:/aaa_se/rust/rust_blt_2/test_resources/output_bank1.hex");
+        // //hex_file_path.push_str("C:/aaa_se/rust/rust_blt_2/test_resources/output_bank2.hex") {
+        // //hex_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/GccApplication1/GccApplication1.hex");
+        // asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/asm_1.asm");
 
         // this function uses a parser to retrieve source code from a .asm file and
         // it will produce AsmRecord out of the source code. The AsmRecords can then
         // be put into an assembler that will fill a segment with machine code assembled
         // from the instructions
-        application_file_source(&mut asm_application);
+        //application_file_source(&mut asm_application);
 
-        // the ihex segment which is filled with source code bytes by the assembler
-        let mut assembler_segment: Segment = Segment::new();
-        assembler_segment.address = 0u16;
-        assembler_segment.size = 0u32;
+        // // the ihex segment which is filled with source code bytes by the assembler
+        // let mut assembler_segment: Segment = Segment::new();
+        // assembler_segment.address = 0u16;
+        // assembler_segment.size = 0u32;
 
-        // convert the mnemonic instructions into bytes to store into the ihex segment
+        // // convert the mnemonic instructions into bytes to store into the ihex segment
         let mut asm_encoder: AsmEncoder = AsmEncoder::new();
-        asm_encoder.assemble(&mut asm_application, &mut assembler_segment);
+        // //asm_encoder.assemble(&mut asm_application, &mut assembler_segment);
 
-        // ATmega328p cpu
-        let mut cpu: CPU = CPU {
-            z: false,
-            sph: 0x00u8,
-            spl: 0x00u8,
-            pc: 0x02i32,
-            register_file: [0; 32usize],
-            sram: [0; RAMEND as usize],
+        //let asm_apps_clone = listener_impl.get_asm_records();
+        //let asm_apps_clone = asm_application.clone();
+
+        // let asm_record: &mut AsmRecord = listener_impl.get(0);
+        // println!("{:?}", asm_record);
+
+        //asm_encoder.assemble(&mut asm_application, &mut assembler_segment);
+        //asm_encoder.assemble(&bbox, &mut assembler_segment);
+
+        let mut asm_records: Vec<AsmRecord> = Vec::new();
+        //let mut asm_apps: Rc<Vec<AsmRecord>> = asm_application.into();
+        //asm_application.push(AsmRecord::new(String::from(""), InstructionType::Unknown, 0xFF, 0xFF, 0, String::from(""), IoDestination::UNKNOWN));
+
+        //let mut asm_application: Vec<Rc<AsmRecord>> = Vec::new();
+        //let mut asm_application: Vec<AsmRecord> = Vec::new();
+        //let bbox = Box::new(asm_application);
+
+        let mut listener_impl = parser::assemblerlistenerimpl::assemblerListenerImpl {
+            reg_1: String::default(),
+            reg_2: String::default(),
+            data: String::default(),
+            instruction: String::default(),
+            last_terminal: String::default(),
+            mnemonic: String::default(),
+            label: String::default(),
+            asm_records: asm_records,
+            //asm_records: bbox,
+            //asm_apps: asm_apps,
+            asm_encoder: asm_encoder,
+            intrinsic_usage: String::default(),
         };
 
-        // main loop that executes the instruction
-        let done: bool = false;
-        while !done {
-            // get the current instruction
-            let temp_pc: i32 = cpu.pc - 0x02;
+        // https://dhghomon.github.io/easy_rust/Chapter_53.html
+        // put the listener onto the heap
+        let listener_box = Box::new(listener_impl);
 
-            // check for end of code
-            if assembler_segment.size <= temp_pc as u32 {
-                log::info!("End of Code reached! Application Finished!");
-                log_end();
-                return Ok(());
-            }
+        parser.add_parse_listener(listener_box);
 
-            // execute the next instruction
-            cpu.execute_instruction(&assembler_segment);
-        }
+        //let test = (*listener_box).get_clone();
+
+        println!("start parsing");
+
+        let result = parser.asm_file();
+        assert!(result.is_ok());
+
+        let root: Rc<Asm_fileContextAll> = result.unwrap();
+        log::info!("string tree: {}", root.to_string_tree(&*parser));
+
+        // // ATmega328p cpu
+        // let mut cpu: CPU = CPU {
+        //     z: false,
+        //     sph: 0x00u8,
+        //     spl: 0x00u8,
+        //     pc: 0x02i32,
+        //     register_file: [0; 32usize],
+        //     sram: [0; RAMEND as usize],
+        // };
+
+        // // main loop that executes the instruction
+        // let done: bool = false;
+        // while !done {
+        //     // get the current instruction
+        //     let temp_pc: i32 = cpu.pc - 0x02;
+
+        //     // check for end of code
+        //     if assembler_segment.size <= temp_pc as u32 {
+        //         log::info!("End of Code reached! Application Finished!");
+        //         log_end();
+        //         return Ok(());
+        //     }
+
+        //     // execute the next instruction
+        //     cpu.execute_instruction(&assembler_segment);
+        // }
     }
 
     log_end();
 
     Ok(())
+
+}
 }
 
 fn init_logging() {

@@ -150,7 +150,7 @@ use super::{instruction_definition::InstructionDefinition, instruction_type::Ins
     
     /*  128 => InstructionType::XCH */          const XCH:          InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::XCH),         instruction_type: InstructionType::XCH,         bit_pattern: "1001 001r rrrr 0100" };
     
-    pub                                         const UNKNOWN:      InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::Unknown),     instruction_type: InstructionType::Unknown, bit_pattern: "xxxxxxxxxxxxxxxx" };
+    pub                                         const UNKNOWN:      InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::UNKNOWN),     instruction_type: InstructionType::UNKNOWN, bit_pattern: "xxxxxxxxxxxxxxxx" };
 
     
     pub const INSTRUCTIONS: &'static [InstructionDefinition] = &[

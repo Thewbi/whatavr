@@ -543,7 +543,7 @@ pub fn match_instruction<R: crate::io::Read>(
             process_xch(rdr, &word, index, value_storage);
         } //
 
-        InstructionType::Unknown => {
+        InstructionType::UNKNOWN => {
             panic!("Unknown instruction!");
         }
         // _ => { panic!("Unknown instruction!"); }

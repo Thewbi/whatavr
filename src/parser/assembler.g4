@@ -81,6 +81,8 @@ mnemonic :
     |
     EOR
     |
+    JMP
+    |
     LDI
     |
     OUT
@@ -126,6 +128,8 @@ CALL : C A L L ;
 CLR : C L R ;
 
 EOR : E O R ;
+
+JMP : J M P ;
 
 LDI : L D I ;
 

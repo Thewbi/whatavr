@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use crate::{ihex_mgmt::ihex_mgmt::Segment, instructions::instruction_type::InstructionType};
 
 use super::{asm_record::AsmRecord, io_destination::IoDestination};
+use std::rc::Rc;
 
 #[macro_export]
 macro_rules! HIGH {
@@ -124,14 +125,16 @@ impl AsmEncoder {
     }
 
     pub fn assemble(&mut self, asm_records: &mut Vec<AsmRecord>, segment: &mut Segment) {
+        
         //
         // phase 1 - scan for labels
         //
 
         let mut idx: usize = 0usize;
         for rec in asm_records.iter_mut() {
+
             // assign the current address to the record
-            rec.idx = idx;
+            rec.set_idx(idx);
 
             // if a label was specified for the current address,
             // manage the mapping of the label to the current address
@@ -154,6 +157,7 @@ impl AsmEncoder {
     }
 
     pub fn encode(&self, segment: &mut Segment, asm_record: &AsmRecord) {
+
         match asm_record.instruction_type {
             /*   6 */
             InstructionType::ADD => {
@@ -186,6 +190,10 @@ impl AsmEncoder {
             /*  79 */
             InstructionType::MOV => {
                 Self::encode_mov(&self, segment, asm_record.reg_1, asm_record.reg_2);
+            }
+            /* 85 */ 
+            InstructionType::NOP => {
+                Self::encode_nop(&self, segment);
             }
             /*  88 */
             InstructionType::OUT => {
@@ -419,6 +427,20 @@ impl AsmEncoder {
         segment.size += 1u32;
 
         log::info!("ENC MOV: {:#02x}", (result >> 8u16) as u8);
+        segment.data.push((result >> 8u16) as u8);
+        segment.size += 1u32;
+    }
+
+    /// 85. NOP - No Operation
+    /// This instruction performs a single cycle No Operation.
+    fn encode_nop(&self, segment: &mut Segment) {
+        let result: u16 = 0x00;
+
+        log::info!("ENC NOP: {:#02x}", (result >> 0u16) as u8);
+        segment.data.push((result >> 0u16) as u8);
+        segment.size += 1u32;
+
+        log::info!("ENC NOP: {:#02x}", (result >> 8u16) as u8);
         segment.data.push((result >> 8u16) as u8);
         segment.size += 1u32;
     }

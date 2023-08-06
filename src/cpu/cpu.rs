@@ -360,34 +360,40 @@ impl CPU {
                 cpu.pc += 2i32;
             }
 
+            /*  85 */
+            InstructionType::NOP => {
+                log::info!("[NOP]");
+                cpu.pc += 2i32;
+            }
+
             /*  88 */
             InstructionType::OUT => {
                 log::info!("[OUT]");
 
                 // Stores data from register Rr in the Register File to I/O Space (Ports, Timers, Configuration Registers, etc.).
                 let a_val: u16 = value_storage[&'A'];
-                log::info!("A: {a_val:#b} {a_val:#x} {a_val}");
+                //log::info!("A: {a_val:#b} {a_val:#x} {a_val}");
                 let r_val = value_storage[&'r'];
-                log::info!("r: {r_val:#b} {r_val:#x} {r_val}");
+                //log::info!("r: {r_val:#b} {r_val:#x} {r_val}");
 
                 // TODO output the value stored in register r_val into memory to the address a_val
                 let dest: IoDestination = IoDestination::from_code(a_val);
-                log::info!("dest: {:?}", dest);
+                log::info!("[OUT] dest: {:?} source-register: {:?}", dest, r_val);
 
                 match dest {
                     IoDestination::SPH => {
-                        log::info!("r_val: {r_val:#b} {r_val:#x} {r_val}");
+                        //log::info!("r_val: {r_val:#b} {r_val:#x} {r_val}");
                         let val: u8 = cpu.register_file[r_val as usize];
-                        log::info!("val: {val:#b} {val:#x} {val}");
+                        //log::info!("val: {val:#b} {val:#x} {val}");
                         cpu.sph = val;
 
                         log::info!("stack pointer: {:#04x} {:#04x}", cpu.sph, cpu.spl);
                     }
 
                     IoDestination::SPL => {
-                        log::info!("r_val: {r_val:#b} {r_val:#x} {r_val}");
+                        //log::info!("r_val: {r_val:#b} {r_val:#x} {r_val}");
                         let val: u8 = cpu.register_file[r_val as usize];
-                        log::info!("val: {val:#b} {val:#x} {val}");
+                        //log::info!("val: {val:#b} {val:#x} {val}");
                         cpu.spl = val;
 
                         log::info!("stack pointer: {:#04x} {:#04x}", cpu.sph, cpu.spl);
@@ -510,7 +516,7 @@ impl CPU {
                 cpu.pc += kk as i32;
             }
 
-            InstructionType::Unknown => {
+            InstructionType::UNKNOWN => {
                 panic!("Unknown instruction!");
             }
 

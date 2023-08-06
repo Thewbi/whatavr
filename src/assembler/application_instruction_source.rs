@@ -199,42 +199,46 @@ use super::asm_record::AsmRecord;
 // Example app
 //
 
-pub fn application_instruction_source(asm_records: &mut Vec<AsmRecord>) {
-    // ldi r16, 0xFF
-    let asm_record_1: AsmRecord = AsmRecord::new(
-        String::new(),
-        InstructionType::LDI,
-        16u16,
-        0,
-        0xFF,
-        String::new(),
-        IoDestination::UNKNOWN,
-    );
-    asm_records.push(asm_record_1.clone());
+pub fn application_instruction_source(asm_records: &mut Vec<AsmRecord/*<String>*/>) {
 
-    // out DDRB, r16
-    const DDRB: u8 = 0x24;
-    let asm_record_2: AsmRecord = AsmRecord::new(
-        String::new(),
-        InstructionType::OUT,
-        16u16,
-        0,
-        DDRB as u16,
-        String::new(),
-        IoDestination::DDRB,
-    );
-    asm_records.push(asm_record_2.clone());
+    // // ldi r16, 0xFF
+    // let asm_record_1: AsmRecord<String> = AsmRecord::new(
+    //     String::new(),
+    //     InstructionType::LDI,
+    //     16u16,
+    //     0,
+    //     0xFF,
+    //     String::new(),
+    //     IoDestination::UNKNOWN,
+    //     String::new(),
+    // );
+    // asm_records.push(asm_record_1.clone());
 
-    // read the Data Direction Register for Port B into r0 using the in instruction
-    // in	r1, DDRB
-    let asm_record_3: AsmRecord = AsmRecord::new(
-        String::new(),
-        InstructionType::IN,
-        1u16,
-        0,
-        DDRB as u16,
-        String::new(),
-        IoDestination::DDRB,
-    );
-    asm_records.push(asm_record_3.clone());
+    // // out DDRB, r16
+    // const DDRB: u8 = 0x24;
+    // let asm_record_2: AsmRecord<String> = AsmRecord::new(
+    //     String::new(),
+    //     InstructionType::OUT,
+    //     16u16,
+    //     0,
+    //     DDRB as u16,
+    //     String::new(),
+    //     IoDestination::DDRB,
+    //     String::new(),
+    // );
+    // asm_records.push(asm_record_2.clone());
+
+    // // read the Data Direction Register for Port B into r0 using the in instruction
+    // // in	r1, DDRB
+    // let asm_record_3: AsmRecord<String> = AsmRecord::new(
+    //     String::new(),
+    //     InstructionType::IN,
+    //     1u16,
+    //     0,
+    //     DDRB as u16,
+    //     String::new(),
+    //     IoDestination::DDRB,
+    //     String::new(),
+    // );
+    // asm_records.push(asm_record_3.clone());
 }
