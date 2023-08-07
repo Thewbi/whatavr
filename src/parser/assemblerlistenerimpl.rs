@@ -78,7 +78,7 @@ impl<'input> assemblerListener<'input> for assemblerListenerImpl {
      * @param ctx the parse tree
      */
     fn enter_asm_file(&mut self, _ctx: &Asm_fileContext<'input>) { 
-        println!("[enter_asm_file] ..."); 
+        log::info!("[enter_asm_file] ..."); 
     }
 
     /**
@@ -113,6 +113,8 @@ impl<'input> assemblerListener<'input> for assemblerListenerImpl {
             sram: [0; RAMEND as usize],
         };
 
+        log::info!(">>> CPU program execution ...");
+
         // main loop that executes the instruction
         let mut done: bool = false;
         while !done {
@@ -133,6 +135,9 @@ impl<'input> assemblerListener<'input> for assemblerListenerImpl {
             // execute the next instruction
             cpu.execute_instruction(&assembler_segment);
         }
+
+        log::info!("<<< CPU program execution done.");
+
     }
 
     /**
@@ -147,7 +152,7 @@ impl<'input> assemblerListener<'input> for assemblerListenerImpl {
      */
     fn exit_row(&mut self, _ctx: &RowContext<'input>) {
 
-        println!("[exit_row] ...");
+        log::trace!("[exit_row] ...");
 
         if self.label != "" && self.mnemonic == "" {
             return;
@@ -216,7 +221,7 @@ impl<'input> assemblerListener<'input> for assemblerListenerImpl {
      * @param ctx the parse tree
      */
     fn exit_instruction(&mut self, _ctx: &InstructionContext<'input>) { 
-        println!("[exit_instruction]  {:?}", self.last_terminal); 
+        log::trace!("[exit_instruction]  {:?}", self.last_terminal); 
     }
 
     /**
@@ -245,7 +250,7 @@ impl<'input> assemblerListener<'input> for assemblerListenerImpl {
      * @param ctx the parse tree
      */
     fn exit_parameter(&mut self, _ctx: &ParameterContext<'input>) {
-        println!("[exit_parameter] ... ");
+        log::info!("[exit_parameter] ... ");
     }
 
     /**
@@ -270,7 +275,7 @@ impl<'input> assemblerListener<'input> for assemblerListenerImpl {
 
         self.last_terminal = String::default();
 
-        //println!("[exit_param] {:?}", self.reg_1);
+        //log::info!("[exit_param] {:?}", self.reg_1);
     }
 
     /**
@@ -299,7 +304,7 @@ impl<'input> assemblerListener<'input> for assemblerListenerImpl {
      * @param ctx the parse tree
      */
     fn exit_asm_intrinsic_usage(&mut self, _ctx: &Asm_intrinsic_usageContext<'input>) { 
-        //println!("[exit_asm_intrinsic_usage] {:?}", self.reg_1);
+        //log::info!("[exit_asm_intrinsic_usage] {:?}", self.reg_1);
 
         self.intrinsic_usage = self.last_terminal.clone();
 
@@ -326,7 +331,7 @@ impl<'input> ParseTreeListener<'input, assemblerParserContextType> for assembler
     ) {
         let terminal_text = _node.get_text();
 
-        println!("'{}'", terminal_text);
+        log::trace!("'{}'", terminal_text);
 
         if terminal_text != ":" && terminal_text != "," && terminal_text != "\r\n" {
             //self.last_terminal = terminal_text;
@@ -338,20 +343,20 @@ impl<'input> ParseTreeListener<'input, assemblerParserContextType> for assembler
         &mut self,
         _node: &antlr_rust::tree::ErrorNode<'input, assemblerParserContextType>,
     ) {
-        //println!("visit_error_node()");
+        //log::info!("visit_error_node()");
     }
 
     fn enter_every_rule(
         &mut self,
         _ctx: &<assemblerParserContextType as antlr_rust::parser::ParserNodeType>::Type,
     ) {
-        //println!("enter_every_rule()");
+        //log::info!("enter_every_rule()");
     }
 
     fn exit_every_rule(
         &mut self,
         _ctx: &<assemblerParserContextType as antlr_rust::parser::ParserNodeType>::Type,
     ) {
-        //println!("exit_every_rule()");
+        //log::info!("exit_every_rule()");
     }
 }

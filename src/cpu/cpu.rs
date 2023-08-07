@@ -101,7 +101,9 @@ pub struct CPU {
 }
 
 impl CPU {
+
     pub fn execute_instruction(&mut self, segment: &Segment) {
+
         // get the current instruction
         let temp_pc: i32 = self.pc - 0x02;
 
@@ -125,19 +127,22 @@ impl CPU {
 
         // execute the instruction
         match instruction.instruction_type {
+            
             /*   6 */
             InstructionType::ADD => {
-                log::info!("[ADD]");
+                log::trace!("[ADD]");
 
-                let r_valu16 = value_storage[&'r'];
-                let d_valu16 = value_storage[&'d'];
+                let r_value16 = value_storage[&'r'];
+                let d_value16 = value_storage[&'d'];
 
-                cpu.register_file[d_valu16 as usize] += cpu.register_file[r_valu16 as usize];
+                cpu.register_file[d_value16 as usize] += cpu.register_file[r_value16 as usize];
 
-                log::info!(
+                log::trace!(
                     "[ADD] result value: {}",
-                    cpu.register_file[d_valu16 as usize]
+                    cpu.register_file[d_value16 as usize]
                 );
+
+                log::info!("add r{}, d{}", r_value16, d_value16);
 
                 cpu.pc += 2i32;
             }
@@ -187,7 +192,7 @@ impl CPU {
 
             /* 36 */
             InstructionType::CALL => {
-                log::info!("[CALL]");
+                log::trace!("[CALL]");
 
                 // get the first 16 bit
                 let k_hi: u32 = value_storage[&'k'].into();
@@ -213,7 +218,7 @@ impl CPU {
                 let data = cpu.pc;
                 push_to_stack_i16(&mut cpu, data as i16);
 
-                log::info!("stack pointer: {:#04x} {:#04x}", cpu.sph, cpu.spl);
+                log::info!("call - stack pointer: {:#04x} {:#04x}", cpu.sph, cpu.spl);
 
                 // jump to address
                 cpu.pc += k_val_i32;
@@ -324,7 +329,7 @@ impl CPU {
 
             /*  73 */
             InstructionType::LDI => {
-                log::info!("[LDI]");
+                log::trace!("[LDI]");
 
                 let k_val = value_storage[&'K'];
                 //log::info!("K: {k_val:#b} {k_val:#x}");
@@ -336,7 +341,8 @@ impl CPU {
                 let register = d_val + 16;
                 //log::info!("[LDI] Using register: r{}", register);
 
-                log::info!("{temp_pc:#02x}: {word:#06x} ldi r{register:#02}, {k_val:#02x}");
+                log::trace!("{temp_pc:#02x}: {word:#06x} ldi r{register:#02}, {k_val:#02x}");
+                log::info!("ldi r{register:#02}, {k_val:#02x}");
 
                 // execute
                 cpu.register_file[register as usize] = k_val as u8;
@@ -362,13 +368,14 @@ impl CPU {
 
             /*  85 */
             InstructionType::NOP => {
-                log::info!("[NOP]");
+                log::trace!("[NOP]");
                 cpu.pc += 2i32;
             }
 
             /*  88 */
             InstructionType::OUT => {
-                log::info!("[OUT]");
+
+                log::trace!("[OUT]");
 
                 // Stores data from register Rr in the Register File to I/O Space (Ports, Timers, Configuration Registers, etc.).
                 let a_val: u16 = value_storage[&'A'];
@@ -378,7 +385,8 @@ impl CPU {
 
                 // TODO output the value stored in register r_val into memory to the address a_val
                 let dest: IoDestination = IoDestination::from_code(a_val);
-                log::info!("[OUT] dest: {:?} source-register: {:?}", dest, r_val);
+                //log::info!("[OUT] dest: {:?} source-register: {:?}", dest, r_val);
+                log::info!("out dest: {:?} src: {:?}", dest, r_val);
 
                 match dest {
                     IoDestination::SPH => {
@@ -387,7 +395,7 @@ impl CPU {
                         //log::info!("val: {val:#b} {val:#x} {val}");
                         cpu.sph = val;
 
-                        log::info!("stack pointer: {:#04x} {:#04x}", cpu.sph, cpu.spl);
+                        log::trace!("stack pointer: {:#04x} {:#04x}", cpu.sph, cpu.spl);
                     }
 
                     IoDestination::SPL => {
@@ -396,13 +404,13 @@ impl CPU {
                         //log::info!("val: {val:#b} {val:#x} {val}");
                         cpu.spl = val;
 
-                        log::info!("stack pointer: {:#04x} {:#04x}", cpu.sph, cpu.spl);
+                        log::trace!("stack pointer: {:#04x} {:#04x}", cpu.sph, cpu.spl);
                     }
 
                     IoDestination::DDRB | IoDestination::PORTB | IoDestination::PINB => {
-                        log::info!("r_val: {r_val:#b} {r_val:#x} {r_val}");
+                        log::trace!("r_val: {r_val:#b} {r_val:#x} {r_val}");
                         let val: u8 = cpu.register_file[r_val as usize];
-                        log::info!("val: {val:#b} {val:#x} {val}");
+                        log::trace!("val: {val:#b} {val:#x} {val}");
 
                         // write the value into SRAM
                         cpu.sram[a_val as usize] = val;
@@ -477,7 +485,7 @@ impl CPU {
 
             /* 92 */
             InstructionType::RET => {
-                log::info!("[RET]");
+                log::trace!("[RET]");
 
                 // let d_val: u16 = value_storage[&'d'];
                 // log::info!("d: {d_val:#b} {d_val:#x} {d_val}");
@@ -492,7 +500,7 @@ impl CPU {
 
                 cpu.pc = k_val as i32;
 
-                log::info!("stack pointer: {:#04x} {:#04x}", cpu.sph, cpu.spl);
+                log::info!("ret - stack pointer: {:#04x} {:#04x}", cpu.sph, cpu.spl);
             }
 
             /*  94 */

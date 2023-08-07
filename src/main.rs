@@ -11,15 +11,9 @@ use std::io::Cursor;
 use std::io::Write;
 
 use antlr_rust::common_token_stream::CommonTokenStream;
-use antlr_rust::parser::ParserNodeType;
-use antlr_rust::token::Token;
 use antlr_rust::token_factory::ArenaCommonFactory;
 use antlr_rust::tree::ParseTreeListener;
 use antlr_rust::InputStream;
-use antlr_rust::tree::ParseTreeVisitorCompat;
-use antlr_rust::tree::ParseTreeWalker;
-use antlr_rust::tree::Tree;
-use antlr_rust::tree::VisitChildren;
 use env_logger::{Builder, Target};
 use instructions::instruction_definition::InstructionDefinition;
 use log::LevelFilter;
@@ -27,13 +21,8 @@ use log::LevelFilter;
 use std::fs;
 use std::rc::Rc;
 
-//use crate::assembler::application_file_source::application_file_source;
 use crate::assembler::asm_encoder::AsmEncoder;
-use crate::assembler::asm_record;
 use crate::assembler::asm_record::AsmRecord;
-use crate::assembler::io_destination::IoDestination;
-use crate::cpu::cpu::CPU;
-use crate::cpu::cpu::RAMEND;
 use crate::ihex_mgmt::ihex_mgmt::parse_hex_file;
 use crate::ihex_mgmt::ihex_mgmt::Segment;
 use crate::instructions::decode::decode_instruction;
@@ -41,56 +30,16 @@ use crate::instructions::instruction_type::InstructionType;
 use crate::instructions::instructions::INSTRUCTIONS;
 use crate::instructions::instructions::UNKNOWN;
 use crate::instructions::process::*;
-use crate::parser::assemblerlistenerimpl::assemblerListenerImpl;
-use crate::parser::assemblerparser::InstructionContext;
-use crate::parser::assemblerparser::assemblerParser;
-use crate::parser::assemblerparser::assemblerParserContext;
 use crate::parser::assemblerparser::assemblerParserContextType;
 use crate::parser::assemblerparser::Asm_fileContextAll;
-use crate::parser::assemblerparser::assemblerTreeWalker;
-use crate::parser::assemblervisitor::assemblerVisitor;
-use crate::parser::assemblervisitor::assemblerVisitorCompat;
 use antlr_rust::tree::ParseTree;
-use crate::parser::assemblerparser::ParamContext;
 
 use crate::fs::File;
-//use std::fs::File;
 
 use std::io::BufRead;
 use crate::io::BufReader;
-//use std::io::BufReader;
 
 use byteorder::{LittleEndian, ReadBytesExt};
-
-//static token_factory: ArenaCommonFactory = ArenaCommonFactory::default();
-
-// fn recurse_child(node: Rc<Asm_fileContextAll>) {
-
-//     for child in node.get_children() {
-//         //println!("{:?}", child);
-
-//         recurse_child(child);
-//     }
-
-// }
-
-// fn recurse_node(node: &Node::Type) {
-
-//     for child in node.get_children() {
-//         //println!("{:?}", child);
-
-//        // recurse_child(child);
-//     }
-
-// }
-
-// fn recurse(cc: &Rc<dyn assemblerParserContext>) {
-//     println!("cc: {:?}", cc)
-// }
-
-// fn recurse(cc: Rc<dyn assemblerParserContext>) {
-//     println!("cc: {:?}", cc)
-// }
 
 // rustup default stable
 //
@@ -106,9 +55,7 @@ use byteorder::{LittleEndian, ReadBytesExt};
 // cargo fmt
 fn main() -> io::Result<()> {
 
-unsafe {
-
-    println!("whatavr starting ...");
+    log::info!("whatavr starting ...");
 
     // logging setup
     init_logging();
@@ -118,7 +65,7 @@ unsafe {
 
     impl<'input> ParseTreeListener<'input, assemblerParserContextType> for Listener {
         // fn enter_every_rule(&mut self, ctx: &dyn assemblerParserContextType<'input>) {
-        //     println!(
+        //     log::info!(
         //         "rule entered {}",
         //         csvparser::ruleNames
         //             .get(ctx.get_rule_index())
@@ -149,7 +96,7 @@ unsafe {
         let line = line.unwrap();
 
         // show the line and its number.
-        println!("{}. {}", index + 1, line);
+        log::trace!("{}. {}", index + 1, line);
 
         // https://stackoverflow.com/questions/26643688/how-do-i-split-a-string-in-rust
         let collection: Vec<&str> = line.split('=').collect::<Vec<_>>();
@@ -178,14 +125,16 @@ unsafe {
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/asm_3.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/asm_4.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/jmp.asm");
-    asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/push_pop.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/push_pop.asm");
+    asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/call_and_return.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/inc.asm");
 
     let data = fs::read_to_string(asm_file_path).expect("Unable to read file");
-    println!("{}", data);
+    log::info!("{}", data);
 
     let input_stream: InputStream<&str> = InputStream::new(data.as_str());
 
-    println!("test started");
+    log::info!("test started");
     // vector of instructions
     //let mut asm_application: Vec<&AsmRecord/*<&str>*/> = Vec::new();
     //let mut asa: Vec<&AsmRecord/*<&str>*/> = Vec::new();
@@ -231,7 +180,7 @@ unsafe {
 
     // //let test = (*listener_box).get_clone();
 
-    // println!("start parsing");
+    // log::info!("start parsing");
 
     // let result = parser.asm_file();
     // assert!(result.is_ok());
@@ -243,7 +192,7 @@ unsafe {
     //recurse_node(root);
 
     // for child in root.get_children() {
-    //     println!("{:?}", child);
+    //     log::info!("{:?}", child);
     // }
 
     //assemblerTreeWalker parse_tree_walker = assemblerTreeWalker::new();
@@ -264,19 +213,19 @@ unsafe {
     //log::info!("string tree: {}", root.to_string_tree(&*parser));
 
     // fn recurse<'a>(cc: &'a Rc<dyn assemblerParserContext>) {
-    //     println!("cc: {:?}", cc)
+    //     log::info!("cc: {:?}", cc)
     // }
 
     //unsafe {
-        // println!("{:?}", root);
+        // log::info!("{:?}", root);
         // //let child_0 = root.get_child(0);
         // //recurse(child_0.unwrap());
         // for child in root.get_children() {
-        //     //println!("child {:?}", child);
+        //     //log::info!("child {:?}", child);
 
         //     let cc: Rc<dyn assemblerParserContext> = child;
 
-        //     //println!("cc {:?}", cc.get_text());
+        //     //log::info!("cc {:?}", cc.get_text());
 
         //     //found struct `Rc<dyn assemblerParserContext<'_, TF = ArenaFactory<'_, CommonTokenFactory, GenericToken<Cow<'_, str>>>, Ctx
 
@@ -288,7 +237,7 @@ unsafe {
         //     //recurse(r);
 
         //     // for cchild in cc.get_children() {
-        //     //     println!("cchild {:?}", cchild);
+        //     //     log::info!("cchild {:?}", cchild);
         //     // }
         // }
     //}
@@ -750,7 +699,7 @@ unsafe {
         //let asm_apps_clone = asm_application.clone();
 
         // let asm_record: &mut AsmRecord = listener_impl.get(0);
-        // println!("{:?}", asm_record);
+        // log::info!("{:?}", asm_record);
 
         //asm_encoder.assemble(&mut asm_application, &mut assembler_segment);
         //asm_encoder.assemble(&bbox, &mut assembler_segment);
@@ -786,7 +735,7 @@ unsafe {
 
         //let test = (*listener_box).get_clone();
 
-        println!("start parsing");
+        log::info!("start parsing");
 
         let result = parser.asm_file();
         assert!(result.is_ok());
@@ -826,7 +775,6 @@ unsafe {
 
     Ok(())
 
-}
 }
 
 fn init_logging() {

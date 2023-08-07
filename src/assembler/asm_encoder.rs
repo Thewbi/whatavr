@@ -232,11 +232,13 @@ impl AsmEncoder {
 
         let result: u16 = 0x0C00u16 | (r_mask | register_d_offset << 4u16);
 
-        log::info!("ENC ADD: {:#02x}", (result >> 0u16) as u8);
+        log::trace!("add d{} r{}", register_d_offset, register_r_offset);
+
+        log::trace!("ENC ADD: {:#02x}", (result >> 0u16) as u8);
         segment.data.push((result >> 0u16) as u8);
         segment.size += 1u32;
 
-        log::info!("ENC ADD: {:#02x}", (result >> 8u16) as u8);
+        log::trace!("ENC ADD: {:#02x}", (result >> 8u16) as u8);
         segment.data.push((result >> 8u16) as u8);
         segment.size += 1u32;
     }
@@ -265,34 +267,34 @@ impl AsmEncoder {
         let label_address: i32 = self.labels[label] as i32;
         let mut offset_k: i32 = label_address - (*idx as i32);
 
-        log::info!("offset_k: {:#06x}", offset_k);
-        log::info!("offset_k: {:#06x}", offset_k as u32);
+        log::trace!("offset_k: {:#06x}", offset_k);
+        log::trace!("offset_k: {:#06x}", offset_k as u32);
 
         offset_k &= 0b00000000001111111111111111111111i32;
 
-        log::info!("offset_k: {:#06x}", offset_k);
-        log::info!("offset_k: {:#06x}", offset_k as u32);
+        log::trace!("offset_k: {:#06x}", offset_k);
+        log::trace!("offset_k: {:#06x}", offset_k as u32);
 
         let result: u32 = (0b1001010u32 << 25)
             | ((offset_k as u32 >> 17) << 20)
             | (0b111u32 << 17)
             | (offset_k as u32 & 0b11111111111111111u32);
 
-        log::info!("result: {:#32b}", result);
+        log::trace!("result: {:#32b}", result);
 
-        log::info!("ENC CALL: {:#02x}", (result >> 16u16) as u8);
+        log::trace!("ENC CALL: {:#02x}", (result >> 16u16) as u8);
         segment.data.push((result >> 16u16) as u8);
         segment.size += 1u32;
 
-        log::info!("ENC CALL: {:#02x}", (result >> 24u16) as u8);
+        log::trace!("ENC CALL: {:#02x}", (result >> 24u16) as u8);
         segment.data.push((result >> 24u16) as u8);
         segment.size += 1u32;
 
-        log::info!("ENC CALL: {:#02x}", (result >> 0u16) as u8);
+        log::trace!("ENC CALL: {:#02x}", (result >> 0u16) as u8);
         segment.data.push((result >> 0u16) as u8);
         segment.size += 1u32;
 
-        log::info!("ENC CALL: {:#02x}", (result >> 8u16) as u8);
+        log::trace!("ENC CALL: {:#02x}", (result >> 8u16) as u8);
         segment.data.push((result >> 8u16) as u8);
         segment.size += 1u32;
 
@@ -397,11 +399,11 @@ impl AsmEncoder {
         let k_mask: u16 = 0xE000u16 | ((imm_value_k >> 4u16) << 8u16) | (imm_value_k & 0x0Fu16);
         let result: u16 = 0xEFFFu16 & (k_mask | (register << 4u16));
 
-        log::info!("ENC LDI: {:#02x}", (result >> 0u16) as u8);
+        log::trace!("ENC LDI: {:#02x}", (result >> 0u16) as u8);
         segment.data.push((result >> 0u16) as u8);
         segment.size += 1u32;
 
-        log::info!("ENC LDI: {:#02x}", (result >> 8u16) as u8);
+        log::trace!("ENC LDI: {:#02x}", (result >> 8u16) as u8);
         segment.data.push((result >> 8u16) as u8);
         segment.size += 1u32;
     }
@@ -483,13 +485,13 @@ impl AsmEncoder {
             | (a_val & 0x0Fu16)
             | (r_val << 0x04u16)) as u16;
 
-        log::info!("ENC OUT: {:b}", result);
+        log::trace!("ENC OUT: {:b}", result);
 
-        log::info!("ENC OUT: {:#02x}", (result >> 0u16) as u8);
+        log::trace!("ENC OUT: {:#02x}", (result >> 0u16) as u8);
         segment.data.push((result >> 0u16) as u8);
         segment.size += 1u32;
 
-        log::info!("ENC OUT: {:#02x}", (result >> 8u16) as u8);
+        log::trace!("ENC OUT: {:#02x}", (result >> 8u16) as u8);
         segment.data.push((result >> 8u16) as u8);
         segment.size += 1u32;
     }
@@ -502,11 +504,11 @@ impl AsmEncoder {
 
         let result: u16 = 0x900Fu16 | (register_d << 4u16);
 
-        log::info!("ENC POP: {:#02x}", (result >> 0u16) as u8);
+        log::trace!("ENC POP: {:#02x}", (result >> 0u16) as u8);
         segment.data.push((result >> 0u16) as u8);
         segment.size += 1u32;
 
-        log::info!("ENC POP: {:#02x}", (result >> 8u16) as u8);
+        log::trace!("ENC POP: {:#02x}", (result >> 8u16) as u8);
         segment.data.push((result >> 8u16) as u8);
         segment.size += 1u32;
     }
@@ -519,11 +521,11 @@ impl AsmEncoder {
 
         let result: u16 = 0x920Fu16 | (register_d << 4u16);
 
-        log::info!("ENC PUSH: {:#02x}", (result >> 0u16) as u8);
+        log::trace!("ENC PUSH: {:#02x}", (result >> 0u16) as u8);
         segment.data.push((result >> 0u16) as u8);
         segment.size += 1u32;
 
-        log::info!("ENC PUSH: {:#02x}", (result >> 8u16) as u8);
+        log::trace!("ENC PUSH: {:#02x}", (result >> 8u16) as u8);
         segment.data.push((result >> 8u16) as u8);
         segment.size += 1u32;
     }
@@ -582,28 +584,28 @@ impl AsmEncoder {
         // register is increased by 16 to arrive at the register id
         let label_address: i16 = self.labels[label] as i16;
 
-        log::info!("label_address: {:#06x}", label_address);
+        log::trace!("label_address: {:#06x}", label_address);
 
         let mut offset_k: i16 = label_address - (*idx as i16);
 
-        log::info!("offset_k: {:#06x} {}", offset_k, offset_k);
+        log::trace!("offset_k: {:#06x} {}", offset_k, offset_k);
 
         offset_k &= 0b0000111111111111i16;
 
-        log::info!("offset_k: {:#06x} {}", offset_k, offset_k);
+        log::trace!("offset_k: {:#06x} {}", offset_k, offset_k);
 
         let result: i16 = (0b1100 << 12) | offset_k;
 
-        log::info!("result: {:#32b}", result);
+        log::trace!("result: {:#32b}", result);
 
-        log::info!("ENC RJMP: {:#02x}", (result >> 0u16) as u8);
+        log::trace!("ENC RJMP: {:#02x}", (result >> 0u16) as u8);
         segment.data.push((result >> 0u16) as u8);
         segment.size += 1u32;
 
-        log::info!("ENC RJMP: {:#02x}", (result >> 8u16) as u8);
+        log::trace!("ENC RJMP: {:#02x}", (result >> 8u16) as u8);
         segment.data.push((result >> 8u16) as u8);
         segment.size += 1u32;
 
-        log::info!("result: {:#026b}", result);
+        log::trace!("result: {:#026b}", result);
     }
 }

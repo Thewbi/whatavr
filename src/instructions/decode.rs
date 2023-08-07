@@ -12,7 +12,8 @@ pub fn decode_instruction<'a>(
     unknown_instruction: &'a InstructionDefinition,
     value_storage: &mut HashMap<char, u16>,
 ) -> &'a InstructionDefinition {
-    log::info!("d: {data:#018b} {data:#06x}");
+
+    log::trace!("d: {data:#018b} {data:#06x}");
 
     // go through all the instructions
     for instruction in instructions_list {

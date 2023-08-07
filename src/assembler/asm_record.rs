@@ -91,15 +91,15 @@ impl/*<'a, T>*/ AsmRecord/*<'a, T>*/ {
         //self.text = T::default();
     }
 
-    pub fn emit(&self) {
-        log::info!("emit");
-        //self.reffff.get(0).as_mut().unwrap().as_mut().data = 0x01;
-        //self.reffff.first_mut().unwrap().reg_1 = 0x01;
+    // pub fn emit(&self) {
+    //     log::info!("emit");
+    //     //self.reffff.get(0).as_mut().unwrap().as_mut().data = 0x01;
+    //     //self.reffff.first_mut().unwrap().reg_1 = 0x01;
 
-        //let first = &mut self.reffff[0];
+    //     //let first = &mut self.reffff[0];
 
-        //let mut ref0 = &mut self.reffff[0];
-    }
+    //     //let mut ref0 = &mut self.reffff[0];
+    // }
 
     pub fn set_idx(&mut self, idx: usize) {
         self.idx = idx;
