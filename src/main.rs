@@ -60,6 +60,8 @@ use byteorder::{LittleEndian, ReadBytesExt};
 // cargo fmt
 fn main() -> io::Result<()> {
 
+    pub const RAMEND: u16 = 0x08ff;
+
     log::info!("whatavr starting ...");
 
     // logging setup
@@ -276,6 +278,20 @@ fn main() -> io::Result<()> {
 
         pub text: String,
 
+        pub last_terminal: String,
+
+        pub intrinsic_usage: String,
+
+        pub mnemonic: String,
+
+        pub reg_1: String,
+
+        pub reg_2: String,
+
+        pub data: String,
+
+        pub label: String,
+
     }
 
     impl DefaultAssemblerVisitor {
@@ -290,6 +306,21 @@ fn main() -> io::Result<()> {
                 print!("  ");
             }
             println!("{}", label);
+        }
+
+        pub fn reset_self(&mut self) {
+            self.result_value = String::default();
+            self.ident = 0u16;
+            self.text = String::default();
+            self.last_terminal = String::default();
+            self.intrinsic_usage = String::default();
+            self.mnemonic = String::default();
+            self.reg_1 = String::default();
+            self.reg_2 = String::default();
+            self.data = String::default();
+            self.label = String::default();
+
+            self.record.clear();
         }
 
     }
@@ -347,55 +378,16 @@ fn main() -> io::Result<()> {
 
         fn visit_terminal(&mut self, node: &antlr_rust::tree::TerminalNode<'i, Self::Node>) -> Self::Return {
 
-            // let token_type:isize = node.symbol.get_token_type();
+            let terminal_text = node.get_text();
 
-            // if token_type < 0 {
+            log::info!("'{}'", terminal_text);
 
-            //     //return vec![&node.symbol.text];
-            //     self.1.text = &node.symbol.text;
-            //     //return vec![&self.1];
-            //     return vec![];
-            // }
+            if terminal_text != ":" && terminal_text != "," && terminal_text != "\r\n" {
 
-            // let token_name:&String = self.2.get(&token_type).unwrap();
-
-            // let instruction_type: InstructionType = InstructionType::from_string(token_name);
-
-            // if InstructionType::Unknown == instruction_type {
-            //     //return vec![&node.symbol.text];
-            //     self.1.text = &node.symbol.text;
-            //     //return vec![&self.1];
-            //     return vec![];
-            // }
-
-            //self.1.instruction_type = instruction_type;
-
-            //return vec![token_name.as_str()];
-
-            //let ssval:String = self.1.instruction_type.to_string_string();
-            //return vec![&ssval.as_str()];
-
-            //return vec![&self.1.instruction_type.to_string_string().clone()];
-            //return vec![&node.symbol.text];
-            //return vec![&self.1];
-            //return vec![];
-            
-            // if node.symbol.get_token_type() == parser::assemblerparser::ADD {
-
-            //     self.1.instruction_type = InstructionType::ADD;
-
-            //     return vec!["ADD"];
-            // }
-
-            // if node.symbol.get_token_type() == parser::assemblerparser::LDI {
-
-            //     self.1.instruction_type = InstructionType::LDI;
-
-            //     return vec!["LDI"];
-            // }
-            
-
-            //return vec![&node.symbol.text];
+                if self.last_terminal != terminal_text {
+                    self.last_terminal.push_str(terminal_text.as_str());
+                }
+            }
 
             String::default()
 
@@ -471,10 +463,85 @@ fn main() -> io::Result<()> {
 
             let mut children_result = self.visit_children(ctx);
 
+            
+
+
+
+
+
+            log::trace!("[exit_row] ...");
+
+
+            // if 0xFF == self.record.reg_1 {
+
+            //     if self.last_terminal.starts_with("r")
+            //     {
+            //         self.record.reg_1 = self.last_terminal[1..].parse::<u16>().unwrap();
+            //     }
+            //     else if "" != self.last_terminal && "," != self.last_terminal && "\r\n" != self.last_terminal 
+            //     {
+            //         self.record.data = self.last_terminal.parse::<u16>().unwrap();
+            //     }
+
+            // } else if 0xFF == self.record.reg_2 {
+
+            //     if self.last_terminal.starts_with("r")
+            //     {
+            //         self.record.reg_2 = self.last_terminal[1..].parse::<u16>().unwrap();
+            //     } 
+            //     else if "" != self.last_terminal && "," != self.last_terminal && "\r\n" != self.last_terminal 
+            //     {
+            //         self.record.data = self.last_terminal.parse::<u16>().unwrap();
+            //     }
+
+            // }
+
+            if self.reg_1 != "" {
+
+                if self.reg_1.starts_with("r")
+                {
+                    self.record.reg_1 = self.reg_1[1..].parse::<u16>().unwrap();
+                }
+            }
+    
+            if self.reg_2 != "" {
+    
+                if self.reg_2.starts_with("r")
+                {
+                    self.record.reg_2 = self.reg_2[1..].parse::<u16>().unwrap();
+                }
+            }
+    
+            if self.data != "" {
+    
+                self.record.io_dest = IoDestination::from_string(self.data.as_str());
+    
+                if self.record.io_dest == IoDestination::UNKNOWN
+                {
+                    let parse_result = self.data.parse::<u16>();
+                    if parse_result.is_ok() {
+                        self.record.data = self.data.parse::<u16>().unwrap();
+                    } else  {
+                        self.record.target_label = self.data.clone();
+                    }
+                }
+            }
+
+
+
+
+
+            //let rec = AsmRecord::new(String::from(""), InstructionType::UNKNOWN, 0xFF, 0xFF, 0, String::from(""), IoDestination::UNKNOWN);
+            let rec = AsmRecord::new(self.label.clone(), InstructionType::from_string(&self.mnemonic.as_str()), self.record.reg_1, self.record.reg_2, self.record.data, String::from(""), IoDestination::UNKNOWN);
+            
+            //rec.label.push(self.label.clone());
+
+            self.records.push(rec);
+
+
             self.ascend_ident();
 
-            let rec = AsmRecord::new(String::from(""), InstructionType::UNKNOWN, 0xFF, 0xFF, 0, String::from(""), IoDestination::UNKNOWN);
-            self.records.push(rec);
+            self.reset_self();
 
 
             // log::info!("{:?}", children_result);
@@ -572,6 +639,9 @@ fn main() -> io::Result<()> {
 
             //log::info!("visit_label_definition() - {:?}", children_result);
 
+            self.label = self.last_terminal.clone();
+            self.last_terminal = String::default();
+
             self.ascend_ident();
 
             children_result
@@ -586,7 +656,7 @@ fn main() -> io::Result<()> {
 
             let children_result = self.visit_children(ctx);
 
-            self.ascend_ident();
+            
 
             //log::info!("{:?}", children_result);
 
@@ -597,29 +667,45 @@ fn main() -> io::Result<()> {
 
             //log::info!("{}", node.symbol.text);
 
-            if 0xFF == self.record.reg_1 {
+            // if 0xFF == self.record.reg_1 {
 
-                if self.text.starts_with("r")
-                {
-                    self.record.reg_1 = self.text[1..].parse::<u16>().unwrap();
-                }
-                else if "" != self.text && "," != self.text && "\r\n" != self.text 
-                {
-                    self.record.data = self.text.parse::<u16>().unwrap();
-                }
+            //     if self.text.starts_with("r")
+            //     {
+            //         self.record.reg_1 = self.text[1..].parse::<u16>().unwrap();
+            //     }
+            //     else if "" != self.text && "," != self.text && "\r\n" != self.text 
+            //     {
+            //         self.record.data = self.text.parse::<u16>().unwrap();
+            //     }
 
-            } else if 0xFF == self.record.reg_2 {
+            // } else if 0xFF == self.record.reg_2 {
 
-                if self.text.starts_with("r")
-                {
-                    self.record.reg_2 = self.text[1..].parse::<u16>().unwrap();
-                } 
-                else if "" != self.text && "," != self.text && "\r\n" != self.text 
-                {
-                    self.record.data = self.text.parse::<u16>().unwrap();
-                }
+            //     if self.text.starts_with("r")
+            //     {
+            //         self.record.reg_2 = self.text[1..].parse::<u16>().unwrap();
+            //     } 
+            //     else if "" != self.text && "," != self.text && "\r\n" != self.text 
+            //     {
+            //         self.record.data = self.text.parse::<u16>().unwrap();
+            //     }
 
+            // }
+
+            let children_result = self.visit_children(ctx);
+
+
+            if self.reg_1 == "" && self.last_terminal.starts_with("r") {
+                self.reg_1 = self.last_terminal.clone();
+            } else if self.reg_2 == "" && self.last_terminal.starts_with("r") {
+                self.reg_2 = self.last_terminal.clone();
+            } else {
+                self.data = self.last_terminal.clone();
             }
+    
+            self.last_terminal = String::default();
+            
+
+            self.ascend_ident();
 
 
 
@@ -635,6 +721,18 @@ fn main() -> io::Result<()> {
             
 
             let children_result = self.visit_children(ctx);
+
+
+            if self.reg_1 == "" && self.last_terminal.starts_with("r") {
+                self.reg_1 = self.last_terminal.clone();
+            } else if self.reg_2 == "" && self.last_terminal.starts_with("r") {
+                self.reg_2 = self.last_terminal.clone();
+            } else {
+                self.data = self.last_terminal.clone();
+            }
+    
+            self.last_terminal = String::default();
+            
 
             self.ascend_ident();
 
@@ -662,13 +760,28 @@ fn main() -> io::Result<()> {
         }
 
         fn visit_asm_instrinsic_instruction(&mut self, ctx: &parser::assemblerparser::Asm_instrinsic_instructionContext<'i>) -> Self::Return {
+            
             self.descend_ident("visit_asm_instrinsic_instruction");
             //log::info!("visit_asm_instrinsic_instruction()");
             //self.visit_children(ctx)
 
             let children_result = self.visit_children(ctx);
 
+            self.intrinsic_usage = self.last_terminal.clone();
+
+            if "LOW(RAMEND)" == self.intrinsic_usage {
+                let low_ramend: u16 = LOW!(RAMEND);
+                self.last_terminal = low_ramend.to_string();
+            }
+
+            if "HIGH(RAMEND)" == self.intrinsic_usage {
+                let high_ramend: u16 = HIGH!(RAMEND);
+                self.last_terminal = high_ramend.to_string();
+            }
+
             //log::info!("visit_asm_instrinsic_instruction() - {:?}", children_result);
+
+            self.ascend_ident();
 
             children_result
         }
@@ -715,6 +828,9 @@ fn main() -> io::Result<()> {
 
             let result = self.visit_children(ctx);
 
+            self.mnemonic = self.last_terminal.clone();
+            self.last_terminal = String::default();
+
             self.ascend_ident();
 
             // for str in &result {
@@ -741,7 +857,15 @@ fn main() -> io::Result<()> {
         records: Vec::new(),
         record: AsmRecord::default(),
         text: String::default(), 
-     };
+        last_terminal: String::default(),
+        intrinsic_usage: String::default(),
+        mnemonic: String::default(),
+        reg_1: String::default(),
+        reg_2: String::default(),
+        data: String::default(),
+        label: String::default(),
+    };
+    visitor.record.clear();
     
     let visitor_result = visitor.visit(&*root);
 
