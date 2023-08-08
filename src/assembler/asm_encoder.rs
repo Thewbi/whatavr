@@ -118,7 +118,7 @@ pub struct AsmEncoder {
 }
 
 impl AsmEncoder {
-    
+
     pub fn new() -> AsmEncoder {
         AsmEncoder {
             labels: HashMap::new(),
@@ -496,15 +496,27 @@ impl AsmEncoder {
             IoDestination::SPH => {
                 a_val = 0x02;
             }
-            IoDestination::DDRB => {
-                a_val = 0x24;
-            }
+
             IoDestination::PORTB => {
                 a_val = 0x25;
             }
+            IoDestination::DDRB => {
+                a_val = 0x24;
+            }
             IoDestination::PINB => {
+                a_val = 0x23;
+            }
+
+            IoDestination::PORTC => {
+                a_val = 0x28;
+            }
+            IoDestination::DDRC => {
+                a_val = 0x27;
+            }
+            IoDestination::PINC => {
                 a_val = 0x26;
             }
+
             _ => panic!("Unknown enum value"),
         }
 

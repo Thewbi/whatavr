@@ -134,11 +134,13 @@ fn main() -> io::Result<()> {
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/asm_4.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/jmp.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/push_pop.asm");
-    asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/call_and_return.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/call_and_return.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/inc.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/expression.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/scratchpad.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/setup_stack.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/pin_change_interrupt_demo.asm");
+    asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/def_assembler_directive.asm");
 
     let data = fs::read_to_string(asm_file_path).expect("Unable to read file");
     log::info!("\n{}", data);
@@ -292,7 +294,6 @@ fn main() -> io::Result<()> {
         pub reg_2: String,
 
         pub data: String,
-        //pub data: u16,
 
         pub label: String,
 
@@ -300,20 +301,17 @@ fn main() -> io::Result<()> {
 
         pub return_val: Vec<String>,
 
+        pub constant_storage: HashMap<String, String>,
+
     }
 
     impl DefaultAssemblerVisitor {
 
         pub fn ascend_ident(&mut self) {
-            //return;
-
             self.ident = self.ident - 1;
         }
 
         pub fn descend_ident(&mut self, label: &str) {
-
-            //return;
-
             self.ident = self.ident + 1;
             for n in 0..self.ident {
                 print!("  ");
@@ -331,10 +329,19 @@ fn main() -> io::Result<()> {
             self.reg_1 = String::default();
             self.reg_2 = String::default();
             self.data = String::default();
-            //self.data = 0u16;
             self.label = String::default();
-
             self.record.clear();
+        }
+
+        pub fn parse_assembler_directive(&mut self, assembler_directive: &Vec<String>) {
+            println!("parse_assembler_directive");
+
+            if "def".eq(&assembler_directive[1]) {
+                self.constant_storage.insert(assembler_directive[2].to_string(), assembler_directive[4].to_string());
+                return;
+            }
+
+            panic!();
         }
 
     }
@@ -342,78 +349,21 @@ fn main() -> io::Result<()> {
     impl<'i> ParseTreeVisitorCompat<'i> for DefaultAssemblerVisitor {
 
         type Node = assemblerParserContextType;
-        //type Return = Vec<&'i str>;
-        //type Return = Vec<&'i String>;
-        //type Return = Vec<String>;
         type Return = Vec<String>;
 
-        //type Return = Vec<&'i AsmRecord<'i, &'i str>>;
-        //type Return = Vec<&'i AsmRecord>;
-        //type Return = String;
-
-        //let temp: &mut Vec<&'i AsmRecord<&'i str>>;
-
         fn temp_result(&mut self) -> &mut Self::Return {
-        //fn temp_result(&mut self) -> Self::Return {
-            
-            //&mut self.3
-
-            //&mut vec![&String::from(self.0[0])]
-
-            //return &mut vec![&String::from("ADD")];
-            //return &mut vec![];
-
-            //self.
-
-            //todo!()
-
-            //return vec![];
-            //return &mut Self::Return::default();
-            //()
-
-            //return self.3;
-
-            //&mut vec![AsmRecord<&str>>]
-            //&mut Vec<&AsmRecord<&str>>
-
-            //return self.3;
-            //&mut self.3
-
-            //&mut self.result_value
-
             &mut self.return_val
-
         }
 
-        // fn visit(&mut self, node: &<Self::Node as antlr_rust::parser::ParserNodeType<'i>>::Type) -> Self::Return {
-            
-        //     //log::info!("visit(): {:?} child_count: {:?}", node, node.get_child_count());
-            
-        //     self.visit_node(node);
-            
-        //     self.temp_result().to_vec()
-        // }
-
         fn visit_terminal(&mut self, node: &antlr_rust::tree::TerminalNode<'i, Self::Node>) -> Self::Return {
-
             let terminal_text = node.get_text();
-
             log::info!("'{}'", terminal_text);
-
             if terminal_text != ":" && terminal_text != "," && terminal_text != "\r\n" {
-
                 if self.last_terminal != terminal_text {
                     self.last_terminal.push_str(terminal_text.as_str());
                 }
             }
-
-            //String::default()
-            //return vec![];
-
-            
             return vec![terminal_text];
-
-            //return vec
         }
 
         fn visit_error_node(&mut self, _node: &antlr_rust::tree::ErrorNode<'i, Self::Node>) -> Self::Return {
@@ -421,23 +371,11 @@ fn main() -> io::Result<()> {
         }
 
         fn aggregate_results(&self, aggregate: Self::Return, next: Self::Return) -> Self::Return {
-            //next
-            //self.aggregate_results(aggregate, next)
-            //aggregate[1] = next[0];
-            //aggregate
-
             // https://stackoverflow.com/questions/40792801/what-is-the-best-way-to-concatenate-vectors-in-rust
             //let c: Vec<&'i str> = aggregate.iter().cloned().chain(next.iter().cloned()).collect(); // Cloned
             //c
-
             let c: Vec<String> = aggregate.iter().cloned().chain(next.iter().cloned()).collect(); // Cloned
             c
-
-            //return vec![];
-            //String::default()
-
-            // works
-            //return vec![];
         }
 
         fn should_visit_next_child(
@@ -450,134 +388,72 @@ fn main() -> io::Result<()> {
 
     }
 
-    
-
     impl<'i> assemblerVisitorCompat<'i> for DefaultAssemblerVisitor {
 
         fn visit_asm_file(&mut self, ctx: &parser::assemblerparser::Asm_fileContext<'i>) -> Self::Return {
-            //log::info!("visit_asm_file()");
-            //println!("visit_asm_file");
-
             let mut children_result = self.visit_children(ctx);
-
-
             // the very last line contained a label definition
             // force a NOP operation and place the label onto that NOP operation
             if self.label != "" {
-                let asm_record: AsmRecord = AsmRecord::new(self.label.clone(), InstructionType::NOP, 0xFF, 0xFF, 0, String::from(""), IoDestination::UNKNOWN);
-
+                let asm_record: AsmRecord = AsmRecord::new(
+                    self.label.clone(), 
+                    InstructionType::NOP, 
+                    0xFF, 
+                    0xFF, 
+                    0, 
+                    String::from(""), 
+                    IoDestination::UNKNOWN);
                 self.records.push(asm_record);
             }
-
             children_result
         }
 
         fn visit_row(&mut self, ctx: &parser::assemblerparser::RowContext<'i>) -> Self::Return {
-
             self.descend_ident("visit_row");
-
-            //log::info!("visit_row()");
-
-            //self.visit_children(ctx)
-
-            // if 1usize <= ctx.get_child_count() {
-                
-            //     let first_child = ctx.get_child(0usize);
-
-            //     log::info!("{:?}", first_child);
-            // }
-
-            // let children_result = self.visit_children(ctx);
-
-            // log::info!("{:?}", children_result);
-
-            // children_result
-
-
-
-            // type Return = Vec<&'i AsmRecord<&'i str>>;
-
-
-
-            let mut children_result = self.visit_children(ctx);
-
-            
-
-
-
-
-
+            let children_result = self.visit_children(ctx);
             log::trace!("[exit_row] ...");
-
+            // look for assembler directives
+            // assembler directives are identified via a dot character
+            let assembler_directive = ".".eq(&children_result[0]);
+            if assembler_directive {
+                log::info!("aaa");
+                self.parse_assembler_directive(&children_result);
+                self.ascend_ident();
+                self.reset_self();
+                return vec![];
+            }
             // do not deal with records that only consists of labels
             // instead insert the label into the next instruction
             if self.label != "" && self.mnemonic == "" {
-                //return String::default();
+                self.ascend_ident();
+                self.reset_self();
                 return vec![];
             }
-
-            // if 0xFF == self.record.reg_1 {
-
-            //     if self.last_terminal.starts_with("r")
-            //     {
-            //         self.record.reg_1 = self.last_terminal[1..].parse::<u16>().unwrap();
-            //     }
-            //     else if "" != self.last_terminal && "," != self.last_terminal && "\r\n" != self.last_terminal 
-            //     {
-            //         self.record.data = self.last_terminal.parse::<u16>().unwrap();
-            //     }
-
-            // } else if 0xFF == self.record.reg_2 {
-
-            //     if self.last_terminal.starts_with("r")
-            //     {
-            //         self.record.reg_2 = self.last_terminal[1..].parse::<u16>().unwrap();
-            //     } 
-            //     else if "" != self.last_terminal && "," != self.last_terminal && "\r\n" != self.last_terminal 
-            //     {
-            //         self.record.data = self.last_terminal.parse::<u16>().unwrap();
-            //     }
-
-            // }
-
             if self.reg_1 != "" {
-
                 if self.reg_1.starts_with("r")
                 {
                     self.record.reg_1 = self.reg_1[1..].parse::<u16>().unwrap();
                 }
             }
-    
             if self.reg_2 != "" {
-    
                 if self.reg_2.starts_with("r")
                 {
                     self.record.reg_2 = self.reg_2[1..].parse::<u16>().unwrap();
                 }
             }
-    
             if self.data != "" {
-    
                 self.record.io_dest = IoDestination::from_string(self.data.as_str());
-    
                 if self.record.io_dest == IoDestination::UNKNOWN
                 {
                     let parse_result = self.data.parse::<u16>();
                     if parse_result.is_ok() {
                         self.record.data = parse_result.unwrap();
-                        //self.data = self.data.parse::<u16>().unwrap();
                     } else  {
-                        //self.record.target_label = self.data.clone();
-                        self.target_label= self.data.clone();
+                        self.target_label = self.data.clone();
                     }
                 }
             }
-
-
-
-
-
-            //let rec = AsmRecord::new(String::from(""), InstructionType::UNKNOWN, 0xFF, 0xFF, 0, String::from(""), IoDestination::UNKNOWN);
+            // create an AsmRecord so it can be added to the application code
             let rec = AsmRecord::new(
                 self.label.clone(), 
                 InstructionType::from_string(&self.mnemonic.as_str()), 
@@ -586,201 +462,66 @@ fn main() -> io::Result<()> {
                 self.record.data, 
                 self.target_label.clone(), 
                 self.record.io_dest);
-            
-            //rec.label.push(self.label.clone());
-
             self.records.push(rec);
-
-
             self.ascend_ident();
-
             self.reset_self();
-
-
-            // log::info!("{:?}", children_result);
-            //log::info!("{:?}", self.1);
-
-            //self.1.emit();
-
-            //children_result.push(self.1);
-            //children_result.push(&mut self.1);
-            //children_result.push(&AsmRecord{ label: String::from("val"), reg_1: 0x00, reg_2: 0x00, instruction_type: InstructionType::Unknown, data: 0x00, target_label: "".to_string(), io_dest: IoDestination::UNKNOWN, idx: 0, text: "" });
-
-           // let ar = AsmRecord{ label: String::from("val"), reg_1: 0x00, reg_2: 0x00, instruction_type: InstructionType::Unknown, data: 0x00, target_label: "".to_string(), io_dest: IoDestination::UNKNOWN, idx: 0, text: "" };
-
-            
-            
-            //self.3.push(&self.1);
-            //self.3.push(&self.1);
-
-            //log::info!("00: {:?}", self.3.get(0));
-
-            //self.temp_result().push(&self.1);
-            //self.temp_result().push(&ar);
-            
-            //log::info!("00: {:?}", self.temp_result().get(0));
-
-           // let testttt = self.temp_result().get(0);
-            //log::info!("00: {:?}", testttt);
-
-            //self.aggregate_results(children_result, vec![]);
-            //self.aggregate_results(children_result, self.temp_result());
-
-            // clear for the next record
-            //self.1.clear();
-
-
-            //children_result
-            //return vec![&self.1];
-            //return vec![];
-
-            // works
-            //return children_result;
-
-            // works
             return vec![];
-            //String::default()
-
-            //self.3
-
-            //return vec![&AsmRecord{ label: String::from("val"), reg_1: 0x00, reg_2: 0x00, instruction_type: InstructionType::Unknown, data: 0x00, target_label: "".to_string(), io_dest: IoDestination::UNKNOWN, idx: 0, text: "" }];
-
         }
 
         fn visit_instruction(&mut self, ctx: &InstructionContext<'i>) -> Self::Return {
             self.descend_ident("visit_instruction");
-			//self.visit_children(ctx)
-
-            //log::info!("visit_instruction()");
-
-            // for child in ctx.get_children() {
-            //     let child_result = self.visit(child);
-            // }
-            
-
-
-
             let children_result = self.visit_children(ctx);
-
             self.ascend_ident();
-
-            //log::info!("visit_instruction() - {:?}", children_result);
-
             children_result
 		}
 
         fn visit_macro_usage(&mut self, ctx: &parser::assemblerparser::Macro_usageContext<'i>) -> Self::Return {
             self.descend_ident("visit_macro_usage");
-            //log::info!("visit_macro_usage()");
-            //self.visit_children(ctx)
-
             let children_result = self.visit_children(ctx);
-
-            //log::info!("visit_macro_usage() - {:?}", children_result);
-
             self.ascend_ident();
-
             children_result
         }
 
         fn visit_label_definition(&mut self, ctx: &parser::assemblerparser::Label_definitionContext<'i>) -> Self::Return {
             self.descend_ident("visit_label_definition");
-            //log::info!("visit_label_definition()");
-            //self.visit_children(ctx)
-
             let children_result = self.visit_children(ctx);
-
-            //log::info!("visit_label_definition() - {:?}", children_result);
-
             self.label = self.last_terminal.clone();
             self.last_terminal = String::default();
-
             self.ascend_ident();
-
             children_result
         }
 
-        // parameter inside an instruction
         fn visit_param(&mut self, ctx: &ParamContext<'i>) -> Self::Return {
-
             self.descend_ident("visit_param");
-
-			//self.visit_children(ctx)
-
             let children_result = self.visit_children(ctx);
-
-            
-
-            //log::info!("{:?}", children_result);
-
-            // let text = children_result[0];
-
-            //self.text = children_result[0].to_owned();
-            //self.text = children_result;
-
-            //log::info!("{}", node.symbol.text);
-
-            // if 0xFF == self.record.reg_1 {
-
-            //     if self.text.starts_with("r")
-            //     {
-            //         self.record.reg_1 = self.text[1..].parse::<u16>().unwrap();
-            //     }
-            //     else if "" != self.text && "," != self.text && "\r\n" != self.text 
-            //     {
-            //         self.record.data = self.text.parse::<u16>().unwrap();
-            //     }
-
-            // } else if 0xFF == self.record.reg_2 {
-
-            //     if self.text.starts_with("r")
-            //     {
-            //         self.record.reg_2 = self.text[1..].parse::<u16>().unwrap();
-            //     } 
-            //     else if "" != self.text && "," != self.text && "\r\n" != self.text 
-            //     {
-            //         self.record.data = self.text.parse::<u16>().unwrap();
-            //     }
-
-            // }
-
-            //let children_result = self.visit_children(ctx);
-
-
+            let result_join = children_result.join("");
+            // try to resolve constants
+            if self.constant_storage.contains_key(&result_join) {
+                let constant_value = self.constant_storage.get(&result_join).unwrap();
+                if self.reg_1 == "" {
+                    self.reg_1 = constant_value.to_string();
+                } else if self.reg_2 == "" {
+                    self.reg_2 = constant_value.to_string();
+                }
+                self.last_terminal = String::default();
+                self.ascend_ident();
+                return vec![];
+            }
             if self.reg_1 == "" && self.last_terminal.starts_with("r") {
                 self.reg_1 = self.last_terminal.clone();
             } else if self.reg_2 == "" && self.last_terminal.starts_with("r") {
                 self.reg_2 = self.last_terminal.clone();
             } else {
-                //self.data = self.last_terminal.clone();
-
-                //self.data = children_result[0].clone();
-
                 self.data = children_result.join("");
             }
-    
             self.last_terminal = String::default();
-            
-
             self.ascend_ident();
-
-
-
-            //children_result
-            //self.text
-            //String::default()
             return vec![];
 		}
 
         fn visit_parameter(&mut self, ctx: &parser::assemblerparser::ParameterContext<'i>) -> Self::Return {
             self.descend_ident("visit_parameter");
-            //log::info!("visit_parameter()");
-
-            
-
             let children_result = self.visit_children(ctx);
-
-
             if self.reg_1 == "" && self.last_terminal.starts_with("r") {
                 self.reg_1 = self.last_terminal.clone();
             } else if self.reg_2 == "" && self.last_terminal.starts_with("r") {
@@ -788,36 +529,22 @@ fn main() -> io::Result<()> {
             } else {
                 self.data = self.last_terminal.clone();
             }
-    
             self.last_terminal = String::default();
-            
-
             self.ascend_ident();
-
             children_result
         }
 
         fn visit_macro_placeholder(&mut self, ctx: &parser::assemblerparser::Macro_placeholderContext<'i>) -> Self::Return {
             self.descend_ident("visit_macro_placeholder");
-            //log::info!("visit_macro_placeholder()");
             let children_result = self.visit_children(ctx);
-
             self.ascend_ident();
-
             children_result
         }
 
         fn visit_expression(&mut self, ctx: &parser::assemblerparser::ExpressionContext<'i>) -> Self::Return {
-
             self.descend_ident("visit_expression");
-            //log::info!("visit_expression()");
-
             self.last_terminal.clear();
-
             let mut children_result = self.visit_children(ctx);
-
-            // 1 << DDC0
-
             if children_result.len() == 3usize {
 
                 if "<<".eq(&children_result[1]) {
@@ -843,6 +570,7 @@ fn main() -> io::Result<()> {
 
                     let result: i16 = lhs << rhs;
 
+                    self.ascend_ident();
                     return vec![result.to_string()];
                 }
                 else if "(".eq(&children_result[0]) && ")".eq(&children_result[2])
@@ -853,13 +581,14 @@ fn main() -> io::Result<()> {
                     children_result.remove(2);
                     children_result.remove(0);
 
+                    self.ascend_ident();
                     return children_result;
                 }
-                else 
-                {
-                    println!("fuck");
-                    panic!()
-                }
+                // else 
+                // {
+                //     println!("fuck");
+                //     panic!()
+                // }
 
             }
 
@@ -871,6 +600,7 @@ fn main() -> io::Result<()> {
                     //self.record.data = parse_result.unwrap();
                     //self.data = self.data.parse::<u16>().unwrap();
 
+                    self.ascend_ident();
                     return children_result;
                 }
                 
@@ -878,6 +608,7 @@ fn main() -> io::Result<()> {
                 if "DDC0".eq(&children_result[0]) {
                     children_result[0] = "1".to_string();
 
+                    self.ascend_ident();
                     return children_result;
 
                     //return self.return_val;
@@ -886,34 +617,13 @@ fn main() -> io::Result<()> {
             }
 
             self.ascend_ident();
-
             children_result
         }
 
         fn visit_asm_instrinsic_instruction(&mut self, ctx: &parser::assemblerparser::Asm_instrinsic_instructionContext<'i>) -> Self::Return {
-            
             self.descend_ident("visit_asm_instrinsic_instruction");
-            //log::info!("visit_asm_instrinsic_instruction()");
-            //self.visit_children(ctx)
-
             let children_result = self.visit_children(ctx);
-
-            // self.intrinsic_usage = self.last_terminal.clone();
-
-            // if "LOW(RAMEND)" == self.intrinsic_usage {
-            //     let low_ramend: u16 = LOW!(RAMEND);
-            //     self.last_terminal = low_ramend.to_string();
-            // }
-
-            // if "HIGH(RAMEND)" == self.intrinsic_usage {
-            //     let high_ramend: u16 = HIGH!(RAMEND);
-            //     self.last_terminal = high_ramend.to_string();
-            // }
-
-            //log::info!("visit_asm_instrinsic_instruction() - {:?}", children_result);
-
             self.ascend_ident();
-
             children_result
         }
 
@@ -1016,6 +726,7 @@ fn main() -> io::Result<()> {
         label: String::default(),
         target_label: String::default(),
         return_val: Vec::new(),
+        constant_storage: HashMap::new(),
     };
     visitor.record.clear();
     

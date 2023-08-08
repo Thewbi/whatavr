@@ -2,14 +2,20 @@
 #[derive(Debug, Copy, Clone)]
 #[derive(Default)]
 pub enum IoDestination {
+    
     // stack pointer
     SPL,
     SPH,
 
     // port B
-    DDRB,
     PORTB,
+    DDRB,
     PINB,
+
+    // port C
+    PORTC,
+    DDRC,
+    PINC,
 
     #[default]
     UNKNOWN,
@@ -25,9 +31,13 @@ impl IoDestination {
             IoDestination::SPL => 0x01u16,
             IoDestination::SPH => 0x02u16,
 
+            IoDestination::PORTB => 0x25u16,
             IoDestination::DDRB => 0x24u16,
-            IoDestination::PORTB => 0x25u16, 
-            IoDestination::PINB => 0x26u16,
+            IoDestination::PINB => 0x23u16,
+
+            IoDestination::PORTC => 0x28u16, 
+            IoDestination::DDRC => 0x27u16,
+            IoDestination::PINC => 0x26u16,
 
             _ => 0xFF,
         }
@@ -40,9 +50,13 @@ impl IoDestination {
             0x01u16 => IoDestination::SPL,
             0x02u16 => IoDestination::SPH,
 
-            0x24u16 => IoDestination::DDRB,
             0x25u16 => IoDestination::PORTB,
-            0x26u16 => IoDestination::PINB,
+            0x24u16 => IoDestination::DDRB,
+            0x23u16 => IoDestination::PINB,
+
+            0x28u16 => IoDestination::PORTC,
+            0x27u16 => IoDestination::DDRC,
+            0x26u16 => IoDestination::PINC,
 
             _ => IoDestination::UNKNOWN,
         }
@@ -62,6 +76,10 @@ impl IoDestination {
             "DDRB" => IoDestination::DDRB,
             "PORTB" => IoDestination::PORTB,
             "PINB" => IoDestination::PINB,
+
+            "DDRC" => IoDestination::DDRC,
+            "PORTC" => IoDestination::PORTC,
+            "PINC" => IoDestination::PINC,
 
             _ => IoDestination::UNKNOWN,
         }

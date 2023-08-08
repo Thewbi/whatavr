@@ -1,1 +1,1 @@
-ldi r16, LOW(RAMEND)
+out DDRC, r16

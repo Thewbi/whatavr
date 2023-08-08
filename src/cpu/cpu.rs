@@ -441,6 +441,15 @@ impl CPU {
                         cpu.sram[a_val as usize] = val;
                     }
 
+                    IoDestination::DDRC | IoDestination::PORTC | IoDestination::PINC => {
+                        log::trace!("r_val: {r_val:#b} {r_val:#x} {r_val}");
+                        let val: u8 = cpu.register_file[r_val as usize];
+                        log::trace!("val: {val:#b} {val:#x} {val}");
+
+                        // write the value into SRAM
+                        cpu.sram[a_val as usize] = val;
+                    }
+
                     IoDestination::UNKNOWN => {
                         panic!("UNKNOWN enum value!")
                     } // _ => panic!("Unknown enum value!")
