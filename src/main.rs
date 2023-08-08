@@ -25,6 +25,7 @@ use std::rc::Rc;
 use crate::assembler::asm_encoder::AsmEncoder;
 use crate::assembler::asm_record::AsmRecord;
 use crate::assembler::io_destination::IoDestination;
+use crate::cpu::cpu::CPU;
 use crate::ihex_mgmt::ihex_mgmt::parse_hex_file;
 use crate::ihex_mgmt::ihex_mgmt::Segment;
 use crate::instructions::decode::decode_instruction;
@@ -289,8 +290,11 @@ fn main() -> io::Result<()> {
         pub reg_2: String,
 
         pub data: String,
+        //pub data: u16,
 
         pub label: String,
+
+        pub target_label: String,
 
     }
 
@@ -318,6 +322,7 @@ fn main() -> io::Result<()> {
             self.reg_1 = String::default();
             self.reg_2 = String::default();
             self.data = String::default();
+            //self.data = 0u16;
             self.label = String::default();
 
             self.record.clear();
@@ -431,7 +436,19 @@ fn main() -> io::Result<()> {
         fn visit_asm_file(&mut self, ctx: &parser::assemblerparser::Asm_fileContext<'i>) -> Self::Return {
             //log::info!("visit_asm_file()");
             println!("visit_asm_file");
-            self.visit_children(ctx)
+
+            let mut children_result = self.visit_children(ctx);
+
+
+            // the very last line contained a label definition
+            // force a NOP operation and place the label onto that NOP operation
+            if self.label != "" {
+                let asm_record: AsmRecord = AsmRecord::new(self.label.clone(), InstructionType::NOP, 0xFF, 0xFF, 0, String::from(""), IoDestination::UNKNOWN);
+
+                self.records.push(asm_record);
+            }
+
+            children_result
         }
 
         fn visit_row(&mut self, ctx: &parser::assemblerparser::RowContext<'i>) -> Self::Return {
@@ -471,6 +488,11 @@ fn main() -> io::Result<()> {
 
             log::trace!("[exit_row] ...");
 
+            // do not deal with records that only consists of labels
+            // instead insert the label into the next instruction
+            if self.label != "" && self.mnemonic == "" {
+                return String::default();
+            }
 
             // if 0xFF == self.record.reg_1 {
 
@@ -521,8 +543,10 @@ fn main() -> io::Result<()> {
                     let parse_result = self.data.parse::<u16>();
                     if parse_result.is_ok() {
                         self.record.data = self.data.parse::<u16>().unwrap();
+                        //self.data = self.data.parse::<u16>().unwrap();
                     } else  {
-                        self.record.target_label = self.data.clone();
+                        //self.record.target_label = self.data.clone();
+                        self.target_label= self.data.clone();
                     }
                 }
             }
@@ -532,7 +556,14 @@ fn main() -> io::Result<()> {
 
 
             //let rec = AsmRecord::new(String::from(""), InstructionType::UNKNOWN, 0xFF, 0xFF, 0, String::from(""), IoDestination::UNKNOWN);
-            let rec = AsmRecord::new(self.label.clone(), InstructionType::from_string(&self.mnemonic.as_str()), self.record.reg_1, self.record.reg_2, self.record.data, String::from(""), IoDestination::UNKNOWN);
+            let rec = AsmRecord::new(
+                self.label.clone(), 
+                InstructionType::from_string(&self.mnemonic.as_str()), 
+                self.record.reg_1, 
+                self.record.reg_2, 
+                self.record.data, 
+                self.target_label.clone(), 
+                IoDestination::UNKNOWN);
             
             //rec.label.push(self.label.clone());
 
@@ -864,12 +895,62 @@ fn main() -> io::Result<()> {
         reg_2: String::default(),
         data: String::default(),
         label: String::default(),
+        target_label: String::default(),
     };
     visitor.record.clear();
     
     let visitor_result = visitor.visit(&*root);
 
     log::info!("{:?}", visitor_result);
+
+
+
+
+
+    // ATmega328p cpu
+    let mut cpu: CPU = CPU {
+        z: false,
+        sph: 0x00u8,
+        spl: 0x00u8,
+        pc: 0x02i32,
+        register_file: [0; 32usize],
+        sram: [0; RAMEND as usize],
+    };
+
+    // the ihex segment which is filled with source code bytes by the assembler
+    let mut assembler_segment: Segment = Segment::new();
+    assembler_segment.address = 0u16;
+    assembler_segment.size = 0u32;
+
+    // convert the mnemonic instructions into bytes to store into the ihex segment
+    let mut asm_encoder: AsmEncoder = AsmEncoder::new();
+    asm_encoder.assemble(&mut visitor.records, &mut assembler_segment);
+
+    log::info!(">>> CPU program execution ...");
+
+    // main loop that executes the instruction
+    let mut done: bool = false;
+    while !done {
+        // get the current instruction
+        let temp_pc: i32 = cpu.pc - 0x02;
+
+        // check for end of code
+        if assembler_segment.size <= temp_pc as u32 {
+            log::info!("End of Code reached! Application Finished!");
+            // log_end();
+            // return Ok(());
+
+            done = true;
+            continue;
+        }
+
+        // execute the next instruction
+        cpu.execute_instruction(&assembler_segment);
+    }
+
+    log::info!("<<< CPU program execution done.");
+
+
 
     // assert_eq!(
     //     result.unwrap().to_string_tree(&*parser),
@@ -888,110 +969,110 @@ fn main() -> io::Result<()> {
     //     log::info!("{:?}", asm_record);
     // }
    
-    const EXECUTE: bool = true;
-    if EXECUTE {
-        // vector of instructions
-        //let mut asm_application: Vec<AsmRecord> = Vec::new();
+    // const EXECUTE: bool = true;
+    // if EXECUTE {
+    //     // vector of instructions
+    //     //let mut asm_application: Vec<AsmRecord> = Vec::new();
 
-        // create an application as a vector of instructions (mnemonics)
-        //application_instruction_source(&mut asm_application);
+    //     // create an application as a vector of instructions (mnemonics)
+    //     //application_instruction_source(&mut asm_application);
 
-        // let mut asm_file_path: String = String::new();
-        // //hex_file_path.push_str("C:/aaa_se/rust/rust_blt_2/test_resources/output_bank1.hex");
-        // //hex_file_path.push_str("C:/aaa_se/rust/rust_blt_2/test_resources/output_bank2.hex") {
-        // //hex_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/GccApplication1/GccApplication1.hex");
-        // asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/asm_1.asm");
+    //     // let mut asm_file_path: String = String::new();
+    //     // //hex_file_path.push_str("C:/aaa_se/rust/rust_blt_2/test_resources/output_bank1.hex");
+    //     // //hex_file_path.push_str("C:/aaa_se/rust/rust_blt_2/test_resources/output_bank2.hex") {
+    //     // //hex_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/GccApplication1/GccApplication1.hex");
+    //     // asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/asm_1.asm");
 
-        // this function uses a parser to retrieve source code from a .asm file and
-        // it will produce AsmRecord out of the source code. The AsmRecords can then
-        // be put into an assembler that will fill a segment with machine code assembled
-        // from the instructions
-        //application_file_source(&mut asm_application);
+    //     // this function uses a parser to retrieve source code from a .asm file and
+    //     // it will produce AsmRecord out of the source code. The AsmRecords can then
+    //     // be put into an assembler that will fill a segment with machine code assembled
+    //     // from the instructions
+    //     //application_file_source(&mut asm_application);
 
-        // // the ihex segment which is filled with source code bytes by the assembler
-        // let mut assembler_segment: Segment = Segment::new();
-        // assembler_segment.address = 0u16;
-        // assembler_segment.size = 0u32;
+    //     // // the ihex segment which is filled with source code bytes by the assembler
+    //     // let mut assembler_segment: Segment = Segment::new();
+    //     // assembler_segment.address = 0u16;
+    //     // assembler_segment.size = 0u32;
 
-        // // convert the mnemonic instructions into bytes to store into the ihex segment
-        let mut asm_encoder: AsmEncoder = AsmEncoder::new();
-        // //asm_encoder.assemble(&mut asm_application, &mut assembler_segment);
+    //     // // convert the mnemonic instructions into bytes to store into the ihex segment
+    //     let mut asm_encoder: AsmEncoder = AsmEncoder::new();
+    //     // //asm_encoder.assemble(&mut asm_application, &mut assembler_segment);
 
-        //let asm_apps_clone = listener_impl.get_asm_records();
-        //let asm_apps_clone = asm_application.clone();
+    //     //let asm_apps_clone = listener_impl.get_asm_records();
+    //     //let asm_apps_clone = asm_application.clone();
 
-        // let asm_record: &mut AsmRecord = listener_impl.get(0);
-        // log::info!("{:?}", asm_record);
+    //     // let asm_record: &mut AsmRecord = listener_impl.get(0);
+    //     // log::info!("{:?}", asm_record);
 
-        //asm_encoder.assemble(&mut asm_application, &mut assembler_segment);
-        //asm_encoder.assemble(&bbox, &mut assembler_segment);
+    //     //asm_encoder.assemble(&mut asm_application, &mut assembler_segment);
+    //     //asm_encoder.assemble(&bbox, &mut assembler_segment);
 
-        let mut asm_records: Vec<AsmRecord> = Vec::new();
-        //let mut asm_apps: Rc<Vec<AsmRecord>> = asm_application.into();
-        //asm_application.push(AsmRecord::new(String::from(""), InstructionType::Unknown, 0xFF, 0xFF, 0, String::from(""), IoDestination::UNKNOWN));
+    //     let mut asm_records: Vec<AsmRecord> = Vec::new();
+    //     //let mut asm_apps: Rc<Vec<AsmRecord>> = asm_application.into();
+    //     //asm_application.push(AsmRecord::new(String::from(""), InstructionType::Unknown, 0xFF, 0xFF, 0, String::from(""), IoDestination::UNKNOWN));
 
-        //let mut asm_application: Vec<Rc<AsmRecord>> = Vec::new();
-        //let mut asm_application: Vec<AsmRecord> = Vec::new();
-        //let bbox = Box::new(asm_application);
+    //     //let mut asm_application: Vec<Rc<AsmRecord>> = Vec::new();
+    //     //let mut asm_application: Vec<AsmRecord> = Vec::new();
+    //     //let bbox = Box::new(asm_application);
 
-        let mut listener_impl = parser::assemblerlistenerimpl::assemblerListenerImpl {
-            reg_1: String::default(),
-            reg_2: String::default(),
-            data: String::default(),
-            instruction: String::default(),
-            last_terminal: String::default(),
-            mnemonic: String::default(),
-            label: String::default(),
-            asm_records: asm_records,
-            //asm_records: bbox,
-            //asm_apps: asm_apps,
-            asm_encoder: asm_encoder,
-            intrinsic_usage: String::default(),
-        };
+    //     let mut listener_impl = parser::assemblerlistenerimpl::assemblerListenerImpl {
+    //         reg_1: String::default(),
+    //         reg_2: String::default(),
+    //         data: String::default(),
+    //         instruction: String::default(),
+    //         last_terminal: String::default(),
+    //         mnemonic: String::default(),
+    //         label: String::default(),
+    //         asm_records: asm_records,
+    //         //asm_records: bbox,
+    //         //asm_apps: asm_apps,
+    //         asm_encoder: asm_encoder,
+    //         intrinsic_usage: String::default(),
+    //     };
 
-        // https://dhghomon.github.io/easy_rust/Chapter_53.html
-        // put the listener onto the heap
-        let listener_box = Box::new(listener_impl);
+    //     // https://dhghomon.github.io/easy_rust/Chapter_53.html
+    //     // put the listener onto the heap
+    //     let listener_box = Box::new(listener_impl);
 
-        parser.add_parse_listener(listener_box);
+    //     parser.add_parse_listener(listener_box);
 
-        //let test = (*listener_box).get_clone();
+    //     //let test = (*listener_box).get_clone();
 
-        log::info!("start parsing");
+    //     log::info!("start parsing");
 
-        let result = parser.asm_file();
-        assert!(result.is_ok());
+    //     let result = parser.asm_file();
+    //     assert!(result.is_ok());
 
-        let root: Rc<Asm_fileContextAll> = result.unwrap();
-        log::info!("string tree: {}", root.to_string_tree(&*parser));
+    //     let root: Rc<Asm_fileContextAll> = result.unwrap();
+    //     log::info!("string tree: {}", root.to_string_tree(&*parser));
 
-        // // ATmega328p cpu
-        // let mut cpu: CPU = CPU {
-        //     z: false,
-        //     sph: 0x00u8,
-        //     spl: 0x00u8,
-        //     pc: 0x02i32,
-        //     register_file: [0; 32usize],
-        //     sram: [0; RAMEND as usize],
-        // };
+    //     // // ATmega328p cpu
+    //     // let mut cpu: CPU = CPU {
+    //     //     z: false,
+    //     //     sph: 0x00u8,
+    //     //     spl: 0x00u8,
+    //     //     pc: 0x02i32,
+    //     //     register_file: [0; 32usize],
+    //     //     sram: [0; RAMEND as usize],
+    //     // };
 
-        // // main loop that executes the instruction
-        // let done: bool = false;
-        // while !done {
-        //     // get the current instruction
-        //     let temp_pc: i32 = cpu.pc - 0x02;
+    //     // // main loop that executes the instruction
+    //     // let done: bool = false;
+    //     // while !done {
+    //     //     // get the current instruction
+    //     //     let temp_pc: i32 = cpu.pc - 0x02;
 
-        //     // check for end of code
-        //     if assembler_segment.size <= temp_pc as u32 {
-        //         log::info!("End of Code reached! Application Finished!");
-        //         log_end();
-        //         return Ok(());
-        //     }
+    //     //     // check for end of code
+    //     //     if assembler_segment.size <= temp_pc as u32 {
+    //     //         log::info!("End of Code reached! Application Finished!");
+    //     //         log_end();
+    //     //         return Ok(());
+    //     //     }
 
-        //     // execute the next instruction
-        //     cpu.execute_instruction(&assembler_segment);
-        // }
-    }
+    //     //     // execute the next instruction
+    //     //     cpu.execute_instruction(&assembler_segment);
+    //     // }
+    // }
 
     log_end();
 

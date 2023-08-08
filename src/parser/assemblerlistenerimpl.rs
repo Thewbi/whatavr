@@ -154,6 +154,7 @@ impl<'input> assemblerListener<'input> for assemblerListenerImpl {
 
         log::trace!("[exit_row] ...");
 
+        // do not deal with records that only consists of labels
         if self.label != "" && self.mnemonic == "" {
             return;
         }

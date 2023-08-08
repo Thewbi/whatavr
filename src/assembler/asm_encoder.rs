@@ -118,6 +118,7 @@ pub struct AsmEncoder {
 }
 
 impl AsmEncoder {
+    
     pub fn new() -> AsmEncoder {
         AsmEncoder {
             labels: HashMap::new(),
