@@ -9,13 +9,13 @@ pub type LocalTokenFactory<'input> = antlr_rust::token_factory::ArenaCommonFacto
 asm_file : NEWLINE* row (NEWLINE* row)* NEWLINE* EOF ;
 
 row : 
+    asm_instrinsic_instruction
+    |
     macro_usage
     |
     label_definition
     |
     instruction
-    |
-    asm_instrinsic_instruction
     ;
 
 instruction : mnemonic ( param ( COMMA param )? )? ;
@@ -32,14 +32,6 @@ parameter : IDENTIFIER ;
 macro_placeholder : AT NUMBER ;
 
 expression : 
-    NUMBER 
-    | 
-    HEX_NUMBER
-    |
-    IDENTIFIER
-    |
-    macro_placeholder
-    |
     OPENING_BRACKET expression CLOSEING_BRACKET
     |
     expression LEFT_SHIFT expression
@@ -51,21 +43,59 @@ expression :
     expression GT expression
     |
     expression LT expression
+    |
+    expression EQUALS expression
+    |
+    NUMBER 
+    | 
+    HEX_NUMBER
+    |
+    IDENTIFIER
+    |
+    STRING
+    |
+    macro_placeholder
     ;
 
+//asm_instrinsic_instruction :
+//    DOT ( 
+//        (INCLUDE STRING) 
+//        | DEF IDENTIFIER EQUALS (expression | IDENTIFIER)
+//        | EQU IDENTIFIER EQUALS (expression | IDENTIFIER)
+//        | CSEG 
+//        | ORG HEX_NUMBER
+//        | MACRO IDENTIFIER
+//        | END_MACRO
+//        | IF expression
+//        | ELSE
+//        | ENDIF
+//        | ERROR STRING
+//    )
+//    ;
+
 asm_instrinsic_instruction :
-    DOT ( 
-        (INCLUDE STRING) 
-        | DEF IDENTIFIER EQUALS (expression | IDENTIFIER)
-        | EQU IDENTIFIER EQUALS (expression | IDENTIFIER)
-        | CSEG 
-        | ORG HEX_NUMBER
-        | MACRO IDENTIFIER
-        | END_MACRO
-        | IF expression
-        | ELSE
-        | ENDIF
-        | ERROR STRING
+    DOT (
+        INCLUDE STRING
+        |
+        DEF expression
+        |
+        EQU expression
+        | 
+        CSEG 
+        | 
+        ORG (HEX_NUMBER | IDENTIFIER)
+        | 
+        MACRO IDENTIFIER
+        | 
+        END_MACRO
+        | 
+        IF expression
+        | 
+        ELSE
+        | 
+        ENDIF
+        | 
+        ERROR STRING
     )
     ;
 
@@ -74,40 +104,112 @@ asm_intrinsic_usage :
     ;
 
 mnemonic :
+    mnemonic_a
+    |
+    mnemonic_b
+    |
+    mnemonic_c
+    |
+    mnemonic_d
+    |
+    mnemonic_e
+    |
+    mnemonic_f
+    |
+    mnemonic_i
+    |
+    mnemonic_j
+    |
+    mnemonic_l
+    |
+    mnemonic_m
+    |
+    mnemonic_n
+    |
+    mnemonic_o
+    |
+    mnemonic_p
+    |
+    mnemonic_r
+    |
+    mnemonic_s
+    |
+    mnemonic_t
+    |
+    mnemonic_w
+    |
+    mnemonic_x
+    ;
+
+mnemonic_a :
     ADD | ADIW | AND | ANDI | ASR
-    |
+    ;
+
+mnemonic_b :
     BCLR | BLD | BRBC | BRBS | BRCC | BRCS | BREAK | BREQ | BRGE | BRHC | BRHS | BRID | BRIE | BRLO | BRLT | BRMI | BRNE | BRPL | BRSH | BRTC | BRTS | BRVC | BRVS | BSET | BST 
-    |
+    ;
+
+mnemonic_c :
     CALL | CBI | CBR | CLC | CLH | CLI | CLN | CLR | CLS | CLT | CLV | CLZ | COM | CP | CPC | CPI | CPSE 
-    |
+    ;
+
+mnemonic_d :
     DEC | DES
-    |
+    ;
+
+mnemonic_e :
     EICALL | EIJMP | ELPM | EOR
-    |
+    ;
+
+mnemonic_f :
     FMUL | FMULS | FMULSU
-    |
+    ;
+
+mnemonic_i :
     ICALL | IJMP | IN | INC
-    |
+    ;
+
+mnemonic_j :
     JMP
-    |
+    ;
+
+mnemonic_l :
     LAC | LAS | LAT | LD | LDI | LDS | LDS | LPM | LSL | LSR
-    | 
+    ; 
+
+mnemonic_m :
     MOV | MOVW | MUL | MULS | MULSU
-    |
+    ;
+
+mnemonic_n :
     NEG | NOP
-    |
+    ;
+
+mnemonic_o :
     OR | ORI | OUT
-    |
+    ;
+
+mnemonic_p :
     POP | PUSH
-    |
+    ;
+
+mnemonic_r :
     RCALL | RET | RETI | RJMP | ROL|  ROR
-    |
+    ;
+
+mnemonic_s :
     SBC | SBCI | SBI | SBIC | SBIS | SBIW | SBR | SBRC | SBRS | SEC | SEH | SEI | SEN | SER | SES | SET | SEV | SEZ | SLEEP | SPM | ST | STS | SUB | SUBI | SWAP
-    |
+    ;
+
+mnemonic_t :
     TST
-    |
+    ;
+
+mnemonic_w :
     WDR
-    |
+    ;
+
+mnemonic_x :
     XCH
     ;
 
@@ -272,16 +374,7 @@ WDR : W D R ;
 
 XCH : X C H ;
 
-NEWLINE : '\r'? '\n' ;
 
-//WS : [ \t\n\r\f]+ -> channel(HIDDEN) ;
-WS : [ \t\n\r\f]+ -> skip  ;
-//WS : [ \t\f]+ -> skip  ;
-
-//LINE_COMMENT : ';' ~[\r\n]* -> channel(HIDDEN) ;
-LINE_COMMENT : ';' ~[\r\n]* -> skip ;
-
-STRING : '"' ('""'|~'"')* '"' ; // quote-quote is an escaped quote
 
 ASTERISK : '*' ;
 AT : '@' ;
@@ -322,7 +415,16 @@ RIGHT_SHIFT : '>>' ;
 SLASH : '/' ;
 
 
+NEWLINE : '\r'? '\n' ;
 
+//WS : [ \t\n\r\f]+ -> channel(HIDDEN) ;
+WS : [ \t\n\r\f]+ -> skip  ;
+//WS : [ \t\f]+ -> skip  ;
+
+//LINE_COMMENT : ';' ~[\r\n]* -> channel(HIDDEN) ;
+LINE_COMMENT : ';' ~[\r\n]* -> skip ;
+
+STRING : '"' ('""'|~'"')* '"' ; // quote-quote is an escaped quote
 
 
 NUMBER : [0-9]+ ;

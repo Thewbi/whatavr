@@ -300,6 +300,31 @@ impl CPU {
                 cpu.pc += 2i32;
             }
 
+            /*  65 */
+            InstructionType::INC => {
+                log::info!("[INC]");
+
+                let register_d: u16 = value_storage[&'d'];
+
+                log::info!(
+                    "[INC] Before Inc: Register r{}: value at reg:{:#06x}",
+                    register_d,
+                    cpu.register_file[register_d as usize]
+                );
+
+                let mut val: u8 = cpu.register_file[register_d as usize];
+                val = val + 1;
+                cpu.register_file[register_d as usize] = val as u8;
+
+                log::info!(
+                    "[INC] Before Inc: Register r{}: value at reg:{:#06x}",
+                    register_d,
+                    cpu.register_file[register_d as usize]
+                );
+
+                cpu.pc += 2i32;
+            }
+
             /*  66 */
             InstructionType::JMP => {
                 log::info!("[JMP]");

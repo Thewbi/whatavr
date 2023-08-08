@@ -1,3 +1,3 @@
 start:
     inc r16
-;    rjmp start
+    rjmp start

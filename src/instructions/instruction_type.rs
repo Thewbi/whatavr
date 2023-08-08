@@ -69,7 +69,7 @@ pub enum InstructionType {
     /* 62 */ ICALL,
     /* 63 */ IJMP,
     /* 64 */ IN,
-    /* 65.*/ INC,
+    /* 65 */ INC,
 
     /* 66 */ JMP,
 

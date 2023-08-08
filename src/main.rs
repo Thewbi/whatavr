@@ -24,6 +24,7 @@ use std::rc::Rc;
 
 use crate::assembler::asm_encoder::AsmEncoder;
 use crate::assembler::asm_record::AsmRecord;
+use crate::assembler::io_destination::IoDestination;
 use crate::ihex_mgmt::ihex_mgmt::parse_hex_file;
 use crate::ihex_mgmt::ihex_mgmt::Segment;
 use crate::instructions::decode::decode_instruction;
@@ -266,6 +267,27 @@ fn main() -> io::Result<()> {
     struct DefaultAssemblerVisitor {
         
         pub result_value: String,
+
+        pub ident: u16,
+
+        pub records: Vec<AsmRecord>,
+
+    }
+
+    impl DefaultAssemblerVisitor {
+
+        pub fn ascend_ident(&mut self) {
+            self.ident = self.ident - 1;
+        }
+
+        pub fn descend_ident(&mut self, label: &str) {
+            self.ident = self.ident + 1;
+            for n in 0..self.ident {
+                print!("  ");
+            }
+            println!("{}", label);
+        }
+
     }
 
     impl<'i> ParseTreeVisitorCompat<'i> for DefaultAssemblerVisitor {
@@ -412,10 +434,13 @@ fn main() -> io::Result<()> {
 
         fn visit_asm_file(&mut self, ctx: &parser::assemblerparser::Asm_fileContext<'i>) -> Self::Return {
             //log::info!("visit_asm_file()");
+            println!("visit_asm_file");
             self.visit_children(ctx)
         }
 
         fn visit_row(&mut self, ctx: &parser::assemblerparser::RowContext<'i>) -> Self::Return {
+
+            self.descend_ident("visit_row");
 
             //log::info!("visit_row()");
 
@@ -441,6 +466,11 @@ fn main() -> io::Result<()> {
 
 
             let mut children_result = self.visit_children(ctx);
+
+            self.ascend_ident();
+
+            let rec = AsmRecord::new(String::from(""), InstructionType::UNKNOWN, 0xFF, 0xFF, 0, String::from(""), IoDestination::UNKNOWN);
+            self.records.push(rec);
 
 
             // log::info!("{:?}", children_result);
@@ -494,6 +524,7 @@ fn main() -> io::Result<()> {
         }
 
         fn visit_instruction(&mut self, ctx: &InstructionContext<'i>) -> Self::Return {
+            self.descend_ident("visit_instruction");
 			//self.visit_children(ctx)
 
             //log::info!("visit_instruction()");
@@ -507,40 +538,53 @@ fn main() -> io::Result<()> {
 
             let children_result = self.visit_children(ctx);
 
-            log::info!("visit_instruction() - {:?}", children_result);
+            self.ascend_ident();
+
+            //log::info!("visit_instruction() - {:?}", children_result);
 
             children_result
 		}
 
         fn visit_macro_usage(&mut self, ctx: &parser::assemblerparser::Macro_usageContext<'i>) -> Self::Return {
-            log::info!("visit_macro_usage()");
+            self.descend_ident("visit_macro_usage");
+            //log::info!("visit_macro_usage()");
             //self.visit_children(ctx)
 
             let children_result = self.visit_children(ctx);
 
-            log::info!("visit_macro_usage() - {:?}", children_result);
+            //log::info!("visit_macro_usage() - {:?}", children_result);
+
+            self.ascend_ident();
 
             children_result
         }
 
         fn visit_label_definition(&mut self, ctx: &parser::assemblerparser::Label_definitionContext<'i>) -> Self::Return {
+            self.descend_ident("visit_label_definition");
             //log::info!("visit_label_definition()");
             //self.visit_children(ctx)
 
             let children_result = self.visit_children(ctx);
 
-            log::info!("visit_label_definition() - {:?}", children_result);
+            //log::info!("visit_label_definition() - {:?}", children_result);
+
+            self.ascend_ident();
 
             children_result
         }
 
         // parameter inside an instruction
         fn visit_param(&mut self, ctx: &ParamContext<'i>) -> Self::Return {
+
+            self.descend_ident("visit_param");
+
 			//self.visit_children(ctx)
 
             let children_result = self.visit_children(ctx);
 
-            log::info!("{:?}", children_result);
+            self.ascend_ident();
+
+            //log::info!("{:?}", children_result);
 
            // let text = children_result[0];
 
@@ -578,39 +622,59 @@ fn main() -> io::Result<()> {
 		}
 
         fn visit_parameter(&mut self, ctx: &parser::assemblerparser::ParameterContext<'i>) -> Self::Return {
+            self.descend_ident("visit_parameter");
             //log::info!("visit_parameter()");
 
             
 
-            self.visit_children(ctx)
+            let children_result = self.visit_children(ctx);
+
+            self.ascend_ident();
+
+            children_result
         }
 
         fn visit_macro_placeholder(&mut self, ctx: &parser::assemblerparser::Macro_placeholderContext<'i>) -> Self::Return {
+            self.descend_ident("visit_macro_placeholder");
             //log::info!("visit_macro_placeholder()");
-            self.visit_children(ctx)
+            let children_result = self.visit_children(ctx);
+
+            self.ascend_ident();
+
+            children_result
         }
 
         fn visit_expression(&mut self, ctx: &parser::assemblerparser::ExpressionContext<'i>) -> Self::Return {
+            self.descend_ident("visit_expression");
             //log::info!("visit_expression()");
-            self.visit_children(ctx)
+            let children_result = self.visit_children(ctx);
+
+            self.ascend_ident();
+
+            children_result
         }
 
         fn visit_asm_instrinsic_instruction(&mut self, ctx: &parser::assemblerparser::Asm_instrinsic_instructionContext<'i>) -> Self::Return {
+            self.descend_ident("visit_asm_instrinsic_instruction");
             //log::info!("visit_asm_instrinsic_instruction()");
             //self.visit_children(ctx)
 
             let children_result = self.visit_children(ctx);
 
-            log::info!("visit_asm_instrinsic_instruction() - {:?}", children_result);
+            //log::info!("visit_asm_instrinsic_instruction() - {:?}", children_result);
 
             children_result
         }
 
         fn visit_asm_intrinsic_usage(&mut self, ctx: &parser::assemblerparser::Asm_intrinsic_usageContext<'i>) -> Self::Return {
-            
+            self.descend_ident("visit_asm_intrinsic_usage");
             //log::info!("visit_asm_intrinsic_usage()");
             
-            self.visit_children(ctx)
+            let children_result = self.visit_children(ctx);
+
+            self.ascend_ident();
+
+            children_result
 
             // working
             // let children_result = self.visit_children(ctx);
@@ -639,10 +703,12 @@ fn main() -> io::Result<()> {
 
         /// is the rule that directly selects the TOKEN of an instruction (ADD; CALL, EOR; LDI; ...)
         fn visit_mnemonic(&mut self, ctx: &parser::assemblerparser::MnemonicContext<'i>) -> Self::Return {
-
+            self.descend_ident("visit_mnemonic");
             //log::info!("visit_mnemonic()");
 
             let result = self.visit_children(ctx);
+
+            self.ascend_ident();
 
             // for str in &result {
             //     log::info!("{}", str);
@@ -662,7 +728,11 @@ fn main() -> io::Result<()> {
     //     //&mut asm_application);
     //     asm_application);
 
-    let mut visitor = DefaultAssemblerVisitor { result_value: String::default(), };
+    let mut visitor = DefaultAssemblerVisitor { 
+        result_value: String::default(), 
+        ident: 0u16,
+        records: Vec::new(),
+     };
     
     let visitor_result = visitor.visit(&*root);
 

@@ -145,36 +145,36 @@ use std::ops::{Deref, DerefMut};
 	pub const TST:isize=114; 
 	pub const WDR:isize=115; 
 	pub const XCH:isize=116; 
-	pub const NEWLINE:isize=117; 
-	pub const WS:isize=118; 
-	pub const LINE_COMMENT:isize=119; 
-	pub const STRING:isize=120; 
-	pub const ASTERISK:isize=121; 
-	pub const AT:isize=122; 
-	pub const CLOSEING_BRACKET:isize=123; 
-	pub const COLON:isize=124; 
-	pub const COMMA:isize=125; 
-	pub const CSEG:isize=126; 
-	pub const DEF:isize=127; 
-	pub const DOT:isize=128; 
-	pub const ELSE:isize=129; 
-	pub const END_MACRO:isize=130; 
-	pub const ENDIF:isize=131; 
-	pub const EQUALS:isize=132; 
-	pub const EQU:isize=133; 
-	pub const ERROR:isize=134; 
-	pub const GT:isize=135; 
-	pub const IF:isize=136; 
-	pub const INCLUDE:isize=137; 
-	pub const LEFT_SHIFT:isize=138; 
-	pub const LT:isize=139; 
-	pub const MACRO:isize=140; 
-	pub const MINUS:isize=141; 
-	pub const OPENING_BRACKET:isize=142; 
-	pub const ORG:isize=143; 
-	pub const PLUS:isize=144; 
-	pub const RIGHT_SHIFT:isize=145; 
-	pub const SLASH:isize=146; 
+	pub const ASTERISK:isize=117; 
+	pub const AT:isize=118; 
+	pub const CLOSEING_BRACKET:isize=119; 
+	pub const COLON:isize=120; 
+	pub const COMMA:isize=121; 
+	pub const CSEG:isize=122; 
+	pub const DEF:isize=123; 
+	pub const DOT:isize=124; 
+	pub const ELSE:isize=125; 
+	pub const END_MACRO:isize=126; 
+	pub const ENDIF:isize=127; 
+	pub const EQUALS:isize=128; 
+	pub const EQU:isize=129; 
+	pub const ERROR:isize=130; 
+	pub const GT:isize=131; 
+	pub const IF:isize=132; 
+	pub const INCLUDE:isize=133; 
+	pub const LEFT_SHIFT:isize=134; 
+	pub const LT:isize=135; 
+	pub const MACRO:isize=136; 
+	pub const MINUS:isize=137; 
+	pub const OPENING_BRACKET:isize=138; 
+	pub const ORG:isize=139; 
+	pub const PLUS:isize=140; 
+	pub const RIGHT_SHIFT:isize=141; 
+	pub const SLASH:isize=142; 
+	pub const NEWLINE:isize=143; 
+	pub const WS:isize=144; 
+	pub const LINE_COMMENT:isize=145; 
+	pub const STRING:isize=146; 
 	pub const NUMBER:isize=147; 
 	pub const HEX_NUMBER:isize=148; 
 	pub const IDENTIFIER:isize=149;
@@ -200,15 +200,15 @@ use std::ops::{Deref, DerefMut};
 		"POP", "PUSH", "RCALL", "RET", "RETI", "RJMP", "ROL", "ROR", "SBC", "SBCI", 
 		"SBI", "SBIC", "SBIS", "SBIW", "SBR", "SBRC", "SBRS", "SEC", "SEH", "SEI", 
 		"SEN", "SER", "SES", "SET", "SEV", "SEZ", "SLEEP", "SPM", "ST", "STS", 
-		"SUB", "SUBI", "SWAP", "TST", "WDR", "XCH", "NEWLINE", "WS", "LINE_COMMENT", 
-		"STRING", "ASTERISK", "AT", "CLOSEING_BRACKET", "COLON", "COMMA", "CSEG", 
-		"DEF", "DOT", "ELSE", "END_MACRO", "ENDIF", "EQUALS", "EQU", "ERROR", 
-		"GT", "IF", "INCLUDE", "LEFT_SHIFT", "LT", "MACRO", "MINUS", "OPENING_BRACKET", 
-		"ORG", "PLUS", "RIGHT_SHIFT", "SLASH", "NUMBER", "HEX_NUMBER", "IDENTIFIER"
+		"SUB", "SUBI", "SWAP", "TST", "WDR", "XCH", "ASTERISK", "AT", "CLOSEING_BRACKET", 
+		"COLON", "COMMA", "CSEG", "DEF", "DOT", "ELSE", "END_MACRO", "ENDIF", 
+		"EQUALS", "EQU", "ERROR", "GT", "IF", "INCLUDE", "LEFT_SHIFT", "LT", "MACRO", 
+		"MINUS", "OPENING_BRACKET", "ORG", "PLUS", "RIGHT_SHIFT", "SLASH", "NEWLINE", 
+		"WS", "LINE_COMMENT", "STRING", "NUMBER", "HEX_NUMBER", "IDENTIFIER"
 	];
 
 
-	pub const _LITERAL_NAMES: [Option<&'static str>;147] = [
+	pub const _LITERAL_NAMES: [Option<&'static str>;143] = [
 		None, None, None, None, None, None, None, None, None, None, None, None, 
 		None, None, None, None, None, None, None, None, None, None, None, None, 
 		None, None, None, None, None, None, None, None, None, None, None, None, 
@@ -218,12 +218,12 @@ use std::ops::{Deref, DerefMut};
 		None, None, None, None, None, None, None, None, None, None, None, None, 
 		None, None, None, None, None, None, None, None, None, None, None, None, 
 		None, None, None, None, None, None, None, None, None, None, None, None, 
-		None, None, None, None, None, None, None, None, None, None, None, None, 
-		None, Some("'*'"), Some("'@'"), Some("')'"), Some("':'"), Some("','"), 
-		Some("'cseg'"), Some("'def'"), Some("'.'"), Some("'else'"), Some("'endmacro'"), 
-		Some("'endif'"), Some("'='"), Some("'equ'"), Some("'error'"), Some("'>'"), 
-		Some("'if'"), Some("'include'"), Some("'<<'"), Some("'<'"), Some("'macro'"), 
-		Some("'-'"), Some("'('"), Some("'org'"), Some("'+'"), Some("'>>'"), Some("'/'")
+		None, None, None, None, None, None, None, None, None, Some("'*'"), Some("'@'"), 
+		Some("')'"), Some("':'"), Some("','"), Some("'cseg'"), Some("'def'"), 
+		Some("'.'"), Some("'else'"), Some("'endmacro'"), Some("'endif'"), Some("'='"), 
+		Some("'equ'"), Some("'error'"), Some("'>'"), Some("'if'"), Some("'include'"), 
+		Some("'<<'"), Some("'<'"), Some("'macro'"), Some("'-'"), Some("'('"), 
+		Some("'org'"), Some("'+'"), Some("'>>'"), Some("'/'")
 	];
 	pub const _SYMBOLIC_NAMES: [Option<&'static str>;150]  = [
 		None, Some("ADD"), Some("ADIW"), Some("AND"), Some("ANDI"), Some("ASR"), 
@@ -246,13 +246,13 @@ use std::ops::{Deref, DerefMut};
 		Some("SBRS"), Some("SEC"), Some("SEH"), Some("SEI"), Some("SEN"), Some("SER"), 
 		Some("SES"), Some("SET"), Some("SEV"), Some("SEZ"), Some("SLEEP"), Some("SPM"), 
 		Some("ST"), Some("STS"), Some("SUB"), Some("SUBI"), Some("SWAP"), Some("TST"), 
-		Some("WDR"), Some("XCH"), Some("NEWLINE"), Some("WS"), Some("LINE_COMMENT"), 
-		Some("STRING"), Some("ASTERISK"), Some("AT"), Some("CLOSEING_BRACKET"), 
+		Some("WDR"), Some("XCH"), Some("ASTERISK"), Some("AT"), Some("CLOSEING_BRACKET"), 
 		Some("COLON"), Some("COMMA"), Some("CSEG"), Some("DEF"), Some("DOT"), 
 		Some("ELSE"), Some("END_MACRO"), Some("ENDIF"), Some("EQUALS"), Some("EQU"), 
 		Some("ERROR"), Some("GT"), Some("IF"), Some("INCLUDE"), Some("LEFT_SHIFT"), 
 		Some("LT"), Some("MACRO"), Some("MINUS"), Some("OPENING_BRACKET"), Some("ORG"), 
-		Some("PLUS"), Some("RIGHT_SHIFT"), Some("SLASH"), Some("NUMBER"), Some("HEX_NUMBER"), 
+		Some("PLUS"), Some("RIGHT_SHIFT"), Some("SLASH"), Some("NEWLINE"), Some("WS"), 
+		Some("LINE_COMMENT"), Some("STRING"), Some("NUMBER"), Some("HEX_NUMBER"), 
 		Some("IDENTIFIER")
 	];
 	lazy_static!{
@@ -505,24 +505,24 @@ impl<'input, Input:CharStream<From<'input> >> TokenSource<'input> for assemblerL
 		\u{8b}\x03\u{8b}\x03\u{8b}\x03\u{8b}\x03\u{8b}\x03\u{8c}\x03\u{8c}\x03\
 		\u{8c}\x03\u{8c}\x03\u{8c}\x03\u{8d}\x03\u{8d}\x03\u{8d}\x03\u{8d}\x03\
 		\u{8e}\x03\u{8e}\x03\u{8e}\x03\u{8e}\x03\u{8f}\x03\u{8f}\x03\u{8f}\x03\
-		\u{8f}\x03\u{90}\x05\u{90}\u{3a0}\x0a\u{90}\x03\u{90}\x03\u{90}\x03\u{91}\
-		\x06\u{91}\u{3a5}\x0a\u{91}\x0d\u{91}\x0e\u{91}\u{3a6}\x03\u{91}\x03\u{91}\
-		\x03\u{92}\x03\u{92}\x07\u{92}\u{3ad}\x0a\u{92}\x0c\u{92}\x0e\u{92}\u{3b0}\
-		\x0b\u{92}\x03\u{92}\x03\u{92}\x03\u{93}\x03\u{93}\x03\u{93}\x03\u{93}\
-		\x07\u{93}\u{3b8}\x0a\u{93}\x0c\u{93}\x0e\u{93}\u{3bb}\x0b\u{93}\x03\u{93}\
-		\x03\u{93}\x03\u{94}\x03\u{94}\x03\u{95}\x03\u{95}\x03\u{96}\x03\u{96}\
-		\x03\u{97}\x03\u{97}\x03\u{98}\x03\u{98}\x03\u{99}\x03\u{99}\x03\u{99}\
-		\x03\u{99}\x03\u{99}\x03\u{9a}\x03\u{9a}\x03\u{9a}\x03\u{9a}\x03\u{9b}\
-		\x03\u{9b}\x03\u{9c}\x03\u{9c}\x03\u{9c}\x03\u{9c}\x03\u{9c}\x03\u{9d}\
-		\x03\u{9d}\x03\u{9d}\x03\u{9d}\x03\u{9d}\x03\u{9d}\x03\u{9d}\x03\u{9d}\
-		\x03\u{9d}\x03\u{9e}\x03\u{9e}\x03\u{9e}\x03\u{9e}\x03\u{9e}\x03\u{9e}\
-		\x03\u{9f}\x03\u{9f}\x03\u{a0}\x03\u{a0}\x03\u{a0}\x03\u{a0}\x03\u{a1}\
-		\x03\u{a1}\x03\u{a1}\x03\u{a1}\x03\u{a1}\x03\u{a1}\x03\u{a2}\x03\u{a2}\
-		\x03\u{a3}\x03\u{a3}\x03\u{a3}\x03\u{a4}\x03\u{a4}\x03\u{a4}\x03\u{a4}\
-		\x03\u{a4}\x03\u{a4}\x03\u{a4}\x03\u{a4}\x03\u{a5}\x03\u{a5}\x03\u{a5}\
-		\x03\u{a6}\x03\u{a6}\x03\u{a7}\x03\u{a7}\x03\u{a7}\x03\u{a7}\x03\u{a7}\
-		\x03\u{a7}\x03\u{a8}\x03\u{a8}\x03\u{a9}\x03\u{a9}\x03\u{aa}\x03\u{aa}\
-		\x03\u{aa}\x03\u{aa}\x03\u{ab}\x03\u{ab}\x03\u{ac}\x03\u{ac}\x03\u{ac}\
+		\u{8f}\x03\u{90}\x03\u{90}\x03\u{91}\x03\u{91}\x03\u{92}\x03\u{92}\x03\
+		\u{93}\x03\u{93}\x03\u{94}\x03\u{94}\x03\u{95}\x03\u{95}\x03\u{95}\x03\
+		\u{95}\x03\u{95}\x03\u{96}\x03\u{96}\x03\u{96}\x03\u{96}\x03\u{97}\x03\
+		\u{97}\x03\u{98}\x03\u{98}\x03\u{98}\x03\u{98}\x03\u{98}\x03\u{99}\x03\
+		\u{99}\x03\u{99}\x03\u{99}\x03\u{99}\x03\u{99}\x03\u{99}\x03\u{99}\x03\
+		\u{99}\x03\u{9a}\x03\u{9a}\x03\u{9a}\x03\u{9a}\x03\u{9a}\x03\u{9a}\x03\
+		\u{9b}\x03\u{9b}\x03\u{9c}\x03\u{9c}\x03\u{9c}\x03\u{9c}\x03\u{9d}\x03\
+		\u{9d}\x03\u{9d}\x03\u{9d}\x03\u{9d}\x03\u{9d}\x03\u{9e}\x03\u{9e}\x03\
+		\u{9f}\x03\u{9f}\x03\u{9f}\x03\u{a0}\x03\u{a0}\x03\u{a0}\x03\u{a0}\x03\
+		\u{a0}\x03\u{a0}\x03\u{a0}\x03\u{a0}\x03\u{a1}\x03\u{a1}\x03\u{a1}\x03\
+		\u{a2}\x03\u{a2}\x03\u{a3}\x03\u{a3}\x03\u{a3}\x03\u{a3}\x03\u{a3}\x03\
+		\u{a3}\x03\u{a4}\x03\u{a4}\x03\u{a5}\x03\u{a5}\x03\u{a6}\x03\u{a6}\x03\
+		\u{a6}\x03\u{a6}\x03\u{a7}\x03\u{a7}\x03\u{a8}\x03\u{a8}\x03\u{a8}\x03\
+		\u{a9}\x03\u{a9}\x03\u{aa}\x05\u{aa}\u{3fc}\x0a\u{aa}\x03\u{aa}\x03\u{aa}\
+		\x03\u{ab}\x06\u{ab}\u{401}\x0a\u{ab}\x0d\u{ab}\x0e\u{ab}\u{402}\x03\u{ab}\
+		\x03\u{ab}\x03\u{ac}\x03\u{ac}\x07\u{ac}\u{409}\x0a\u{ac}\x0c\u{ac}\x0e\
+		\u{ac}\u{40c}\x0b\u{ac}\x03\u{ac}\x03\u{ac}\x03\u{ad}\x03\u{ad}\x03\u{ad}\
+		\x03\u{ad}\x07\u{ad}\u{414}\x0a\u{ad}\x0c\u{ad}\x0e\u{ad}\u{417}\x0b\u{ad}\
 		\x03\u{ad}\x03\u{ad}\x03\u{ae}\x06\u{ae}\u{41c}\x0a\u{ae}\x0d\u{ae}\x0e\
 		\u{ae}\u{41d}\x03\u{af}\x03\u{af}\x03\u{af}\x06\u{af}\u{423}\x0a\u{af}\
 		\x0d\u{af}\x0e\u{af}\u{424}\x03\u{b0}\x03\u{b0}\x06\u{b0}\u{429}\x0a\u{b0}\
@@ -671,19 +671,19 @@ impl<'input, Input:CharStream<From<'input> >> TokenSource<'input> for assemblerL
 		\u{10f}\u{37d}\x03\x02\x02\x02\u{111}\u{380}\x03\x02\x02\x02\u{113}\u{384}\
 		\x03\x02\x02\x02\u{115}\u{388}\x03\x02\x02\x02\u{117}\u{38d}\x03\x02\x02\
 		\x02\u{119}\u{392}\x03\x02\x02\x02\u{11b}\u{396}\x03\x02\x02\x02\u{11d}\
-		\u{39a}\x03\x02\x02\x02\u{11f}\u{39f}\x03\x02\x02\x02\u{121}\u{3a4}\x03\
-		\x02\x02\x02\u{123}\u{3aa}\x03\x02\x02\x02\u{125}\u{3b3}\x03\x02\x02\x02\
-		\u{127}\u{3be}\x03\x02\x02\x02\u{129}\u{3c0}\x03\x02\x02\x02\u{12b}\u{3c2}\
-		\x03\x02\x02\x02\u{12d}\u{3c4}\x03\x02\x02\x02\u{12f}\u{3c6}\x03\x02\x02\
-		\x02\u{131}\u{3c8}\x03\x02\x02\x02\u{133}\u{3cd}\x03\x02\x02\x02\u{135}\
-		\u{3d1}\x03\x02\x02\x02\u{137}\u{3d3}\x03\x02\x02\x02\u{139}\u{3d8}\x03\
-		\x02\x02\x02\u{13b}\u{3e1}\x03\x02\x02\x02\u{13d}\u{3e7}\x03\x02\x02\x02\
-		\u{13f}\u{3e9}\x03\x02\x02\x02\u{141}\u{3ed}\x03\x02\x02\x02\u{143}\u{3f3}\
-		\x03\x02\x02\x02\u{145}\u{3f5}\x03\x02\x02\x02\u{147}\u{3f8}\x03\x02\x02\
-		\x02\u{149}\u{400}\x03\x02\x02\x02\u{14b}\u{403}\x03\x02\x02\x02\u{14d}\
-		\u{405}\x03\x02\x02\x02\u{14f}\u{40b}\x03\x02\x02\x02\u{151}\u{40d}\x03\
-		\x02\x02\x02\u{153}\u{40f}\x03\x02\x02\x02\u{155}\u{413}\x03\x02\x02\x02\
-		\u{157}\u{415}\x03\x02\x02\x02\u{159}\u{418}\x03\x02\x02\x02\u{15b}\u{41b}\
+		\u{39a}\x03\x02\x02\x02\u{11f}\u{39e}\x03\x02\x02\x02\u{121}\u{3a0}\x03\
+		\x02\x02\x02\u{123}\u{3a2}\x03\x02\x02\x02\u{125}\u{3a4}\x03\x02\x02\x02\
+		\u{127}\u{3a6}\x03\x02\x02\x02\u{129}\u{3a8}\x03\x02\x02\x02\u{12b}\u{3ad}\
+		\x03\x02\x02\x02\u{12d}\u{3b1}\x03\x02\x02\x02\u{12f}\u{3b3}\x03\x02\x02\
+		\x02\u{131}\u{3b8}\x03\x02\x02\x02\u{133}\u{3c1}\x03\x02\x02\x02\u{135}\
+		\u{3c7}\x03\x02\x02\x02\u{137}\u{3c9}\x03\x02\x02\x02\u{139}\u{3cd}\x03\
+		\x02\x02\x02\u{13b}\u{3d3}\x03\x02\x02\x02\u{13d}\u{3d5}\x03\x02\x02\x02\
+		\u{13f}\u{3d8}\x03\x02\x02\x02\u{141}\u{3e0}\x03\x02\x02\x02\u{143}\u{3e3}\
+		\x03\x02\x02\x02\u{145}\u{3e5}\x03\x02\x02\x02\u{147}\u{3eb}\x03\x02\x02\
+		\x02\u{149}\u{3ed}\x03\x02\x02\x02\u{14b}\u{3ef}\x03\x02\x02\x02\u{14d}\
+		\u{3f3}\x03\x02\x02\x02\u{14f}\u{3f5}\x03\x02\x02\x02\u{151}\u{3f8}\x03\
+		\x02\x02\x02\u{153}\u{3fb}\x03\x02\x02\x02\u{155}\u{400}\x03\x02\x02\x02\
+		\u{157}\u{406}\x03\x02\x02\x02\u{159}\u{40f}\x03\x02\x02\x02\u{15b}\u{41b}\
 		\x03\x02\x02\x02\u{15d}\u{41f}\x03\x02\x02\x02\u{15f}\u{426}\x03\x02\x02\
 		\x02\u{161}\u{162}\x09\x02\x02\x02\u{162}\x04\x03\x02\x02\x02\u{163}\u{164}\
 		\x09\x03\x02\x02\u{164}\x06\x03\x02\x02\x02\u{165}\u{166}\x09\x04\x02\x02\
@@ -919,60 +919,60 @@ impl<'input, Input:CharStream<From<'input> >> TokenSource<'input> for assemblerL
 		\x02\x02\x02\u{396}\u{397}\x05\x2f\x18\x02\u{397}\u{398}\x05\x09\x05\x02\
 		\u{398}\u{399}\x05\x25\x13\x02\u{399}\u{11c}\x03\x02\x02\x02\u{39a}\u{39b}\
 		\x05\x31\x19\x02\u{39b}\u{39c}\x05\x07\x04\x02\u{39c}\u{39d}\x05\x11\x09\
-		\x02\u{39d}\u{11e}\x03\x02\x02\x02\u{39e}\u{3a0}\x07\x0f\x02\x02\u{39f}\
-		\u{39e}\x03\x02\x02\x02\u{39f}\u{3a0}\x03\x02\x02\x02\u{3a0}\u{3a1}\x03\
-		\x02\x02\x02\u{3a1}\u{3a2}\x07\x0c\x02\x02\u{3a2}\u{120}\x03\x02\x02\x02\
-		\u{3a3}\u{3a5}\x09\x1c\x02\x02\u{3a4}\u{3a3}\x03\x02\x02\x02\u{3a5}\u{3a6}\
-		\x03\x02\x02\x02\u{3a6}\u{3a4}\x03\x02\x02\x02\u{3a6}\u{3a7}\x03\x02\x02\
-		\x02\u{3a7}\u{3a8}\x03\x02\x02\x02\u{3a8}\u{3a9}\x08\u{91}\x02\x02\u{3a9}\
-		\u{122}\x03\x02\x02\x02\u{3aa}\u{3ae}\x07\x3d\x02\x02\u{3ab}\u{3ad}\x0a\
-		\x1d\x02\x02\u{3ac}\u{3ab}\x03\x02\x02\x02\u{3ad}\u{3b0}\x03\x02\x02\x02\
-		\u{3ae}\u{3ac}\x03\x02\x02\x02\u{3ae}\u{3af}\x03\x02\x02\x02\u{3af}\u{3b1}\
-		\x03\x02\x02\x02\u{3b0}\u{3ae}\x03\x02\x02\x02\u{3b1}\u{3b2}\x08\u{92}\
-		\x02\x02\u{3b2}\u{124}\x03\x02\x02\x02\u{3b3}\u{3b9}\x07\x24\x02\x02\u{3b4}\
-		\u{3b5}\x07\x24\x02\x02\u{3b5}\u{3b8}\x07\x24\x02\x02\u{3b6}\u{3b8}\x0a\
-		\x1e\x02\x02\u{3b7}\u{3b4}\x03\x02\x02\x02\u{3b7}\u{3b6}\x03\x02\x02\x02\
-		\u{3b8}\u{3bb}\x03\x02\x02\x02\u{3b9}\u{3b7}\x03\x02\x02\x02\u{3b9}\u{3ba}\
-		\x03\x02\x02\x02\u{3ba}\u{3bc}\x03\x02\x02\x02\u{3bb}\u{3b9}\x03\x02\x02\
-		\x02\u{3bc}\u{3bd}\x07\x24\x02\x02\u{3bd}\u{126}\x03\x02\x02\x02\u{3be}\
-		\u{3bf}\x07\x2c\x02\x02\u{3bf}\u{128}\x03\x02\x02\x02\u{3c0}\u{3c1}\x07\
-		\x42\x02\x02\u{3c1}\u{12a}\x03\x02\x02\x02\u{3c2}\u{3c3}\x07\x2b\x02\x02\
-		\u{3c3}\u{12c}\x03\x02\x02\x02\u{3c4}\u{3c5}\x07\x3c\x02\x02\u{3c5}\u{12e}\
-		\x03\x02\x02\x02\u{3c6}\u{3c7}\x07\x2e\x02\x02\u{3c7}\u{130}\x03\x02\x02\
-		\x02\u{3c8}\u{3c9}\x07\x65\x02\x02\u{3c9}\u{3ca}\x07\x75\x02\x02\u{3ca}\
-		\u{3cb}\x07\x67\x02\x02\u{3cb}\u{3cc}\x07\x69\x02\x02\u{3cc}\u{132}\x03\
-		\x02\x02\x02\u{3cd}\u{3ce}\x07\x66\x02\x02\u{3ce}\u{3cf}\x07\x67\x02\x02\
-		\u{3cf}\u{3d0}\x07\x68\x02\x02\u{3d0}\u{134}\x03\x02\x02\x02\u{3d1}\u{3d2}\
-		\x07\x30\x02\x02\u{3d2}\u{136}\x03\x02\x02\x02\u{3d3}\u{3d4}\x07\x67\x02\
-		\x02\u{3d4}\u{3d5}\x07\x6e\x02\x02\u{3d5}\u{3d6}\x07\x75\x02\x02\u{3d6}\
-		\u{3d7}\x07\x67\x02\x02\u{3d7}\u{138}\x03\x02\x02\x02\u{3d8}\u{3d9}\x07\
-		\x67\x02\x02\u{3d9}\u{3da}\x07\x70\x02\x02\u{3da}\u{3db}\x07\x66\x02\x02\
-		\u{3db}\u{3dc}\x07\x6f\x02\x02\u{3dc}\u{3dd}\x07\x63\x02\x02\u{3dd}\u{3de}\
-		\x07\x65\x02\x02\u{3de}\u{3df}\x07\x74\x02\x02\u{3df}\u{3e0}\x07\x71\x02\
-		\x02\u{3e0}\u{13a}\x03\x02\x02\x02\u{3e1}\u{3e2}\x07\x67\x02\x02\u{3e2}\
-		\u{3e3}\x07\x70\x02\x02\u{3e3}\u{3e4}\x07\x66\x02\x02\u{3e4}\u{3e5}\x07\
-		\x6b\x02\x02\u{3e5}\u{3e6}\x07\x68\x02\x02\u{3e6}\u{13c}\x03\x02\x02\x02\
-		\u{3e7}\u{3e8}\x07\x3f\x02\x02\u{3e8}\u{13e}\x03\x02\x02\x02\u{3e9}\u{3ea}\
-		\x07\x67\x02\x02\u{3ea}\u{3eb}\x07\x73\x02\x02\u{3eb}\u{3ec}\x07\x77\x02\
-		\x02\u{3ec}\u{140}\x03\x02\x02\x02\u{3ed}\u{3ee}\x07\x67\x02\x02\u{3ee}\
-		\u{3ef}\x07\x74\x02\x02\u{3ef}\u{3f0}\x07\x74\x02\x02\u{3f0}\u{3f1}\x07\
-		\x71\x02\x02\u{3f1}\u{3f2}\x07\x74\x02\x02\u{3f2}\u{142}\x03\x02\x02\x02\
-		\u{3f3}\u{3f4}\x07\x40\x02\x02\u{3f4}\u{144}\x03\x02\x02\x02\u{3f5}\u{3f6}\
-		\x07\x6b\x02\x02\u{3f6}\u{3f7}\x07\x68\x02\x02\u{3f7}\u{146}\x03\x02\x02\
-		\x02\u{3f8}\u{3f9}\x07\x6b\x02\x02\u{3f9}\u{3fa}\x07\x70\x02\x02\u{3fa}\
-		\u{3fb}\x07\x65\x02\x02\u{3fb}\u{3fc}\x07\x6e\x02\x02\u{3fc}\u{3fd}\x07\
-		\x77\x02\x02\u{3fd}\u{3fe}\x07\x66\x02\x02\u{3fe}\u{3ff}\x07\x67\x02\x02\
-		\u{3ff}\u{148}\x03\x02\x02\x02\u{400}\u{401}\x07\x3e\x02\x02\u{401}\u{402}\
-		\x07\x3e\x02\x02\u{402}\u{14a}\x03\x02\x02\x02\u{403}\u{404}\x07\x3e\x02\
-		\x02\u{404}\u{14c}\x03\x02\x02\x02\u{405}\u{406}\x07\x6f\x02\x02\u{406}\
-		\u{407}\x07\x63\x02\x02\u{407}\u{408}\x07\x65\x02\x02\u{408}\u{409}\x07\
-		\x74\x02\x02\u{409}\u{40a}\x07\x71\x02\x02\u{40a}\u{14e}\x03\x02\x02\x02\
-		\u{40b}\u{40c}\x07\x2f\x02\x02\u{40c}\u{150}\x03\x02\x02\x02\u{40d}\u{40e}\
-		\x07\x2a\x02\x02\u{40e}\u{152}\x03\x02\x02\x02\u{40f}\u{410}\x07\x71\x02\
-		\x02\u{410}\u{411}\x07\x74\x02\x02\u{411}\u{412}\x07\x69\x02\x02\u{412}\
-		\u{154}\x03\x02\x02\x02\u{413}\u{414}\x07\x2d\x02\x02\u{414}\u{156}\x03\
-		\x02\x02\x02\u{415}\u{416}\x07\x40\x02\x02\u{416}\u{417}\x07\x40\x02\x02\
-		\u{417}\u{158}\x03\x02\x02\x02\u{418}\u{419}\x07\x31\x02\x02\u{419}\u{15a}\
+		\x02\u{39d}\u{11e}\x03\x02\x02\x02\u{39e}\u{39f}\x07\x2c\x02\x02\u{39f}\
+		\u{120}\x03\x02\x02\x02\u{3a0}\u{3a1}\x07\x42\x02\x02\u{3a1}\u{122}\x03\
+		\x02\x02\x02\u{3a2}\u{3a3}\x07\x2b\x02\x02\u{3a3}\u{124}\x03\x02\x02\x02\
+		\u{3a4}\u{3a5}\x07\x3c\x02\x02\u{3a5}\u{126}\x03\x02\x02\x02\u{3a6}\u{3a7}\
+		\x07\x2e\x02\x02\u{3a7}\u{128}\x03\x02\x02\x02\u{3a8}\u{3a9}\x07\x65\x02\
+		\x02\u{3a9}\u{3aa}\x07\x75\x02\x02\u{3aa}\u{3ab}\x07\x67\x02\x02\u{3ab}\
+		\u{3ac}\x07\x69\x02\x02\u{3ac}\u{12a}\x03\x02\x02\x02\u{3ad}\u{3ae}\x07\
+		\x66\x02\x02\u{3ae}\u{3af}\x07\x67\x02\x02\u{3af}\u{3b0}\x07\x68\x02\x02\
+		\u{3b0}\u{12c}\x03\x02\x02\x02\u{3b1}\u{3b2}\x07\x30\x02\x02\u{3b2}\u{12e}\
+		\x03\x02\x02\x02\u{3b3}\u{3b4}\x07\x67\x02\x02\u{3b4}\u{3b5}\x07\x6e\x02\
+		\x02\u{3b5}\u{3b6}\x07\x75\x02\x02\u{3b6}\u{3b7}\x07\x67\x02\x02\u{3b7}\
+		\u{130}\x03\x02\x02\x02\u{3b8}\u{3b9}\x07\x67\x02\x02\u{3b9}\u{3ba}\x07\
+		\x70\x02\x02\u{3ba}\u{3bb}\x07\x66\x02\x02\u{3bb}\u{3bc}\x07\x6f\x02\x02\
+		\u{3bc}\u{3bd}\x07\x63\x02\x02\u{3bd}\u{3be}\x07\x65\x02\x02\u{3be}\u{3bf}\
+		\x07\x74\x02\x02\u{3bf}\u{3c0}\x07\x71\x02\x02\u{3c0}\u{132}\x03\x02\x02\
+		\x02\u{3c1}\u{3c2}\x07\x67\x02\x02\u{3c2}\u{3c3}\x07\x70\x02\x02\u{3c3}\
+		\u{3c4}\x07\x66\x02\x02\u{3c4}\u{3c5}\x07\x6b\x02\x02\u{3c5}\u{3c6}\x07\
+		\x68\x02\x02\u{3c6}\u{134}\x03\x02\x02\x02\u{3c7}\u{3c8}\x07\x3f\x02\x02\
+		\u{3c8}\u{136}\x03\x02\x02\x02\u{3c9}\u{3ca}\x07\x67\x02\x02\u{3ca}\u{3cb}\
+		\x07\x73\x02\x02\u{3cb}\u{3cc}\x07\x77\x02\x02\u{3cc}\u{138}\x03\x02\x02\
+		\x02\u{3cd}\u{3ce}\x07\x67\x02\x02\u{3ce}\u{3cf}\x07\x74\x02\x02\u{3cf}\
+		\u{3d0}\x07\x74\x02\x02\u{3d0}\u{3d1}\x07\x71\x02\x02\u{3d1}\u{3d2}\x07\
+		\x74\x02\x02\u{3d2}\u{13a}\x03\x02\x02\x02\u{3d3}\u{3d4}\x07\x40\x02\x02\
+		\u{3d4}\u{13c}\x03\x02\x02\x02\u{3d5}\u{3d6}\x07\x6b\x02\x02\u{3d6}\u{3d7}\
+		\x07\x68\x02\x02\u{3d7}\u{13e}\x03\x02\x02\x02\u{3d8}\u{3d9}\x07\x6b\x02\
+		\x02\u{3d9}\u{3da}\x07\x70\x02\x02\u{3da}\u{3db}\x07\x65\x02\x02\u{3db}\
+		\u{3dc}\x07\x6e\x02\x02\u{3dc}\u{3dd}\x07\x77\x02\x02\u{3dd}\u{3de}\x07\
+		\x66\x02\x02\u{3de}\u{3df}\x07\x67\x02\x02\u{3df}\u{140}\x03\x02\x02\x02\
+		\u{3e0}\u{3e1}\x07\x3e\x02\x02\u{3e1}\u{3e2}\x07\x3e\x02\x02\u{3e2}\u{142}\
+		\x03\x02\x02\x02\u{3e3}\u{3e4}\x07\x3e\x02\x02\u{3e4}\u{144}\x03\x02\x02\
+		\x02\u{3e5}\u{3e6}\x07\x6f\x02\x02\u{3e6}\u{3e7}\x07\x63\x02\x02\u{3e7}\
+		\u{3e8}\x07\x65\x02\x02\u{3e8}\u{3e9}\x07\x74\x02\x02\u{3e9}\u{3ea}\x07\
+		\x71\x02\x02\u{3ea}\u{146}\x03\x02\x02\x02\u{3eb}\u{3ec}\x07\x2f\x02\x02\
+		\u{3ec}\u{148}\x03\x02\x02\x02\u{3ed}\u{3ee}\x07\x2a\x02\x02\u{3ee}\u{14a}\
+		\x03\x02\x02\x02\u{3ef}\u{3f0}\x07\x71\x02\x02\u{3f0}\u{3f1}\x07\x74\x02\
+		\x02\u{3f1}\u{3f2}\x07\x69\x02\x02\u{3f2}\u{14c}\x03\x02\x02\x02\u{3f3}\
+		\u{3f4}\x07\x2d\x02\x02\u{3f4}\u{14e}\x03\x02\x02\x02\u{3f5}\u{3f6}\x07\
+		\x40\x02\x02\u{3f6}\u{3f7}\x07\x40\x02\x02\u{3f7}\u{150}\x03\x02\x02\x02\
+		\u{3f8}\u{3f9}\x07\x31\x02\x02\u{3f9}\u{152}\x03\x02\x02\x02\u{3fa}\u{3fc}\
+		\x07\x0f\x02\x02\u{3fb}\u{3fa}\x03\x02\x02\x02\u{3fb}\u{3fc}\x03\x02\x02\
+		\x02\u{3fc}\u{3fd}\x03\x02\x02\x02\u{3fd}\u{3fe}\x07\x0c\x02\x02\u{3fe}\
+		\u{154}\x03\x02\x02\x02\u{3ff}\u{401}\x09\x1c\x02\x02\u{400}\u{3ff}\x03\
+		\x02\x02\x02\u{401}\u{402}\x03\x02\x02\x02\u{402}\u{400}\x03\x02\x02\x02\
+		\u{402}\u{403}\x03\x02\x02\x02\u{403}\u{404}\x03\x02\x02\x02\u{404}\u{405}\
+		\x08\u{ab}\x02\x02\u{405}\u{156}\x03\x02\x02\x02\u{406}\u{40a}\x07\x3d\
+		\x02\x02\u{407}\u{409}\x0a\x1d\x02\x02\u{408}\u{407}\x03\x02\x02\x02\u{409}\
+		\u{40c}\x03\x02\x02\x02\u{40a}\u{408}\x03\x02\x02\x02\u{40a}\u{40b}\x03\
+		\x02\x02\x02\u{40b}\u{40d}\x03\x02\x02\x02\u{40c}\u{40a}\x03\x02\x02\x02\
+		\u{40d}\u{40e}\x08\u{ac}\x02\x02\u{40e}\u{158}\x03\x02\x02\x02\u{40f}\u{415}\
+		\x07\x24\x02\x02\u{410}\u{411}\x07\x24\x02\x02\u{411}\u{414}\x07\x24\x02\
+		\x02\u{412}\u{414}\x0a\x1e\x02\x02\u{413}\u{410}\x03\x02\x02\x02\u{413}\
+		\u{412}\x03\x02\x02\x02\u{414}\u{417}\x03\x02\x02\x02\u{415}\u{413}\x03\
+		\x02\x02\x02\u{415}\u{416}\x03\x02\x02\x02\u{416}\u{418}\x03\x02\x02\x02\
+		\u{417}\u{415}\x03\x02\x02\x02\u{418}\u{419}\x07\x24\x02\x02\u{419}\u{15a}\
 		\x03\x02\x02\x02\u{41a}\u{41c}\x09\x1f\x02\x02\u{41b}\u{41a}\x03\x02\x02\
 		\x02\u{41c}\u{41d}\x03\x02\x02\x02\u{41d}\u{41b}\x03\x02\x02\x02\u{41d}\
 		\u{41e}\x03\x02\x02\x02\u{41e}\u{15c}\x03\x02\x02\x02\u{41f}\u{420}\x07\
@@ -982,5 +982,5 @@ impl<'input, Input:CharStream<From<'input> >> TokenSource<'input> for assemblerL
 		\x02\u{426}\u{428}\x09\x21\x02\x02\u{427}\u{429}\x09\x22\x02\x02\u{428}\
 		\u{427}\x03\x02\x02\x02\u{429}\u{42a}\x03\x02\x02\x02\u{42a}\u{428}\x03\
 		\x02\x02\x02\u{42a}\u{42b}\x03\x02\x02\x02\u{42b}\u{160}\x03\x02\x02\x02\
-		\x0b\x02\u{39f}\u{3a6}\u{3ae}\u{3b7}\u{3b9}\u{41d}\u{424}\u{42a}\x03\x08\
+		\x0b\x02\u{3fb}\u{402}\u{40a}\u{413}\u{415}\u{41d}\u{424}\u{42a}\x03\x08\
 		\x02\x02";

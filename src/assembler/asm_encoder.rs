@@ -179,6 +179,10 @@ impl AsmEncoder {
             InstructionType::IN => {
                 Self::encode_in(&self, segment, asm_record.reg_1, asm_record.data);
             }
+            /* 65 */ 
+            InstructionType::INC => {
+                Self::encode_inc(&self, segment, asm_record.reg_1);
+            }
             /*  66 */
             InstructionType::JMP => {
                 Self::encode_jmp(&self, segment, &asm_record.idx, &asm_record.target_label);
@@ -191,7 +195,7 @@ impl AsmEncoder {
             InstructionType::MOV => {
                 Self::encode_mov(&self, segment, asm_record.reg_1, asm_record.reg_2);
             }
-            /* 85 */ 
+            /*  85 */ 
             InstructionType::NOP => {
                 Self::encode_nop(&self, segment);
             }
@@ -214,6 +218,10 @@ impl AsmEncoder {
             /*  92 */
             InstructionType::RET => {
                 Self::encode_ret(&self, segment);
+            }
+            /*  94 */
+            InstructionType::RJMP => {
+                Self::encode_rjmp(&self, segment, &asm_record.idx, &asm_record.target_label);
             }
 
             _ => panic!("Unknown instruction!"),
@@ -337,6 +345,25 @@ impl AsmEncoder {
         segment.size += 1u32;
 
         log::info!("ENC IN: {:#02x}", (result >> 8u16) as u8);
+        segment.data.push((result >> 8u16) as u8);
+        segment.size += 1u32;
+    }
+
+    /// 65. INC - Adds one -1- to the contents of register Rd and places the result in the destination register Rd.
+    /// 1001 010d dddd 0011
+    fn encode_inc(&self, segment: &mut Segment, register_d: u16) {
+        if register_d > 31 {
+            panic!("Invalid register for INC! Only registers [r0, r31] are allowed")
+        }
+
+        let result: u16 =
+            0x9403u16 | ((register_d) << 4u16);
+
+        log::info!("ENC INC: {:#02x}", (result >> 0u16) as u8);
+        segment.data.push((result >> 0u16) as u8);
+        segment.size += 1u32;
+
+        log::info!("ENC INC: {:#02x}", (result >> 8u16) as u8);
         segment.data.push((result >> 8u16) as u8);
         segment.size += 1u32;
     }
