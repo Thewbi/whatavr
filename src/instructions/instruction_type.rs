@@ -1,6 +1,7 @@
 #[allow(non_camel_case_types)]
 #[derive(PartialEq)]
 #[derive(Debug, Clone, Copy)]
+#[derive(Default)]
 pub enum InstructionType {
 
     /* 5 */ ADC,
@@ -153,6 +154,7 @@ pub enum InstructionType {
     
     /* 128 */ XCH, // 
     
+    #[default]
     UNKNOWN,
 }
 

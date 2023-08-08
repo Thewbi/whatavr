@@ -132,8 +132,8 @@ fn main() -> io::Result<()> {
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/jmp.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/push_pop.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/call_and_return.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/inc.asm");
-    asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/expression.asm");
+    asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/inc.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/expression.asm");
 
     let data = fs::read_to_string(asm_file_path).expect("Unable to read file");
     log::info!("{}", data);
@@ -271,6 +271,10 @@ fn main() -> io::Result<()> {
         pub ident: u16,
 
         pub records: Vec<AsmRecord>,
+
+        pub record: AsmRecord,
+
+        pub text: String,
 
     }
 
@@ -586,39 +590,42 @@ fn main() -> io::Result<()> {
 
             //log::info!("{:?}", children_result);
 
-           // let text = children_result[0];
+            // let text = children_result[0];
 
-            
+            //self.text = children_result[0].to_owned();
+            self.text = children_result;
 
-            // log::info!("{}", node.symbol.text);
+            //log::info!("{}", node.symbol.text);
 
-            // if 0xFF == self.1.reg_1 {
+            if 0xFF == self.record.reg_1 {
 
-            //     if self.1.text.starts_with("r")
-            //     {
-            //         self.1.reg_1 = self.1.text[1..].parse::<u16>().unwrap();
-            //     }
-            //     else if "" != self.1.text && "," != self.1.text && "\r\n" != self.1.text 
-            //     {
-            //         self.1.data = self.1.text.parse::<u16>().unwrap();
-            //     }
+                if self.text.starts_with("r")
+                {
+                    self.record.reg_1 = self.text[1..].parse::<u16>().unwrap();
+                }
+                else if "" != self.text && "," != self.text && "\r\n" != self.text 
+                {
+                    self.record.data = self.text.parse::<u16>().unwrap();
+                }
 
-            // } else if 0xFF == self.1.reg_2 {
+            } else if 0xFF == self.record.reg_2 {
 
-            //     if self.1.text.starts_with("r")
-            //     {
-            //         self.1.reg_2 = self.1.text[1..].parse::<u16>().unwrap();
-            //     } 
-            //     else if "" != self.1.text && "," != self.1.text && "\r\n" != self.1.text 
-            //     {
-            //         self.1.data = self.1.text.parse::<u16>().unwrap();
-            //     }
+                if self.text.starts_with("r")
+                {
+                    self.record.reg_2 = self.text[1..].parse::<u16>().unwrap();
+                } 
+                else if "" != self.text && "," != self.text && "\r\n" != self.text 
+                {
+                    self.record.data = self.text.parse::<u16>().unwrap();
+                }
 
-            // }
+            }
 
 
 
-            children_result
+            //children_result
+            //self.text
+            String::default()
 		}
 
         fn visit_parameter(&mut self, ctx: &parser::assemblerparser::ParameterContext<'i>) -> Self::Return {
@@ -732,6 +739,8 @@ fn main() -> io::Result<()> {
         result_value: String::default(), 
         ident: 0u16,
         records: Vec::new(),
+        record: AsmRecord::default(),
+        text: String::default(), 
      };
     
     let visitor_result = visitor.visit(&*root);

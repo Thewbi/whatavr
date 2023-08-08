@@ -1,5 +1,6 @@
 #[derive(PartialEq)]
 #[derive(Debug, Copy, Clone)]
+#[derive(Default)]
 pub enum IoDestination {
     // stack pointer
     SPL,
@@ -10,6 +11,7 @@ pub enum IoDestination {
     PORTB,
     PINB,
 
+    #[default]
     UNKNOWN,
 }
 

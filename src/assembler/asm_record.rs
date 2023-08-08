@@ -5,6 +5,7 @@ use std::ops::{Deref, DerefMut};
 
 /// This struct is the model for a line in a assembler source code file
 #[derive(Debug, Clone)]
+#[derive(Default)]
 pub struct AsmRecord/*<'a, T>*/ {
 
     pub label: String,
