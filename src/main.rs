@@ -14,6 +14,7 @@ use antlr_rust::common_token_stream::CommonTokenStream;
 use antlr_rust::token_factory::ArenaCommonFactory;
 use antlr_rust::tree::ParseTreeListener;
 use antlr_rust::InputStream;
+use antlr_rust::tree::ParseTreeVisitorCompat;
 use env_logger::{Builder, Target};
 use instructions::instruction_definition::InstructionDefinition;
 use log::LevelFilter;
@@ -30,8 +31,11 @@ use crate::instructions::instruction_type::InstructionType;
 use crate::instructions::instructions::INSTRUCTIONS;
 use crate::instructions::instructions::UNKNOWN;
 use crate::instructions::process::*;
+use crate::parser::assemblerparser::InstructionContext;
+use crate::parser::assemblerparser::ParamContext;
 use crate::parser::assemblerparser::assemblerParserContextType;
 use crate::parser::assemblerparser::Asm_fileContextAll;
+use crate::parser::assemblervisitor::assemblerVisitorCompat;
 use antlr_rust::tree::ParseTree;
 
 use crate::fs::File;
@@ -126,8 +130,9 @@ fn main() -> io::Result<()> {
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/asm_4.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/jmp.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/push_pop.asm");
-    asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/call_and_return.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/call_and_return.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/inc.asm");
+    asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/expression.asm");
 
     let data = fs::read_to_string(asm_file_path).expect("Unable to read file");
     log::info!("{}", data);
@@ -182,12 +187,12 @@ fn main() -> io::Result<()> {
 
     // log::info!("start parsing");
 
-    // let result = parser.asm_file();
-    // assert!(result.is_ok());
+    let result = parser.asm_file();
+    assert!(result.is_ok());
 
     
 
-    //let root: Rc<Asm_fileContextAll> = result.unwrap();
+    let root: Rc<Asm_fileContextAll> = result.unwrap();
 
     //recurse_node(root);
 
@@ -247,7 +252,7 @@ fn main() -> io::Result<()> {
     //root.get_rule_names();
 
 
-/* 
+/* */ 
     //let res = Vec<& str>();
 
     //let asm_record: AsmRecord;
@@ -256,17 +261,23 @@ fn main() -> io::Result<()> {
 
     // structs with parethesis are tuple structs (https://stackoverflow.com/questions/49716865/what-are-structs-with-round-brackets-in-rust-for)
     //struct DefaultAssemblerVisitor<'i>(Vec<&'i str>, AsmRecord<&'i str>, HashMap<isize, String>, &'i mut Vec<&'i AsmRecord<&'i str>>);
-    struct DefaultAssemblerVisitor<'i>(Vec<&'i str>, AsmRecord<'i, &'i str>, HashMap<isize, String>, Vec<&'i AsmRecord<'i, &'i str>>);
+    //struct DefaultAssemblerVisitor<'i>(Vec<&'i str>, AsmRecord<'i, &'i str>, HashMap<isize, String>, Vec<&'i AsmRecord<'i, &'i str>>);
 
+    struct DefaultAssemblerVisitor {
+        
+        pub result_value: String,
+    }
 
-    impl<'i> ParseTreeVisitorCompat<'i> for DefaultAssemblerVisitor<'i> {
+    impl<'i> ParseTreeVisitorCompat<'i> for DefaultAssemblerVisitor {
 
         type Node = assemblerParserContextType;
         //type Return = Vec<&'i str>;
         //type Return = Vec<&'i String>;
         //type Return = Vec<String>;
 
-        type Return = Vec<&'i AsmRecord<'i, &'i str>>;
+        //type Return = Vec<&'i AsmRecord<'i, &'i str>>;
+        //type Return = Vec<&'i AsmRecord>;
+        type Return = String;
 
         //let temp: &mut Vec<&'i AsmRecord<&'i str>>;
 
@@ -293,7 +304,9 @@ fn main() -> io::Result<()> {
             //&mut Vec<&AsmRecord<&str>>
 
             //return self.3;
-            &mut self.3
+            //&mut self.3
+
+            &mut self.result_value
 
         }
 
@@ -308,38 +321,38 @@ fn main() -> io::Result<()> {
 
         fn visit_terminal(&mut self, node: &antlr_rust::tree::TerminalNode<'i, Self::Node>) -> Self::Return {
 
-            let token_type:isize = node.symbol.get_token_type();
+            // let token_type:isize = node.symbol.get_token_type();
 
-            if token_type < 0 {
+            // if token_type < 0 {
 
-                //return vec![&node.symbol.text];
-                self.1.text = &node.symbol.text;
-                //return vec![&self.1];
-                return vec![];
-            }
+            //     //return vec![&node.symbol.text];
+            //     self.1.text = &node.symbol.text;
+            //     //return vec![&self.1];
+            //     return vec![];
+            // }
 
-            let token_name:&String = self.2.get(&token_type).unwrap();
+            // let token_name:&String = self.2.get(&token_type).unwrap();
 
-            let instruction_type: InstructionType = InstructionType::from_string(token_name);
+            // let instruction_type: InstructionType = InstructionType::from_string(token_name);
 
-            if InstructionType::Unknown == instruction_type {
-                //return vec![&node.symbol.text];
-                self.1.text = &node.symbol.text;
-                //return vec![&self.1];
-                return vec![];
-            }
+            // if InstructionType::Unknown == instruction_type {
+            //     //return vec![&node.symbol.text];
+            //     self.1.text = &node.symbol.text;
+            //     //return vec![&self.1];
+            //     return vec![];
+            // }
 
-            self.1.instruction_type = instruction_type;
+            //self.1.instruction_type = instruction_type;
 
             //return vec![token_name.as_str()];
 
-            let ssval:String = self.1.instruction_type.to_string_string();
+            //let ssval:String = self.1.instruction_type.to_string_string();
             //return vec![&ssval.as_str()];
 
             //return vec![&self.1.instruction_type.to_string_string().clone()];
             //return vec![&node.symbol.text];
             //return vec![&self.1];
-            return vec![];
+            //return vec![];
             
             // if node.symbol.get_token_type() == parser::assemblerparser::ADD {
 
@@ -357,6 +370,8 @@ fn main() -> io::Result<()> {
             
 
             //return vec![&node.symbol.text];
+
+            String::default()
 
         }
 
@@ -377,7 +392,8 @@ fn main() -> io::Result<()> {
             // let c: Vec<String> = aggregate.iter().cloned().chain(next.iter().cloned()).collect(); // Cloned
             // c
 
-            return vec![];
+            //return vec![];
+            String::default()
         }
 
         fn should_visit_next_child(
@@ -392,7 +408,7 @@ fn main() -> io::Result<()> {
 
     
 
-    impl<'i> assemblerVisitorCompat<'i> for DefaultAssemblerVisitor<'i> {
+    impl<'i> assemblerVisitorCompat<'i> for DefaultAssemblerVisitor {
 
         fn visit_asm_file(&mut self, ctx: &parser::assemblerparser::Asm_fileContext<'i>) -> Self::Return {
             //log::info!("visit_asm_file()");
@@ -428,9 +444,9 @@ fn main() -> io::Result<()> {
 
 
             // log::info!("{:?}", children_result);
-            log::info!("{:?}", self.1);
+            //log::info!("{:?}", self.1);
 
-            self.1.emit();
+            //self.1.emit();
 
             //children_result.push(self.1);
             //children_result.push(&mut self.1);
@@ -457,7 +473,7 @@ fn main() -> io::Result<()> {
             //self.aggregate_results(children_result, self.temp_result());
 
             // clear for the next record
-            self.1.clear();
+            //self.1.clear();
 
 
             //children_result
@@ -468,7 +484,8 @@ fn main() -> io::Result<()> {
             //return children_result;
 
             // works
-            return vec![];
+            //return vec![];
+            String::default()
 
             //self.3
 
@@ -531,29 +548,29 @@ fn main() -> io::Result<()> {
 
             // log::info!("{}", node.symbol.text);
 
-            if 0xFF == self.1.reg_1 {
+            // if 0xFF == self.1.reg_1 {
 
-                if self.1.text.starts_with("r")
-                {
-                    self.1.reg_1 = self.1.text[1..].parse::<u16>().unwrap();
-                }
-                else if "" != self.1.text && "," != self.1.text && "\r\n" != self.1.text 
-                {
-                    self.1.data = self.1.text.parse::<u16>().unwrap();
-                }
+            //     if self.1.text.starts_with("r")
+            //     {
+            //         self.1.reg_1 = self.1.text[1..].parse::<u16>().unwrap();
+            //     }
+            //     else if "" != self.1.text && "," != self.1.text && "\r\n" != self.1.text 
+            //     {
+            //         self.1.data = self.1.text.parse::<u16>().unwrap();
+            //     }
 
-            } else if 0xFF == self.1.reg_2 {
+            // } else if 0xFF == self.1.reg_2 {
 
-                if self.1.text.starts_with("r")
-                {
-                    self.1.reg_2 = self.1.text[1..].parse::<u16>().unwrap();
-                } 
-                else if "" != self.1.text && "," != self.1.text && "\r\n" != self.1.text 
-                {
-                    self.1.data = self.1.text.parse::<u16>().unwrap();
-                }
+            //     if self.1.text.starts_with("r")
+            //     {
+            //         self.1.reg_2 = self.1.text[1..].parse::<u16>().unwrap();
+            //     } 
+            //     else if "" != self.1.text && "," != self.1.text && "\r\n" != self.1.text 
+            //     {
+            //         self.1.data = self.1.text.parse::<u16>().unwrap();
+            //     }
 
-            }
+            // }
 
 
 
@@ -636,14 +653,16 @@ fn main() -> io::Result<()> {
     }
 
     
-    let tempAsmRecord = AsmRecord::new(String::from(""), InstructionType::Unknown, 0xFF, 0xFF, 0, String::from(""), IoDestination::UNKNOWN, "", &asa);
+    //let tempAsmRecord = AsmRecord::new(String::from(""), InstructionType::Unknown, 0xFF, 0xFF, 0, String::from(""), IoDestination::UNKNOWN, "", &asa);
         
 
-    let mut visitor = DefaultAssemblerVisitor(Vec::new(),
-        tempAsmRecord,
-        token_storage,
-        //&mut asm_application);
-        asm_application);
+    // let mut visitor = DefaultAssemblerVisitor(Vec::new(),
+    //     tempAsmRecord,
+    //     token_storage,
+    //     //&mut asm_application);
+    //     asm_application);
+
+    let mut visitor = DefaultAssemblerVisitor { result_value: String::default(), };
     
     let visitor_result = visitor.visit(&*root);
 
@@ -665,7 +684,7 @@ fn main() -> io::Result<()> {
     // for asm_record in asm_application {
     //     log::info!("{:?}", asm_record);
     // }
- */   
+   
     const EXECUTE: bool = true;
     if EXECUTE {
         // vector of instructions
