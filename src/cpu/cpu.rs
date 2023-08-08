@@ -123,7 +123,7 @@ impl CPU {
         let instruction: &InstructionDefinition =
             decode_instruction(word, INSTRUCTIONS, &UNKNOWN, &mut value_storage);
 
-        let mut cpu = self;
+        let mut cpu: &mut CPU = self;
 
         // execute the instruction
         match instruction.instruction_type {

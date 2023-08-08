@@ -133,13 +133,14 @@ fn main() -> io::Result<()> {
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/asm_3.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/asm_4.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/jmp.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/push_pop.asm");
+    asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/push_pop.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/call_and_return.asm");
-    asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/inc.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/inc.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/expression.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/scratchpad.asm");
 
     let data = fs::read_to_string(asm_file_path).expect("Unable to read file");
-    log::info!("{}", data);
+    log::info!("\n{}", data);
 
     let input_stream: InputStream<&str> = InputStream::new(data.as_str());
 
@@ -301,10 +302,15 @@ fn main() -> io::Result<()> {
     impl DefaultAssemblerVisitor {
 
         pub fn ascend_ident(&mut self) {
+            //return;
+
             self.ident = self.ident - 1;
         }
 
         pub fn descend_ident(&mut self, label: &str) {
+
+            //return;
+
             self.ident = self.ident + 1;
             for n in 0..self.ident {
                 print!("  ");
@@ -385,7 +391,7 @@ fn main() -> io::Result<()> {
 
             let terminal_text = node.get_text();
 
-            log::info!("'{}'", terminal_text);
+            //log::info!("'{}'", terminal_text);
 
             if terminal_text != ":" && terminal_text != "," && terminal_text != "\r\n" {
 
@@ -435,7 +441,7 @@ fn main() -> io::Result<()> {
 
         fn visit_asm_file(&mut self, ctx: &parser::assemblerparser::Asm_fileContext<'i>) -> Self::Return {
             //log::info!("visit_asm_file()");
-            println!("visit_asm_file");
+            //println!("visit_asm_file");
 
             let mut children_result = self.visit_children(ctx);
 
@@ -563,7 +569,7 @@ fn main() -> io::Result<()> {
                 self.record.reg_2, 
                 self.record.data, 
                 self.target_label.clone(), 
-                IoDestination::UNKNOWN);
+                self.record.io_dest);
             
             //rec.label.push(self.label.clone());
 
@@ -722,7 +728,7 @@ fn main() -> io::Result<()> {
 
             // }
 
-            let children_result = self.visit_children(ctx);
+            //let children_result = self.visit_children(ctx);
 
 
             if self.reg_1 == "" && self.last_terminal.starts_with("r") {
@@ -798,17 +804,17 @@ fn main() -> io::Result<()> {
 
             let children_result = self.visit_children(ctx);
 
-            self.intrinsic_usage = self.last_terminal.clone();
+            // self.intrinsic_usage = self.last_terminal.clone();
 
-            if "LOW(RAMEND)" == self.intrinsic_usage {
-                let low_ramend: u16 = LOW!(RAMEND);
-                self.last_terminal = low_ramend.to_string();
-            }
+            // if "LOW(RAMEND)" == self.intrinsic_usage {
+            //     let low_ramend: u16 = LOW!(RAMEND);
+            //     self.last_terminal = low_ramend.to_string();
+            // }
 
-            if "HIGH(RAMEND)" == self.intrinsic_usage {
-                let high_ramend: u16 = HIGH!(RAMEND);
-                self.last_terminal = high_ramend.to_string();
-            }
+            // if "HIGH(RAMEND)" == self.intrinsic_usage {
+            //     let high_ramend: u16 = HIGH!(RAMEND);
+            //     self.last_terminal = high_ramend.to_string();
+            // }
 
             //log::info!("visit_asm_instrinsic_instruction() - {:?}", children_result);
 
@@ -818,10 +824,25 @@ fn main() -> io::Result<()> {
         }
 
         fn visit_asm_intrinsic_usage(&mut self, ctx: &parser::assemblerparser::Asm_intrinsic_usageContext<'i>) -> Self::Return {
+            
             self.descend_ident("visit_asm_intrinsic_usage");
             //log::info!("visit_asm_intrinsic_usage()");
             
             let children_result = self.visit_children(ctx);
+
+            self.intrinsic_usage = self.last_terminal.clone();
+
+            if "LOW(RAMEND)" == self.intrinsic_usage {
+                let low_ramend: u16 = LOW!(RAMEND);
+                self.last_terminal = low_ramend.to_string();
+                //self.data = low_ramend.to_string();
+            }
+
+            if "HIGH(RAMEND)" == self.intrinsic_usage {
+                let high_ramend: u16 = HIGH!(RAMEND);
+                self.last_terminal = high_ramend.to_string();
+                //self.data = high_ramend.to_string();
+            }
 
             self.ascend_ident();
 
