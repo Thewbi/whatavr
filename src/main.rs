@@ -133,11 +133,12 @@ fn main() -> io::Result<()> {
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/asm_3.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/asm_4.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/jmp.asm");
-    asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/push_pop.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/call_and_return.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/push_pop.asm");
+    asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/call_and_return.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/inc.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/expression.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/scratchpad.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/setup_stack.asm");
 
     let data = fs::read_to_string(asm_file_path).expect("Unable to read file");
     log::info!("\n{}", data);
@@ -297,6 +298,8 @@ fn main() -> io::Result<()> {
 
         pub target_label: String,
 
+        pub return_val: Vec<String>,
+
     }
 
     impl DefaultAssemblerVisitor {
@@ -342,10 +345,11 @@ fn main() -> io::Result<()> {
         //type Return = Vec<&'i str>;
         //type Return = Vec<&'i String>;
         //type Return = Vec<String>;
+        type Return = Vec<String>;
 
         //type Return = Vec<&'i AsmRecord<'i, &'i str>>;
         //type Return = Vec<&'i AsmRecord>;
-        type Return = String;
+        //type Return = String;
 
         //let temp: &mut Vec<&'i AsmRecord<&'i str>>;
 
@@ -357,6 +361,7 @@ fn main() -> io::Result<()> {
             //&mut vec![&String::from(self.0[0])]
 
             //return &mut vec![&String::from("ADD")];
+            //return &mut vec![];
 
             //self.
 
@@ -374,7 +379,9 @@ fn main() -> io::Result<()> {
             //return self.3;
             //&mut self.3
 
-            &mut self.result_value
+            //&mut self.result_value
+
+            &mut self.return_val
 
         }
 
@@ -391,7 +398,7 @@ fn main() -> io::Result<()> {
 
             let terminal_text = node.get_text();
 
-            //log::info!("'{}'", terminal_text);
+            log::info!("'{}'", terminal_text);
 
             if terminal_text != ":" && terminal_text != "," && terminal_text != "\r\n" {
 
@@ -400,8 +407,13 @@ fn main() -> io::Result<()> {
                 }
             }
 
-            String::default()
+            //String::default()
+            //return vec![];
 
+            
+            return vec![terminal_text];
+
+            //return vec
         }
 
         fn visit_error_node(&mut self, _node: &antlr_rust::tree::ErrorNode<'i, Self::Node>) -> Self::Return {
@@ -418,11 +430,14 @@ fn main() -> io::Result<()> {
             //let c: Vec<&'i str> = aggregate.iter().cloned().chain(next.iter().cloned()).collect(); // Cloned
             //c
 
-            // let c: Vec<String> = aggregate.iter().cloned().chain(next.iter().cloned()).collect(); // Cloned
-            // c
+            let c: Vec<String> = aggregate.iter().cloned().chain(next.iter().cloned()).collect(); // Cloned
+            c
 
             //return vec![];
-            String::default()
+            //String::default()
+
+            // works
+            //return vec![];
         }
 
         fn should_visit_next_child(
@@ -497,7 +512,8 @@ fn main() -> io::Result<()> {
             // do not deal with records that only consists of labels
             // instead insert the label into the next instruction
             if self.label != "" && self.mnemonic == "" {
-                return String::default();
+                //return String::default();
+                return vec![];
             }
 
             // if 0xFF == self.record.reg_1 {
@@ -548,7 +564,7 @@ fn main() -> io::Result<()> {
                 {
                     let parse_result = self.data.parse::<u16>();
                     if parse_result.is_ok() {
-                        self.record.data = self.data.parse::<u16>().unwrap();
+                        self.record.data = parse_result.unwrap();
                         //self.data = self.data.parse::<u16>().unwrap();
                     } else  {
                         //self.record.target_label = self.data.clone();
@@ -622,8 +638,8 @@ fn main() -> io::Result<()> {
             //return children_result;
 
             // works
-            //return vec![];
-            String::default()
+            return vec![];
+            //String::default()
 
             //self.3
 
@@ -700,7 +716,7 @@ fn main() -> io::Result<()> {
             // let text = children_result[0];
 
             //self.text = children_result[0].to_owned();
-            self.text = children_result;
+            //self.text = children_result;
 
             //log::info!("{}", node.symbol.text);
 
@@ -736,7 +752,11 @@ fn main() -> io::Result<()> {
             } else if self.reg_2 == "" && self.last_terminal.starts_with("r") {
                 self.reg_2 = self.last_terminal.clone();
             } else {
-                self.data = self.last_terminal.clone();
+                //self.data = self.last_terminal.clone();
+
+                //self.data = children_result[0].clone();
+
+                self.data = children_result.join("");
             }
     
             self.last_terminal = String::default();
@@ -748,7 +768,8 @@ fn main() -> io::Result<()> {
 
             //children_result
             //self.text
-            String::default()
+            //String::default()
+            return vec![];
 		}
 
         fn visit_parameter(&mut self, ctx: &parser::assemblerparser::ParameterContext<'i>) -> Self::Return {
@@ -787,9 +808,82 @@ fn main() -> io::Result<()> {
         }
 
         fn visit_expression(&mut self, ctx: &parser::assemblerparser::ExpressionContext<'i>) -> Self::Return {
+
             self.descend_ident("visit_expression");
             //log::info!("visit_expression()");
-            let children_result = self.visit_children(ctx);
+
+            self.last_terminal.clear();
+
+            let mut children_result = self.visit_children(ctx);
+
+            // 1 << DDC0
+
+            if children_result.len() == 3usize {
+
+                if "<<".eq(&children_result[1]) {
+
+                    // lhs << rhs
+                    let lhs_as_string = &children_result[0];
+                    let op_as_string = &children_result[1];
+                    let rhs_as_string = &children_result[2];
+
+                    println!("lhs: {} op: {} rhs: {}", lhs_as_string, op_as_string, rhs_as_string);
+
+                    let mut lhs: i16 = 0i16;
+                    let lhs_parse_result = lhs_as_string.parse::<i16>();
+                    if lhs_parse_result.is_ok() {
+                        lhs = lhs_parse_result.unwrap();
+                    }
+
+                    let mut rhs: i16 = 0i16;
+                    let rhs_parse_result = rhs_as_string.parse::<i16>();
+                    if rhs_parse_result.is_ok() {
+                        rhs = rhs_parse_result.unwrap();
+                    }
+
+                    let result: i16 = lhs << rhs;
+
+                    return vec![result.to_string()];
+                }
+                else if "(".eq(&children_result[0]) && ")".eq(&children_result[2])
+                {
+                    //let ref dir = children_result[1];
+                    //return vec![&dir.to_string()];
+
+                    children_result.remove(2);
+                    children_result.remove(0);
+
+                    return children_result;
+                }
+                else 
+                {
+                    println!("fuck");
+                    panic!()
+                }
+
+            }
+
+            if children_result.len() == 1usize {
+
+                // if the value is a number, return it
+                let parse_result = children_result[0].parse::<u16>();
+                if parse_result.is_ok() {
+                    //self.record.data = parse_result.unwrap();
+                    //self.data = self.data.parse::<u16>().unwrap();
+
+                    return children_result;
+                }
+                
+                // DDC0
+                if "DDC0".eq(&children_result[0]) {
+                    children_result[0] = "1".to_string();
+
+                    return children_result;
+
+                    //return self.return_val;
+                }
+
+            }
 
             self.ascend_ident();
 
@@ -836,12 +930,16 @@ fn main() -> io::Result<()> {
                 let low_ramend: u16 = LOW!(RAMEND);
                 self.last_terminal = low_ramend.to_string();
                 //self.data = low_ramend.to_string();
+
+                return vec![low_ramend.to_string().clone()];
             }
 
             if "HIGH(RAMEND)" == self.intrinsic_usage {
                 let high_ramend: u16 = HIGH!(RAMEND);
                 self.last_terminal = high_ramend.to_string();
                 //self.data = high_ramend.to_string();
+
+                return vec![high_ramend.to_string().clone()];
             }
 
             self.ascend_ident();
@@ -917,6 +1015,7 @@ fn main() -> io::Result<()> {
         data: String::default(),
         label: String::default(),
         target_label: String::default(),
+        return_val: Vec::new(),
     };
     visitor.record.clear();
     
