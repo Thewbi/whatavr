@@ -69,21 +69,6 @@ fn main() -> io::Result<()> {
     init_logging();
     log_start();
 
-    struct Listener {}
-
-    impl<'input> ParseTreeListener<'input, assemblerParserContextType> for Listener {
-        // fn enter_every_rule(&mut self, ctx: &dyn assemblerParserContextType<'input>) {
-        //     log::info!(
-        //         "rule entered {}",
-        //         csvparser::ruleNames
-        //             .get(ctx.get_rule_index())
-        //             .unwrap_or(&"error")
-        //     )
-        // }
-    }
-
-    //impl<'input> CSVListener<'input> for Listener {}
-
     //
     // load token into a hashmap
     //
@@ -139,8 +124,8 @@ fn main() -> io::Result<()> {
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/expression.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/scratchpad.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/setup_stack.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/pin_change_interrupt_demo.asm");
-    asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/def_assembler_directive.asm");
+    asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/pin_change_interrupt_demo.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/def_assembler_directive.asm");
 
     let data = fs::read_to_string(asm_file_path).expect("Unable to read file");
     log::info!("\n{}", data);
@@ -148,129 +133,18 @@ fn main() -> io::Result<()> {
     let input_stream: InputStream<&str> = InputStream::new(data.as_str());
 
     log::info!("test started");
-    // vector of instructions
-    //let mut asm_application: Vec<&AsmRecord/*<&str>*/> = Vec::new();
-    //let mut asa: Vec<&AsmRecord/*<&str>*/> = Vec::new();
 
-    //let rec1 = AsmRecord{ label: String::from("val"), reg_1: 0x00, reg_2: 0x00, instruction_type: InstructionType::Unknown, data: 0x00, target_label: "".to_string(), io_dest: IoDestination::UNKNOWN, idx: 0, text: "", reffff: &asm_application };
-    //asm_application.push(&rec1);
-
-    let token_factory = ArenaCommonFactory::default();
-    let mut _lexer = parser::assemblerlexer::assemblerLexer::new_with_token_factory(
-        //InputStream::new("V123,V2\nd1,d2\n".into()),
+    let token_factory: antlr_rust::token_factory::ArenaFactory<'_, antlr_rust::token_factory::CommonTokenFactory, antlr_rust::token::GenericToken<_>> = ArenaCommonFactory::default();
+    let mut _lexer: parser::assemblerlexer::assemblerLexer<'_, InputStream<&str>> = parser::assemblerlexer::assemblerLexer::new_with_token_factory(
         input_stream,
         &token_factory,
     );
-    let token_source = CommonTokenStream::new(_lexer);
-    let mut parser = parser::assemblerparser::assemblerParser::new(token_source);
-    //parser.add_parse_listener(Box::new(parser::assemblerlistenerimpl::assemblerListenerImpl{}));
-
-    // let mut asm_records: Vec<AsmRecord> = Vec::new();
-    // //let mut asm_apps: Rc<Vec<AsmRecord>> = asm_application.into();
-    // //asm_application.push(AsmRecord::new(String::from(""), InstructionType::Unknown, 0xFF, 0xFF, 0, String::from(""), IoDestination::UNKNOWN));
-
-    // //let mut asm_application: Vec<Rc<AsmRecord>> = Vec::new();
-    // //let mut asm_application: Vec<AsmRecord> = Vec::new();
-    // //let bbox = Box::new(asm_application);
-
-    // let mut listener_impl = parser::assemblerlistenerimpl::assemblerListenerImpl {
-    //     reg_1: String::default(),
-    //     reg_2: String::default(),
-    //     data: String::default(),
-    //     instruction: String::default(),
-    //     last_terminal: String::default(),
-    //     mnemonic: String::default(),
-    //     asm_records: asm_records,
-    //     //asm_records: bbox,
-    //     //asm_apps: asm_apps,
-    // };
-
-    // // https://dhghomon.github.io/easy_rust/Chapter_53.html
-    // // put the listener onto the heap
-    // let listener_box = Box::new(listener_impl);
-
-    // parser.add_parse_listener(listener_box);
-
-    // //let test = (*listener_box).get_clone();
-
-    // log::info!("start parsing");
+    let token_source: CommonTokenStream<'_, parser::assemblerlexer::assemblerLexer<'_, InputStream<&str>>> = CommonTokenStream::new(_lexer);
+    let mut parser: parser::assemblerparser::assemblerParser<'_, CommonTokenStream<'_, parser::assemblerlexer::assemblerLexer<'_, InputStream<&str>>>, antlr_rust::DefaultErrorStrategy<'_, assemblerParserContextType>> = parser::assemblerparser::assemblerParser::new(token_source);
 
     let result = parser.asm_file();
     assert!(result.is_ok());
-
-    
-
     let root: Rc<Asm_fileContextAll> = result.unwrap();
-
-    //recurse_node(root);
-
-    // for child in root.get_children() {
-    //     log::info!("{:?}", child);
-    // }
-
-    //assemblerTreeWalker parse_tree_walker = assemblerTreeWalker::new();
-
-    //let ptl: assemblerListenerImpl;
-
-    //let parse_tree_walker: assemblerTreeWalker<'input, 'a> = assemblerTreeWalker::default();
-    //let parse_tree_walker: assemblerTreeWalker;
-    //parse_tree_walker.walk(ptl, &root);
-
-    //assemblerTreeWalker::walk(Box::new(ptl), result);
-    //assemblerTreeWalker::walk(Box::new(ptl), &result);
-    //assemblerTreeWalker::walk(Box::new(ptl), root);
-    //assemblerTreeWalker::walk(Box::new(ptl), &root);
-
-    //assemblerTreeWalker::walk(Box::new(ptl), root.);
-
-    //log::info!("string tree: {}", root.to_string_tree(&*parser));
-
-    // fn recurse<'a>(cc: &'a Rc<dyn assemblerParserContext>) {
-    //     log::info!("cc: {:?}", cc)
-    // }
-
-    //unsafe {
-        // log::info!("{:?}", root);
-        // //let child_0 = root.get_child(0);
-        // //recurse(child_0.unwrap());
-        // for child in root.get_children() {
-        //     //log::info!("child {:?}", child);
-
-        //     let cc: Rc<dyn assemblerParserContext> = child;
-
-        //     //log::info!("cc {:?}", cc.get_text());
-
-        //     //found struct `Rc<dyn assemblerParserContext<'_, TF = ArenaFactory<'_, CommonTokenFactory, GenericToken<Cow<'_, str>>>, Ctx
-
-        //     //recurse_child(child);
-
-        //     recurse(&cc);
-
-        //     //let r = Rc::clone(&cc);
-        //     //recurse(r);
-
-        //     // for cchild in cc.get_children() {
-        //     //     log::info!("cchild {:?}", cchild);
-        //     // }
-        // }
-    //}
-
-    //recurse_node(root)
-
-    //root.get_rule_names();
-
-
-/* */ 
-    //let res = Vec<& str>();
-
-    //let asm_record: AsmRecord;
-
-    //struct DefaultAssemblerVisitor<'i>(Vec<&'i str>);
-
-    // structs with parethesis are tuple structs (https://stackoverflow.com/questions/49716865/what-are-structs-with-round-brackets-in-rust-for)
-    //struct DefaultAssemblerVisitor<'i>(Vec<&'i str>, AsmRecord<&'i str>, HashMap<isize, String>, &'i mut Vec<&'i AsmRecord<&'i str>>);
-    //struct DefaultAssemblerVisitor<'i>(Vec<&'i str>, AsmRecord<'i, &'i str>, HashMap<isize, String>, Vec<&'i AsmRecord<'i, &'i str>>);
-
     struct DefaultAssemblerVisitor {
         
         pub result_value: String,
@@ -357,7 +231,7 @@ fn main() -> io::Result<()> {
 
         fn visit_terminal(&mut self, node: &antlr_rust::tree::TerminalNode<'i, Self::Node>) -> Self::Return {
             let terminal_text = node.get_text();
-            log::info!("'{}'", terminal_text);
+            log::trace!("'{}'", terminal_text);
             if terminal_text != ":" && terminal_text != "," && terminal_text != "\r\n" {
                 if self.last_terminal != terminal_text {
                     self.last_terminal.push_str(terminal_text.as_str());
@@ -416,7 +290,6 @@ fn main() -> io::Result<()> {
             // assembler directives are identified via a dot character
             let assembler_directive = ".".eq(&children_result[0]);
             if assembler_directive {
-                log::info!("aaa");
                 self.parse_assembler_directive(&children_result);
                 self.ascend_ident();
                 self.reset_self();
