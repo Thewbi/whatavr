@@ -14,6 +14,7 @@ byteorder = "1.4.3"
 #antlr-rust = "0.2.2"
 #antlr-rust = "0.3"
 #do-not-use-antlr-rust = "0.3"
+regex = "1.9.3"
 
 # https://github.com/rrevenantt/antlr4rust
 # checked out and manually build, locally referenced

@@ -132,20 +132,20 @@ impl AsmEncoder {
         //
 
         let mut idx: usize = 0usize;
-        for rec in asm_records.iter_mut() {
+        for asm_record in asm_records.iter_mut() {
 
             // assign the current address to the record
-            rec.set_idx(idx);
+            asm_record.set_idx(idx);
 
             // if a label was specified for the current address,
             // manage the mapping of the label to the current address
-            if rec.label != "" {
-                create_label(&mut self.labels, rec.label.clone(), idx);
+            if asm_record.label != "" {
+                create_label(&mut self.labels, asm_record.label.clone(), idx);
             }
 
             // advance the address by the actual length of the instruction.
             // Some instructions are 1 word (2 byte) whereas others are 2 word (4 byte)
-            idx += InstructionType::words(&rec.instruction_type);
+            idx += InstructionType::words(&asm_record.instruction_type);
         }
 
         //
@@ -155,6 +155,7 @@ impl AsmEncoder {
         for rec in asm_records.iter() {
             self.encode(segment, rec);
         }
+
     }
 
     pub fn encode(&self, segment: &mut Segment, asm_record: &AsmRecord) {

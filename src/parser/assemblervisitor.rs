@@ -75,6 +75,12 @@ pub trait assemblerVisitor<'input>: ParseTreeVisitor<'input,assemblerParserConte
 	fn visit_asm_intrinsic_usage(&mut self, ctx: &Asm_intrinsic_usageContext<'input>) { self.visit_children(ctx) }
 
 	/**
+	 * Visit a parse tree produced by {@link assemblerParser#preprocessor_directive}.
+	 * @param ctx the parse tree
+	 */
+	fn visit_preprocessor_directive(&mut self, ctx: &Preprocessor_directiveContext<'input>) { self.visit_children(ctx) }
+
+	/**
 	 * Visit a parse tree produced by {@link assemblerParser#mnemonic}.
 	 * @param ctx the parse tree
 	 */
@@ -276,6 +282,14 @@ pub trait assemblerVisitorCompat<'input>:ParseTreeVisitorCompat<'input, Node= as
 	 * @param ctx the parse tree
 	 */
 		fn visit_asm_intrinsic_usage(&mut self, ctx: &Asm_intrinsic_usageContext<'input>) -> Self::Return {
+			self.visit_children(ctx)
+		}
+
+	/**
+	 * Visit a parse tree produced by {@link assemblerParser#preprocessor_directive}.
+	 * @param ctx the parse tree
+	 */
+		fn visit_preprocessor_directive(&mut self, ctx: &Preprocessor_directiveContext<'input>) -> Self::Return {
 			self.visit_children(ctx)
 		}
 
@@ -489,6 +503,11 @@ where
 
 	fn visit_asm_intrinsic_usage(&mut self, ctx: &Asm_intrinsic_usageContext<'input>){
 		let result = <Self as assemblerVisitorCompat>::visit_asm_intrinsic_usage(self, ctx);
+        *<Self as ParseTreeVisitorCompat>::temp_result(self) = result;
+	}
+
+	fn visit_preprocessor_directive(&mut self, ctx: &Preprocessor_directiveContext<'input>){
+		let result = <Self as assemblerVisitorCompat>::visit_preprocessor_directive(self, ctx);
         *<Self as ParseTreeVisitorCompat>::temp_result(self) = result;
 	}
 

@@ -115,6 +115,16 @@ fn enter_asm_intrinsic_usage(&mut self, _ctx: &Asm_intrinsic_usageContext<'input
  */
 fn exit_asm_intrinsic_usage(&mut self, _ctx: &Asm_intrinsic_usageContext<'input>) { }
 /**
+ * Enter a parse tree produced by {@link assemblerParser#preprocessor_directive}.
+ * @param ctx the parse tree
+ */
+fn enter_preprocessor_directive(&mut self, _ctx: &Preprocessor_directiveContext<'input>) { }
+/**
+ * Exit a parse tree produced by {@link assemblerParser#preprocessor_directive}.
+ * @param ctx the parse tree
+ */
+fn exit_preprocessor_directive(&mut self, _ctx: &Preprocessor_directiveContext<'input>) { }
+/**
  * Enter a parse tree produced by {@link assemblerParser#mnemonic}.
  * @param ctx the parse tree
  */

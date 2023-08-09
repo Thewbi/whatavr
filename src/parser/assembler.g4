@@ -16,6 +16,8 @@ row :
     label_definition
     |
     instruction
+    |
+    preprocessor_directive
     ;
 
 instruction : mnemonic ( param ( COMMA param )? )? ;
@@ -57,25 +59,11 @@ expression :
     macro_placeholder
     ;
 
-//asm_instrinsic_instruction :
-//    DOT ( 
-//        (INCLUDE STRING) 
-//        | DEF IDENTIFIER EQUALS (expression | IDENTIFIER)
-//        | EQU IDENTIFIER EQUALS (expression | IDENTIFIER)
-//        | CSEG 
-//        | ORG HEX_NUMBER
-//        | MACRO IDENTIFIER
-//        | END_MACRO
-//        | IF expression
-//        | ELSE
-//        | ENDIF
-//        | ERROR STRING
-//    )
-//    ;
-
 asm_instrinsic_instruction :
     DOT (
         INCLUDE STRING
+        |
+        DEVICE IDENTIFIER
         |
         DEF expression
         |
@@ -101,6 +89,10 @@ asm_instrinsic_instruction :
 
 asm_intrinsic_usage :
     IDENTIFIER OPENING_BRACKET (IDENTIFIER | macro_placeholder) CLOSEING_BRACKET
+    ;
+
+preprocessor_directive : 
+    HASH_TAG (IF | ENDIF | IDENTIFIER | HEX_NUMBER | NUMBER)+
     ;
 
 mnemonic :
@@ -384,7 +376,8 @@ COLON : ':' ;
 COMMA : ',' ;
 CSEG : 'cseg' ;
 
-DEF : 'def' ; 
+DEF : 'def' ;
+DEVICE : 'device' ;
 DOT : '.' ;
 
 ELSE : 'else' ;
@@ -395,6 +388,8 @@ EQU : 'equ' ;
 ERROR : 'error' ;
 
 GT : '>' ;
+
+HASH_TAG : '#' ;
 
 IF : 'if' ;
 INCLUDE : 'include' ;
@@ -414,7 +409,6 @@ RIGHT_SHIFT : '>>' ;
 
 SLASH : '/' ;
 
-
 NEWLINE : '\r'? '\n' ;
 
 //WS : [ \t\n\r\f]+ -> channel(HIDDEN) ;
@@ -422,12 +416,25 @@ WS : [ \t\n\r\f]+ -> skip  ;
 //WS : [ \t\f]+ -> skip  ;
 
 //LINE_COMMENT : ';' ~[\r\n]* -> channel(HIDDEN) ;
-LINE_COMMENT : ';' ~[\r\n]* -> skip ;
+LINE_COMMENT 
+    : 
+    ';' ~[\r\n]* -> skip 
+    ;
+
+//BLOCK_COMMENT 
+//    : 
+    // non-greedy
+//    '/*' .*? '*/' -> skip 
+    // greedy
+    //'/*' .* '*/' -> skip 
+//    ;
+
+BLOCK_COMMENT : '/*' (BLOCK_COMMENT|.)*? '*/' -> channel(HIDDEN) ;
+DOUBLE_SLASH_LINE_COMMENT : '//' .*? '\n' -> channel(HIDDEN) ;
 
 STRING : '"' ('""'|~'"')* '"' ; // quote-quote is an escaped quote
-
 
 NUMBER : [0-9]+ ;
 HEX_NUMBER: '0' 'x' [a-fA-F0-9]+ ;
 
-IDENTIFIER : [a-zA-Z]([a-zA-Z0-9_])+ ;
+IDENTIFIER : [a-zA-Z_]([a-zA-Z0-9_])+ ;
