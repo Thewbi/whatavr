@@ -1,10 +1,5 @@
-use std::convert::TryInto;
 use std::env;
-use std::env::VarError;
 use std::error::Error;
-use std::fs::{read_dir, DirEntry, File};
-use std::io::Write;
-use std::path::Path;
 use std::process::Command;
 
 // clone https://github.com/rrevenantt/antlr4rust/tree/master/tests
@@ -32,7 +27,7 @@ fn main() {
 
 fn gen_for_grammar(
     grammar_file_name: &str,
-    antlr_path: &str,
+    _antlr_path: &str,
     additional_arg: Option<&str>,
 ) -> Result<(), Box<dyn Error>> {
     // let out_dir = env::var("OUT_DIR").unwrap();
@@ -43,7 +38,7 @@ fn gen_for_grammar(
 
     let file_name = grammar_file_name.to_owned() + ".g4";
 
-    let c = Command::new("java")
+    let _c = Command::new("java")
         .current_dir(input) // this sets the pwd (current working directory) of the command call
         //.arg("-cp")
         //.arg(antlr_path)

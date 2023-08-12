@@ -1,6 +1,6 @@
-use crate::{
-    assembler::io_destination::IoDestination, instructions::instruction_type::InstructionType,
-};
+// use crate::{
+//     assembler::io_destination::IoDestination, instructions::instruction_type::InstructionType,
+// };
 
 use super::asm_record::AsmRecord;
 
@@ -199,6 +199,7 @@ use super::asm_record::AsmRecord;
 // Example app
 //
 
+#[allow(unused)]
 pub fn application_instruction_source(asm_records: &mut Vec<AsmRecord/*<String>*/>) {
 
     // // ldi r16, 0xFF

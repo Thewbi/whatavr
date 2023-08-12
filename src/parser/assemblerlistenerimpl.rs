@@ -1,16 +1,14 @@
-use antlr_rust::{tree::{ParseTreeListener, ParseTree}, rule_context::CustomRuleContext};
+pub(crate) use antlr_rust::tree::{ParseTreeListener, ParseTree};
+
+use crate::common::common_constants::RAMEND;
 
 use super::{
     assemblerlistener::assemblerListener,
     assemblerparser::{assemblerParserContextType, RowContext, Asm_fileContext, ParamContext, MnemonicContext, Asm_intrinsic_usageContext},
 };
-use crate::{parser::assemblerparser::InstructionContext, assembler::{asm_record::AsmRecord, io_destination::IoDestination}, instructions::instruction_type::InstructionType, ihex_mgmt::ihex_mgmt::Segment, cpu::cpu::{RAMEND, CPU}, LOW, HIGH};
+use crate::{parser::assemblerparser::InstructionContext, assembler::{asm_record::AsmRecord, io_destination::IoDestination}, instructions::instruction_type::InstructionType, ihex_mgmt::ihex_mgmt::Segment, cpu::cpu::CPU, LOW, HIGH};
 use crate::parser::assemblerparser::Label_definitionContext;
 use crate::parser::assemblerparser::ParameterContext;
-//use crate::parser::assemblerparser::Macro_usageContext;
-//use crate::parser::assemblerparser::Macro_usageContextAttrs;
-
-use std::rc::Rc;
 
 pub struct assemblerListenerImpl {
 
@@ -29,27 +27,12 @@ pub struct assemblerListenerImpl {
 
     pub asm_records: Vec<AsmRecord>,
     pub(crate) asm_encoder: crate::assembler::asm_encoder::AsmEncoder,
-    //pub asm_records: Rc<Vec<AsmRecord>>,
-    //pub asm_records: Box<Vec<AsmRecord>>,
-    //pub asm_records: Vec<Rc<AsmRecord>>
 
     pub intrinsic_usage: String,
 
 }
 
 impl assemblerListenerImpl {
-
-    // pub fn get_asm_records(&self) -> Vec<AsmRecord> {
-    //     self.asm_records.clone()
-    // }
-
-    // pub fn get<'a>(&'a mut self, idx: usize) -> &'a mut AsmRecord {
-    //     self.asm_records.get_mut(idx).unwrap()
-    // }
-
-    // pub fn get_clone(&self) -> AsmRecord {
-    //     self.asm_records[0].clone()
-    // }
 
     pub fn reset_self(&mut self) {
 
@@ -90,7 +73,7 @@ impl<'input> assemblerListener<'input> for assemblerListenerImpl {
         // the very last line contained a label definition
         // force a NOP operation and place the label onto that NOP operation
         if self.label != "" {
-            let mut asm_record: AsmRecord = AsmRecord::new(self.label.clone(), InstructionType::NOP, 0xFF, 0xFF, 0, String::from(""), IoDestination::UNKNOWN);
+            let asm_record: AsmRecord = AsmRecord::new(self.label.clone(), InstructionType::NOP, 0xFF, 0xFF, 0, String::from(""), IoDestination::UNKNOWN);
             self.asm_records.push(asm_record);
         }
 
@@ -104,14 +87,16 @@ impl<'input> assemblerListener<'input> for assemblerListenerImpl {
         self.asm_encoder.assemble(&mut self.asm_records, &mut assembler_segment);
 
         // ATmega328p cpu
-        let mut cpu: CPU = CPU {
-            z: false,
-            sph: 0x00u8,
-            spl: 0x00u8,
-            pc: 0x02i32,
-            register_file: [0; 32usize],
-            sram: [0; RAMEND as usize],
-        };
+        // let mut cpu: CPU = CPU {
+        //     z: false,
+        //     sph: 0x00u8,
+        //     spl: 0x00u8,
+        //     pc: 0x02i32,
+        //     register_file: [0; 32usize],
+        //     sram: [0; RAMEND as usize],
+        //     sfr: [0; 255usize],
+        // };
+        let mut cpu: CPU = CPU::default();
 
         log::info!(">>> CPU program execution ...");
 
@@ -191,7 +176,7 @@ impl<'input> assemblerListener<'input> for assemblerListenerImpl {
 
             asm_record.io_dest = IoDestination::from_string(self.data.as_str());
 
-            if (asm_record.io_dest == IoDestination::UNKNOWN)
+            if asm_record.io_dest == IoDestination::UNKNOWN
             {
                 let parse_result = self.data.parse::<u16>();
                 if parse_result.is_ok() {

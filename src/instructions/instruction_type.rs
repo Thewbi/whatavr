@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 #[allow(non_camel_case_types)]
 #[derive(PartialEq)]
 #[derive(Debug, Clone, Copy)]
@@ -458,20 +460,144 @@ impl InstructionType {
         }
     }
 
-    // pub fn to_string_string(&self) -> String {
+    pub fn to_string(&self) -> String { 
 
-    //     String::from("ADD")
-    //     // match instruction_type {
-
-    //     //     //TODO:
-    //     //     // InstructionType::IN => 64,
-    //     //     // InstructionType::JMP => 66,
-    //     //     // InstructionType::LDI => 73,
-    //     //     // InstructionType::OUT => 88,
-    //     //     // InstructionType::Unknown => 0xFF,
-    //     //     _ => 0xFF,
-    //     // }
-    // }
+        match self {
+            InstructionType::ADC => String::from("ADC"),
+            InstructionType::ADD => String::from("ADD"),
+            InstructionType::ADIW => String::from("ADIW"),
+            InstructionType::AND => String::from("AND"),
+            InstructionType::ANDI => String::from("ANDI"),
+            InstructionType::ASR => String::from("ASR"),
+            InstructionType::BCLR => String::from("BCLR"),
+            InstructionType::BLD => String::from("BLD"),
+            InstructionType::BRBC => String::from("BRBC"),
+            InstructionType::BRBS => String::from("BRBS"),
+            InstructionType::BRCC => String::from("BRCC"),
+            InstructionType::BRCS => String::from("BRCS"),
+            InstructionType::BREAK => String::from("BREAK"), 
+            InstructionType::BREQ => String::from("BREQ"),
+            InstructionType::BRGE => String::from("BRGE"),
+            InstructionType::BRHC => String::from("BRHC"),
+            InstructionType::BRHS => String::from("BRHS"),
+            InstructionType::BRID => String::from("BRID"),
+            InstructionType::BRIE => String::from("BRIE"),
+            InstructionType::BRLO => String::from("BRLO"),
+            InstructionType::BRLT => String::from("BRLT"),
+            InstructionType::BRMI => String::from("BRMI"),
+            InstructionType::BRNE => String::from("BRNE"),
+            InstructionType::BRPL => String::from("BRPL"),
+            InstructionType::BRSH => String::from("BRSH"),
+            InstructionType::BRTC => String::from("BRTC"),
+            InstructionType::BRTS => String::from("BRTS"),
+            InstructionType::BRVC => String::from("BRVC"),
+            InstructionType::BRVS => String::from("BRVS"),
+            InstructionType::BSET => String::from("BSET"),
+            InstructionType::BST => String::from("BST"),
+            InstructionType::CALL => String::from("CALL"),
+            InstructionType::CBI => String::from("CBI"), 
+            InstructionType::CBR => String::from("CBR"),
+            InstructionType::CLC => String::from("CLC"),
+            InstructionType::CLH => String::from("CLH"),
+            InstructionType::CLI => String::from("CLI"),
+            InstructionType::CLN => String::from("CLN"),
+            InstructionType::CLR => String::from("CLR"),
+            InstructionType::CLS => String::from("CLS"),
+            InstructionType::CLT => String::from("CLT"),
+            InstructionType::CLV => String::from("CLV"),
+            InstructionType::CLZ => String::from("CLZ"),
+            InstructionType::COM => String::from("COM"),
+            InstructionType::CP => String::from("CP"),
+            InstructionType::CPC => String::from("CPC"),
+            InstructionType::CPI => String::from("CPI"),
+            InstructionType::CPSE => String::from("CPSE"),
+            InstructionType::DEC => String::from("DEC"),
+            InstructionType::DES => String::from("DES"),
+            InstructionType::EICALL => String::from("EICALL"),
+            InstructionType::EIJMP => String::from("EIJMP"),
+            InstructionType::ELPM => String::from("ELPM"),
+            InstructionType::EOR => String::from("EOR"),
+            InstructionType::FMUL => String::from("FMUL"),
+            InstructionType::FMULS => String::from("FMULS"),
+            InstructionType::FMULSU => String::from("FMULSU"),
+            InstructionType::ICALL => String::from("ICALL"),
+            InstructionType::IJMP => String::from("IJMP"),
+            InstructionType::IN => String::from("IN"),
+            InstructionType::INC => String::from("INC"),
+            InstructionType::JMP => String::from("JMP"),
+            InstructionType::LAC => String::from("LAC"),
+            InstructionType::LAS => String::from("LAS"),
+            InstructionType::LAT => String::from("LAT"), 
+            InstructionType::LD => String::from("LD"),
+            InstructionType::LD_LDD_Y => String::from("LD_LDD_Y"),
+            InstructionType::LD_LDD_Z => String::from("LD_LDD_Z"),
+            InstructionType::LDI => String::from("LDI"),
+            InstructionType::LDS => String::from("LDS"),
+            InstructionType::LDS_16bit => String::from("LDS_16bit"), // (16-bit) – Load Direct from Data Space......................................................... 117
+            InstructionType::LPM => String::from("LPM"), // – Load Program Memory...............................................................................118
+            InstructionType::LSL => String::from("LSL"), // – Logical Shift Left..........................................................................................120
+            InstructionType::LSR => String::from("LSR"), // – Logical Shift Right.......................................................................................122
+            InstructionType::MOV => String::from("MOV"), // – Copy Register............................................................................................123
+            InstructionType::MOVW => String::from("MOVW"), // – Copy Register Word...............................................................................124
+            InstructionType::MUL => String::from("MUL"), // – Multiply Unsigned.......................................................................................125
+            InstructionType::MULS => String::from("MULS"), // – Multiply Signed........................................................................................ 126
+            InstructionType::MULSU  => String::from("MULSU"), //
+            InstructionType::NEG => String::from("NEG"),
+            InstructionType::NOP => String::from("NOP"), 
+            InstructionType::OR => String::from("OR"),
+            InstructionType::ORI => String::from("ORI"),
+            InstructionType::OUT => String::from("OUT"),
+            InstructionType::POP => String::from("POP"),
+            InstructionType::PUSH => String::from("PUSH"),
+            InstructionType::RCALL => String::from("RCALL"),
+            InstructionType::RET => String::from("RET"),
+            InstructionType::RETI => String::from("RETI"), 
+            InstructionType::RJMP => String::from("RJMP"),
+            InstructionType::ROL => String::from("ROL"), //
+            InstructionType::ROR => String::from("ROR"), // – Rotate Right through Carry........................................................................145
+            InstructionType::SBC => String::from("SBC"), 
+            InstructionType::SBCI => String::from("SBCI"),
+            InstructionType::SBI => String::from("SBI"), // – Set Bit in I/O Register.................................................................................. 151
+            InstructionType::SBIC => String::from("SBIC"), // – Skip if Bit in I/O Register is Cleared........................................................ 152
+            InstructionType::SBIS => String::from("SBIS"), // – Skip if Bit in I/O Register is Set............................................................... 153
+            InstructionType::SBIW => String::from("SBIW"), // – Subtract Immediate from Word...............................................................154
+            InstructionType::SBR => String::from("SBR"), // – Set Bits in Register...................................................................................156
+            InstructionType::SBRC => String::from("SBRC"), // – Skip if Bit in Register is Cleared............................................................ 157
+            InstructionType::SBRS => String::from("SBRS"), // – Skip if Bit in Register is Set....................................................................158
+            InstructionType::SEC => String::from("SEC"), // – Set Carry Flag.......................................................................................... 159
+            InstructionType::SEH => String::from("SEH"), // – Set Half Carry Flag...................................................................................160
+            InstructionType::SEI => String::from("SEI"), //
+            InstructionType::SEN => String::from("SEN"), // – Set Negative Flag.....................................................................................162
+            InstructionType::SER => String::from("SER"), // – Set all Bits in Register.............................................................................. 163
+            InstructionType::SES => String::from("SES"), // – Set Signed Flag........................................................................................ 164
+            InstructionType::SET => String::from("SET"), // – Set T Flag................................................................................................. 165
+            InstructionType::SEV => String::from("SEV"), // – Set Overflow Flag..................................................................................... 166
+            InstructionType::SEZ => String::from("SEZ"), // – Set Zero Flag............................................................................................ 167
+            InstructionType::SLEEP => String::from("SLEEP"), //................................................................................................................. 168
+            InstructionType::SPM => String::from("SPM"), // – Store Program Memory............................................................................169
+            InstructionType::SPM_2 => String::from("SPM_2"), // SPM #2 – Store Program Memory.......................................................................171
+            InstructionType::ST => String::from("ST"),
+            InstructionType::ST_STD_Y_1 => String::from("ST_STD_Y_1"), 
+            InstructionType::ST_STD_Z_1 => String::from("ST_STD_Z_1"), 
+            InstructionType::STS => String::from("STS"), // STS – Store Direct to Data Space.......................................................................179
+            InstructionType::STS_16bit => String::from("STS_16bit"), // STS (16-bit) – Store Direct to Data Space.......................................................... 180
+            InstructionType::SUB => String::from("SUB"), // – Subtract Without Carry.............................................................................181
+            InstructionType::SUBI => String::from("SUBI"), // – Subtract Immediate................................................................................. 183
+            InstructionType::SWAP => String::from("SWAP"), // – Swap Nibbles........................................................................................ 185
+            InstructionType::TST => String::from("TST"), // – Test for Zero or Minus...............................................................................186
+            InstructionType::WDR => String::from("WDR"), // – Watchdog Reset......................................................................................187
+            InstructionType::XCH => String::from("XCH"),
+            // STD Y (B) = 119. 
+            // STD Y (C) = 119.
+            // STD Y (D) = 119.
+            // STD Z (A) = 120.
+            // STD Z (B) = 120.
+            // STD Z (C) = 120.
+            // STD Z (D) = 120.
+            
+            _ => String::from("UNKNOWN"),
+        }
+    }
 
     #[allow(dead_code)]
     pub const fn cycles(instruction_type: &InstructionType) -> usize {

@@ -2,8 +2,7 @@ use std::collections::HashMap;
 
 use crate::{ihex_mgmt::ihex_mgmt::Segment, instructions::instruction_type::InstructionType};
 
-use super::{asm_record::AsmRecord, io_destination::IoDestination};
-use std::rc::Rc;
+use super::asm_record::AsmRecord;
 
 #[macro_export]
 macro_rules! HIGH {
@@ -114,7 +113,11 @@ pub fn create_label(labels: &mut HashMap<String, usize>, label: String, idx: usi
 
 // 1. Add a cycle counter
 pub struct AsmEncoder {
+
     pub labels: HashMap<String, usize>,
+
+    pub encoding_success: bool,
+
 }
 
 impl AsmEncoder {
@@ -122,6 +125,7 @@ impl AsmEncoder {
     pub fn new() -> AsmEncoder {
         AsmEncoder {
             labels: HashMap::new(),
+            encoding_success: true,
         }
     }
 
@@ -158,7 +162,9 @@ impl AsmEncoder {
 
     }
 
-    pub fn encode(&self, segment: &mut Segment, asm_record: &AsmRecord) {
+    pub fn encode(&mut self, segment: &mut Segment, asm_record: &AsmRecord) {
+
+        log::info!("Encoding: {}" , asm_record);
 
         match asm_record.instruction_type {
             /*   6 */
@@ -187,7 +193,7 @@ impl AsmEncoder {
             }
             /*  66 */
             InstructionType::JMP => {
-                Self::encode_jmp(&self, segment, &asm_record.idx, &asm_record.target_label);
+                Self::encode_jmp(self, segment, &asm_record.idx, &asm_record.target_label);
             }
             /*  73 */
             InstructionType::LDI => {
@@ -203,7 +209,8 @@ impl AsmEncoder {
             }
             /*  88 */
             InstructionType::OUT => {
-                Self::encode_out(&self, segment, asm_record.io_dest, asm_record.reg_1);
+                //Self::encode_out(self, segment, asm_record.io_dest, asm_record.reg_1);
+                Self::encode_out(self, segment, asm_record.reg_1, asm_record.reg_2);
             }
             /*  89 */
             InstructionType::POP => {
@@ -373,39 +380,52 @@ impl AsmEncoder {
     /// 66. JMP – Jump
     /// 1001 010k kkkk 110k
     /// kkkk kkkk kkkk kkkk
-    fn encode_jmp(&self, segment: &mut Segment, idx: &usize, label: &String) {
+    fn encode_jmp(&mut self, segment: &mut Segment, idx: &usize, label: &String) {
+
+        if label.is_empty() {
+            log::error!("Encoding JMP instruction but the label is missing!");
+            self.encoding_success = false;
+            return
+        }
+
+        if !self.labels.contains_key(label) {
+            log::error!("Encoding JMP instruction but label \"{}\" is not defined!", label);
+            self.encoding_success = false;
+            return
+        }
+
         // register is increased by 16 to arrive at the register id
         let label_address: i32 = self.labels[label] as i32;
         let mut offset_k: i32 = label_address - (*idx as i32);
 
-        log::info!("offset_k: {:#06x}", offset_k);
-        log::info!("offset_k: {:#06x}", offset_k as u32);
+        log::trace!("offset_k: {:#06x}", offset_k);
+        log::trace!("offset_k: {:#06x}", offset_k as u32);
 
         offset_k &= 0b00000000001111111111111111111111i32;
 
-        log::info!("offset_k: {:#06x}", offset_k);
-        log::info!("offset_k: {:#06x}", offset_k as u32);
+        log::trace!("offset_k: {:#06x}", offset_k);
+        log::trace!("offset_k: {:#06x}", offset_k as u32);
 
         let result: u32 = (0b1001010u32 << 25)
             | ((offset_k as u32 >> 17) << 20)
             | (0b110u32 << 17)
             | (offset_k as u32 & 0b11111111111111111u32);
 
-        log::info!("result: {:#32b}", result);
+        log::trace!("result: {:#32b}", result);
 
-        log::info!("ENC JMP: {:#02x}", (result >> 16u16) as u8);
+        log::trace!("ENC JMP: {:#02x}", (result >> 16u16) as u8);
         segment.data.push((result >> 16u16) as u8);
         segment.size += 1u32;
 
-        log::info!("ENC JMP: {:#02x}", (result >> 24u16) as u8);
+        log::trace!("ENC JMP: {:#02x}", (result >> 24u16) as u8);
         segment.data.push((result >> 24u16) as u8);
         segment.size += 1u32;
 
-        log::info!("ENC JMP: {:#02x}", (result >> 0u16) as u8);
+        log::trace!("ENC JMP: {:#02x}", (result >> 0u16) as u8);
         segment.data.push((result >> 0u16) as u8);
         segment.size += 1u32;
 
-        log::info!("ENC JMP: {:#02x}", (result >> 8u16) as u8);
+        log::trace!("ENC JMP: {:#02x}", (result >> 8u16) as u8);
         segment.data.push((result >> 8u16) as u8);
         segment.size += 1u32;
 
@@ -478,48 +498,50 @@ impl AsmEncoder {
 
     /// 88. OUT – Store Register to I/O Location
     /// 1011 1AAr rrrr AAAA
-    fn encode_out(&self, segment: &mut Segment, io_dest: IoDestination, register_r: u16) {
-        if register_r > 31 {
-            panic!("Invalid register for OUT! Only registers [r0, r31] are allowed")
-        }
-        // if io_dest > 64 {
-        //     panic!("Invalid address for OUT! Only address [0, 0x3F] are allowed")
-        // }
+    //fn encode_out(&mut self, segment: &mut Segment, io_dest: IoDestination, register_r: u16) {
+    fn encode_out(&mut self, segment: &mut Segment, register_a: u16, register_r: u16) {
 
-        #[allow(unused)]
-        let mut a_val: u16 = 0x00;
+        if register_r > 31 {
+            log::error!("Invalid register for OUT! Only registers [r0, r31] are allowed");
+            self.encoding_success = false;
+            return;
+        }
+
+        //#[allow(unused)]
+        //let mut a_val: u16 = 0x00;
+        let a_val: u16 = register_a;
         let r_val: u16 = register_r;
 
-        match io_dest {
-            IoDestination::SPL => {
-                a_val = 0x01;
-            }
-            IoDestination::SPH => {
-                a_val = 0x02;
-            }
+        // match io_dest {
+        //     IoDestination::SPL => {
+        //         a_val = 0x01;
+        //     }
+        //     IoDestination::SPH => {
+        //         a_val = 0x02;
+        //     }
 
-            IoDestination::PORTB => {
-                a_val = 0x25;
-            }
-            IoDestination::DDRB => {
-                a_val = 0x24;
-            }
-            IoDestination::PINB => {
-                a_val = 0x23;
-            }
+        //     IoDestination::PORTB => {
+        //         a_val = 0x25;
+        //     }
+        //     IoDestination::DDRB => {
+        //         a_val = 0x24;
+        //     }
+        //     IoDestination::PINB => {
+        //         a_val = 0x23;
+        //     }
 
-            IoDestination::PORTC => {
-                a_val = 0x28;
-            }
-            IoDestination::DDRC => {
-                a_val = 0x27;
-            }
-            IoDestination::PINC => {
-                a_val = 0x26;
-            }
+        //     IoDestination::PORTC => {
+        //         a_val = 0x28;
+        //     }
+        //     IoDestination::DDRC => {
+        //         a_val = 0x27;
+        //     }
+        //     IoDestination::PINC => {
+        //         a_val = 0x26;
+        //     }
 
-            _ => panic!("Unknown enum value"),
-        }
+        //     _ => panic!("Unknown enum value"),
+        // }
 
         let result: u16 = (0b1011100000000000u16
             | ((a_val >> 4u16) << 9u16)

@@ -1,12 +1,13 @@
 use crate::instructions::instruction_type::InstructionType;
 
 use super::io_destination::IoDestination;
-use std::ops::{Deref, DerefMut};
+
+use std::fmt;
 
 /// This struct is the model for a line in a assembler source code file
 #[derive(Debug, Clone)]
 #[derive(Default)]
-pub struct AsmRecord/*<'a, T>*/ {
+pub struct AsmRecord {
 
     pub label: String,
 
@@ -23,35 +24,9 @@ pub struct AsmRecord/*<'a, T>*/ {
 
     pub idx: usize,
 
-    //pub text: T,
-
-    //pub reffff: &'a Vec<&'a AsmRecord<'a, &'a str>>,
 }
 
-// impl<T> Deref for AsmRecord {
-
-//     type Target = T;
-
-//     fn deref(&self) -> &Self::Target {
-//         &self.idx
-//     }
-// }
-
-
-impl/*<'a, T>*/ AsmRecord/*<'a, T>*/ {
-
-    // pub fn new() -> AsmRecord{
-    //     AsmRecord {
-    //         label: "",
-    //         instruction_type: InstructionType::Unknown,
-    //         reg_1: "",
-    //         reg_2: "",
-    //         data: "",
-    //         target_label: "",
-    //         io_dest: IoDestination::UNKNOWN,
-    //         idx: 0usize,
-    //     }
-    // }
+impl AsmRecord {
 
     pub fn new(
         label: String,
@@ -61,9 +36,7 @@ impl/*<'a, T>*/ AsmRecord/*<'a, T>*/ {
         data: u16,
         target_label: String,
         io_dest: IoDestination,
-        //text: T,
-        //reffff: &'a Vec<&'a AsmRecord<'a, &'a str>>
-    ) -> AsmRecord/*<'a, T>*/ {
+    ) -> AsmRecord {
         AsmRecord {
             label: label,
             instruction_type: instruction_type,
@@ -73,36 +46,31 @@ impl/*<'a, T>*/ AsmRecord/*<'a, T>*/ {
             target_label: target_label,
             io_dest: io_dest,
             idx: 0usize,
-            //text: text,
-            //reffff: reffff,
         }
     }
 
     pub fn clear(&mut self) {
         self.label = String::default();
         self.instruction_type = InstructionType::UNKNOWN;
-        //self.reg_1 = u16::default();
         self.reg_1 = 0xFF;
-        //self.reg_2 = u16::default();
         self.reg_2 = 0xFF;
         self.data = u16::default();
         self.target_label = String::default();
         self.io_dest = IoDestination::UNKNOWN;
         self.idx = usize::default();
-        //self.text = T::default();
     }
-
-    // pub fn emit(&self) {
-    //     log::info!("emit");
-    //     //self.reffff.get(0).as_mut().unwrap().as_mut().data = 0x01;
-    //     //self.reffff.first_mut().unwrap().reg_1 = 0x01;
-
-    //     //let first = &mut self.reffff[0];
-
-    //     //let mut ref0 = &mut self.reffff[0];
-    // }
 
     pub fn set_idx(&mut self, idx: usize) {
         self.idx = idx;
+    }
+    
+}
+
+impl fmt::Display for AsmRecord {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "(label:{}, instruction_type:{}, target_label:{})", 
+            self.label, 
+            self.instruction_type.to_string(), 
+            self.target_label)
     }
 }

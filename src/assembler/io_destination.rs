@@ -43,23 +43,30 @@ impl IoDestination {
         }
     }
 
+    /// .
+    ///
+    /// # Panics
+    ///
+    /// Panics if .
+    #[allow(unused)]
     pub const fn from_code(code: u16) -> IoDestination {
+        panic!("");
 
-        match code {
+        // match code {
 
-            0x01u16 => IoDestination::SPL,
-            0x02u16 => IoDestination::SPH,
+        //     0x25u16 => IoDestination::PORTB,
+        //     0x24u16 => IoDestination::DDRB,
+        //     0x23u16 => IoDestination::PINB,
 
-            0x25u16 => IoDestination::PORTB,
-            0x24u16 => IoDestination::DDRB,
-            0x23u16 => IoDestination::PINB,
+        //     0x28u16 => IoDestination::PORTC,
+        //     0x27u16 => IoDestination::DDRC,
+        //     0x26u16 => IoDestination::PINC,
 
-            0x28u16 => IoDestination::PORTC,
-            0x27u16 => IoDestination::DDRC,
-            0x26u16 => IoDestination::PINC,
+        //     0x3du16 => IoDestination::SPL,
+        //     0x3eu16 => IoDestination::SPH,
 
-            _ => IoDestination::UNKNOWN,
-        }
+        //     _ => IoDestination::UNKNOWN,
+        // }
     }
 
     pub fn from_string(code: &str) -> IoDestination {
