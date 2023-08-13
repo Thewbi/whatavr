@@ -371,18 +371,94 @@ impl<'i> assemblerVisitorCompat<'i> for DefaultAssemblerVisitor {
                 }
             }
         }
-        // perform standard handling for all commands other than ST.
-        // ST has 11 variants!
+        
         let mnemonic_upper_case = self.mnemonic.to_uppercase();
         let mnemonic_upper_case_as_string: &str = mnemonic_upper_case.as_str();
 
         let base_upper_case = self.data.to_uppercase();
         let base_upper_case_as_string: &str = base_upper_case.as_str();
 
-        if mnemonic_upper_case_as_string == "ST" {
+        if mnemonic_upper_case_as_string == "LDS" {
+
+            // perform special handling for the LDS command which has 2 variants
 
             let mut instruction_type: InstructionType = InstructionType::UNKNOWN;
+
+            let without_prefix = self.reg_2.trim_start_matches("0x");
+            let reg_2_as_u16: u16 = u16::from_str_radix(without_prefix, 16).unwrap();
+
+            //let mut register_offset: u16 = 0u16;
+
+            // if the second parameter is a value that fits into 7 bit, choose 
+            // the 16 bit variant of LDS. Otherwise choose the 32 bit variant.
+            if reg_2_as_u16 <= 0x7F {
+                instruction_type = InstructionType::LDS_16bit;
+
+                // // the 16 bit version only uses 4 bit to encode the registers 
+                // // r0 to r31. Since 32 does not fit into 4 bit, an offset of
+                // // 16 is used and only half the registers can be used in the
+                // // 16 bit version
+                // register_offset = 16u16;
+            } else {
+                instruction_type = InstructionType::LDS;
+            }
+
             log::trace!("{:?}", instruction_type);
+
+            // create an AsmRecord so it can be added to the application code
+            let rec = AsmRecord::new(
+                self.label.clone(), 
+                instruction_type, 
+                self.record.reg_1, 
+                self.record.reg_2 /*- register_offset*/, 
+                self.record.data, 
+                self.target_label.clone(), 
+                self.record.io_dest);
+            self.records.push(rec);
+
+        } else if mnemonic_upper_case_as_string == "STS" {
+
+            // perform special handling for the STS command which has 2 variants
+
+            let mut instruction_type: InstructionType = InstructionType::UNKNOWN;
+
+            let without_prefix = self.reg_1.trim_start_matches("0x");
+            let reg_1_as_u16: u16 = u16::from_str_radix(without_prefix, 16).unwrap();
+
+            // let mut register_offset: u16 = 0u16;
+
+            // if the second parameter is a value that fits into 7 bit, choose 
+            // the 16 bit variant of LDS. Otherwise choose the 32 bit variant.
+            if reg_1_as_u16 <= 0x7F {
+                instruction_type = InstructionType::STS_16bit;
+
+                // // the 16 bit version only uses 4 bit to encode the registers 
+                // // r0 to r31. Since 32 does not fit into 4 bit, an offset of
+                // // 16 is used and only half the registers can be used in the
+                // // 16 bit version
+                // register_offset = 16u16;
+            } else {
+                instruction_type = InstructionType::STS;
+            }
+
+            log::trace!("{:?}", instruction_type);
+
+            // create an AsmRecord so it can be added to the application code
+            let rec = AsmRecord::new(
+                self.label.clone(), 
+                instruction_type, 
+                self.record.reg_1, 
+                self.record.reg_2 /*- register_offset*/, 
+                self.record.data, 
+                self.target_label.clone(), 
+                self.record.io_dest);
+            self.records.push(rec);
+
+        } else if mnemonic_upper_case_as_string == "ST" {
+
+            // perform special handling for the ST command which has 11 variants
+
+            let mut instruction_type: InstructionType = InstructionType::UNKNOWN;
 
             // expectation: 
             // self.record.data contains the pointer base (X, Y or Z)
@@ -414,6 +490,8 @@ impl<'i> assemblerVisitorCompat<'i> for DefaultAssemblerVisitor {
                 panic!("Unknown option \"{}\"", base_upper_case_as_string);
             }
 
+            log::trace!("{:?}", instruction_type);
+
             // create an AsmRecord so it can be added to the application code
             let rec = AsmRecord::new(
                 self.label.clone(), 
@@ -424,7 +502,9 @@ impl<'i> assemblerVisitorCompat<'i> for DefaultAssemblerVisitor {
                 self.target_label.clone(), 
                 self.record.io_dest);
             self.records.push(rec);
+
         } else {
+
             // create an AsmRecord so it can be added to the application code
             let rec = AsmRecord::new(
                 self.label.clone(), 
@@ -435,6 +515,7 @@ impl<'i> assemblerVisitorCompat<'i> for DefaultAssemblerVisitor {
                 self.target_label.clone(), 
                 self.record.io_dest);
             self.records.push(rec);
+
         }
         self.ascend_ident();
         self.reset_self();
