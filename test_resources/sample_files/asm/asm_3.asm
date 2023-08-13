@@ -1,10 +1,10 @@
-ldi	r16, LOW(RAMEND)		; load low byte of RAMEND into r16
-out	SPL, r16			; store r16 in stack pointer low
-ldi	r16, HIGH(RAMEND)	; load high byte of RAMEND into r16
-out	SPH, r16			; store r16 in stack pointer high
-push	r0			; push r0 to the stack
-pop	r0			; restore r0 from stack
-push	r0			; push contents of r0 to stack
+	ldi	r16, LOW(RAMEND)		; load low byte of RAMEND into r16
+	out	SPL, r16			; store r16 in stack pointer low
+	ldi	r16, HIGH(RAMEND)	; load high byte of RAMEND into r16
+	out	SPH, r16			; store r16 in stack pointer high
+	push	r0			; push r0 to the stack
+	pop	r0			; restore r0 from stack
+	push	r0			; push contents of r0 to stack
 	push	r1			; push contents of r1 to stack
 	push	r2			; push contents of r2 to stack
 

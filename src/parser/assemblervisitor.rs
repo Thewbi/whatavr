@@ -45,12 +45,6 @@ pub trait assemblerVisitor<'input>: ParseTreeVisitor<'input,assemblerParserConte
 	fn visit_label_definition(&mut self, ctx: &Label_definitionContext<'input>) { self.visit_children(ctx) }
 
 	/**
-	 * Visit a parse tree produced by {@link assemblerParser#parameter}.
-	 * @param ctx the parse tree
-	 */
-	fn visit_parameter(&mut self, ctx: &ParameterContext<'input>) { self.visit_children(ctx) }
-
-	/**
 	 * Visit a parse tree produced by {@link assemblerParser#macro_placeholder}.
 	 * @param ctx the parse tree
 	 */
@@ -242,14 +236,6 @@ pub trait assemblerVisitorCompat<'input>:ParseTreeVisitorCompat<'input, Node= as
 	 * @param ctx the parse tree
 	 */
 		fn visit_label_definition(&mut self, ctx: &Label_definitionContext<'input>) -> Self::Return {
-			self.visit_children(ctx)
-		}
-
-	/**
-	 * Visit a parse tree produced by {@link assemblerParser#parameter}.
-	 * @param ctx the parse tree
-	 */
-		fn visit_parameter(&mut self, ctx: &ParameterContext<'input>) -> Self::Return {
 			self.visit_children(ctx)
 		}
 
@@ -478,11 +464,6 @@ where
 
 	fn visit_label_definition(&mut self, ctx: &Label_definitionContext<'input>){
 		let result = <Self as assemblerVisitorCompat>::visit_label_definition(self, ctx);
-        *<Self as ParseTreeVisitorCompat>::temp_result(self) = result;
-	}
-
-	fn visit_parameter(&mut self, ctx: &ParameterContext<'input>){
-		let result = <Self as assemblerVisitorCompat>::visit_parameter(self, ctx);
         *<Self as ParseTreeVisitorCompat>::temp_result(self) = result;
 	}
 

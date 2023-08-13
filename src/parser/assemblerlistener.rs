@@ -65,16 +65,6 @@ fn enter_label_definition(&mut self, _ctx: &Label_definitionContext<'input>) { }
  */
 fn exit_label_definition(&mut self, _ctx: &Label_definitionContext<'input>) { }
 /**
- * Enter a parse tree produced by {@link assemblerParser#parameter}.
- * @param ctx the parse tree
- */
-fn enter_parameter(&mut self, _ctx: &ParameterContext<'input>) { }
-/**
- * Exit a parse tree produced by {@link assemblerParser#parameter}.
- * @param ctx the parse tree
- */
-fn exit_parameter(&mut self, _ctx: &ParameterContext<'input>) { }
-/**
  * Enter a parse tree produced by {@link assemblerParser#macro_placeholder}.
  * @param ctx the parse tree
  */

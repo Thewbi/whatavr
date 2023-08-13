@@ -22,14 +22,14 @@ row :
 
 instruction : mnemonic ( param ( COMMA param )? )? ;
 
-param : IDENTIFIER | expression | asm_intrinsic_usage | macro_placeholder ;
+param : (IDENTIFIER (PLUS | MINUS)? ) | expression | asm_intrinsic_usage | macro_placeholder ;
 
 // examples: delayms 500
 macro_usage : IDENTIFIER ( expression )* ;
 
 label_definition : IDENTIFIER COLON ;
 
-parameter : IDENTIFIER ;
+//parameter : IDENTIFIER ;
 
 macro_placeholder : AT NUMBER ;
 
@@ -134,7 +134,7 @@ mnemonic :
     ;
 
 mnemonic_a :
-    ADD | ADIW | AND | ANDI | ASR
+    ADD | ADC | ADIW | AND | ANDI | ASR
     ;
 
 mnemonic_b :
@@ -233,6 +233,7 @@ fragment Y:[yY];
 fragment Z:[zZ];
 
 ADD : A D D ;
+ADC : A D C ;
 ADIW : A D I W ;
 AND : A N D ;
 ANDI : A N D I ;
@@ -437,4 +438,4 @@ STRING : '"' ('""'|~'"')* '"' ; // quote-quote is an escaped quote
 NUMBER : [0-9]+ ;
 HEX_NUMBER: '0' 'x' [a-fA-F0-9]+ ;
 
-IDENTIFIER : [a-zA-Z_]([a-zA-Z0-9_])+ ;
+IDENTIFIER : [a-zA-Z_]([a-zA-Z0-9_])* ;

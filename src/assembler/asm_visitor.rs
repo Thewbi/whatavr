@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use antlr_rust::common_token_stream::CommonTokenStream;
 use antlr_rust::token_factory::ArenaCommonFactory;
 use antlr_rust::InputStream;
@@ -77,7 +75,7 @@ impl DefaultAssemblerVisitor {
             return;
         }
         self.ident = self.ident + 1;
-        for n in 0..self.ident {
+        for _n in 0..self.ident {
             print!("  ");
         }
         println!("{}", label);
@@ -251,6 +249,7 @@ impl<'i> ParseTreeVisitorCompat<'i> for DefaultAssemblerVisitor {
         c
     }
 
+    #[allow(dead_code, unused)]
     fn should_visit_next_child(
         &self,
         node: &<Self::Node as antlr_rust::parser::ParserNodeType<'i>>::Type,
@@ -265,7 +264,7 @@ impl<'i> assemblerVisitorCompat<'i> for DefaultAssemblerVisitor {
 
     fn visit_asm_file(&mut self, ctx: &parser::assemblerparser::Asm_fileContext<'i>) -> Self::Return {
 
-        let mut children_result = self.visit_children(ctx);
+        let children_result = self.visit_children(ctx);
 
         // the very last line contained a label definition
         // force a NOP operation and place the label onto that NOP operation
@@ -336,24 +335,107 @@ impl<'i> assemblerVisitorCompat<'i> for DefaultAssemblerVisitor {
             self.record.io_dest = IoDestination::from_string(self.data.as_str());
             if self.record.io_dest == IoDestination::UNKNOWN
             {
-                let parse_result = self.data.parse::<u16>();
-                if parse_result.is_ok() {
-                    self.record.data = parse_result.unwrap();
-                } else  {
-                    self.target_label = self.data.clone();
+                if self.data.starts_with("0b")
+                {
+                    // parse binary
+                    let without_prefix = self.data.trim_start_matches("0b");
+                    self.record.data = u16::from_str_radix(without_prefix, 2).unwrap();
+                } 
+                else if self.data.starts_with("0x")
+                {
+                    // parse hex
+                    let without_prefix = self.data.trim_start_matches("0x");
+                    self.record.data = u16::from_str_radix(without_prefix, 16).unwrap();
+                } 
+                else if self.data.starts_with("$")
+                {
+                    // parse hex
+                    let without_prefix = self.data.trim_start_matches("$");
+                    self.record.data = u16::from_str_radix(without_prefix, 16).unwrap();
+                }
+                else if self.data.starts_with("0")
+                {
+                    // parse octal
+                    let without_prefix = self.data.trim_start_matches("0");
+                    self.record.data = u16::from_str_radix(without_prefix, 8).unwrap();
+                }
+                else 
+                {
+                    // parse decimal
+                    let parse_result = self.data.parse::<u16>();
+                    if parse_result.is_ok() {
+                        self.record.data = parse_result.unwrap();
+                    } else  {
+                        self.target_label = self.data.clone();
+                    }
                 }
             }
         }
-        // create an AsmRecord so it can be added to the application code
-        let rec = AsmRecord::new(
-            self.label.clone(), 
-            InstructionType::from_string(&self.mnemonic.as_str()), 
-            self.record.reg_1, 
-            self.record.reg_2, 
-            self.record.data, 
-            self.target_label.clone(), 
-            self.record.io_dest);
-        self.records.push(rec);
+        // perform standard handling for all commands other than ST.
+        // ST has 11 variants!
+        let mnemonic_upper_case = self.mnemonic.to_uppercase();
+        let mnemonic_upper_case_as_string: &str = mnemonic_upper_case.as_str();
+
+        let base_upper_case = self.data.to_uppercase();
+        let base_upper_case_as_string: &str = base_upper_case.as_str();
+
+        if mnemonic_upper_case_as_string == "ST" {
+
+            let mut instruction_type: InstructionType = InstructionType::UNKNOWN;
+            log::trace!("{:?}", instruction_type);
+
+            // expectation: 
+            // self.record.data contains the pointer base (X, Y or Z)
+            // self.record.reg_1 contains the register that holds the data
+
+            if base_upper_case_as_string == "X" {
+                instruction_type = InstructionType::ST_STD_X_1;
+            } else if base_upper_case_as_string == "X+" {
+                instruction_type = InstructionType::ST_STD_X_2;
+            } else if base_upper_case_as_string == "-X" {
+                instruction_type = InstructionType::ST_STD_X_3;
+            } else if base_upper_case_as_string == "Y" {
+                instruction_type = InstructionType::ST_STD_Y_1;
+            } else if base_upper_case_as_string == "Y+" {
+                instruction_type = InstructionType::ST_STD_Y_2;
+            } else if base_upper_case_as_string == "-Y" {
+                instruction_type = InstructionType::ST_STD_Y_3;
+            } else if base_upper_case_as_string.starts_with("Y+") {
+                instruction_type = InstructionType::ST_STD_Y_4;
+            } else if base_upper_case_as_string == "Z" {
+                instruction_type = InstructionType::ST_STD_Z_1;
+            } else if base_upper_case_as_string == "Z+" {
+                instruction_type = InstructionType::ST_STD_Z_2;
+            } else if base_upper_case_as_string == "-Z" {
+                instruction_type = InstructionType::ST_STD_Z_3;
+            } else if base_upper_case_as_string.starts_with("Z+") {
+                instruction_type = InstructionType::ST_STD_Z_4;
+            } else {
+                panic!("Unknown option \"{}\"", base_upper_case_as_string);
+            }
+
+            // create an AsmRecord so it can be added to the application code
+            let rec = AsmRecord::new(
+                self.label.clone(), 
+                instruction_type, 
+                self.record.reg_1, 
+                self.record.reg_2, 
+                self.record.data, 
+                self.target_label.clone(), 
+                self.record.io_dest);
+            self.records.push(rec);
+        } else {
+            // create an AsmRecord so it can be added to the application code
+            let rec = AsmRecord::new(
+                self.label.clone(), 
+                InstructionType::from_string(&self.mnemonic.as_str()), 
+                self.record.reg_1, 
+                self.record.reg_2, 
+                self.record.data, 
+                self.target_label.clone(), 
+                self.record.io_dest);
+            self.records.push(rec);
+        }
         self.ascend_ident();
         self.reset_self();
         self.label = String::default();
@@ -415,22 +497,22 @@ impl<'i> assemblerVisitorCompat<'i> for DefaultAssemblerVisitor {
         return vec![];
     }
 
-    fn visit_parameter(&mut self, ctx: &parser::assemblerparser::ParameterContext<'i>) -> Self::Return {
-        self.descend_ident("visit_parameter");
-        let children_result = self.visit_children(ctx);
+    // fn visit_parameter(&mut self, ctx: &parser::assemblerparser::ParameterContext<'i>) -> Self::Return {
+    //     self.descend_ident("visit_parameter");
+    //     let children_result = self.visit_children(ctx);
 
-        if self.reg_1 == "" && self.is_register_name(&self.last_terminal) {
-            self.reg_1 = self.last_terminal.clone();
-        } else if self.reg_2 == "" && self.is_register_name(&self.last_terminal) {
-            self.reg_2 = self.last_terminal.clone();
-        } else {
-            self.data = self.last_terminal.clone();
-        }
+    //     if self.reg_1 == "" && self.is_register_name(&self.last_terminal) {
+    //         self.reg_1 = self.last_terminal.clone();
+    //     } else if self.reg_2 == "" && self.is_register_name(&self.last_terminal) {
+    //         self.reg_2 = self.last_terminal.clone();
+    //     } else {
+    //         self.data = self.last_terminal.clone();
+    //     }
 
-        self.last_terminal = String::default();
-        self.ascend_ident();
-        children_result
-    }
+    //     self.last_terminal = String::default();
+    //     self.ascend_ident();
+    //     children_result
+    // }
 
     fn visit_macro_placeholder(&mut self, ctx: &parser::assemblerparser::Macro_placeholderContext<'i>) -> Self::Return {
         self.descend_ident("visit_macro_placeholder");
@@ -492,18 +574,20 @@ impl<'i> assemblerVisitorCompat<'i> for DefaultAssemblerVisitor {
                 return children_result;
             }
             
-            // todo fix this!
-            //panic!("fix this");
-            println!("FIX THIS!");
-            println!("FIX THIS!");
-            println!("FIX THIS!");
-            // DDC0
-            if "DDC0".eq(&children_result[0]) {
-                children_result[0] = "1".to_string();
+            // // // todo fix this!
+            // // //panic!("fix this");
+            // // println!("FIX THIS!");
+            // // println!("FIX THIS!");
+            // // println!("FIX THIS!");
+            // // DDC0
+            // if "DDC0".eq(&children_result[0]) {
+            //     children_result[0] = "1".to_string();
 
-                self.ascend_ident();
-                return children_result;
-            }
+            //     self.ascend_ident();
+            //     return children_result;
+            // }
+
+            // panic!("Fix this!");
 
         }
 

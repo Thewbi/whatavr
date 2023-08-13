@@ -1,7 +1,8 @@
 use std::collections::HashMap;
 
 use crate::HASHMAP;
-use crate::assembler::io_destination::IoDestination;
+use crate::HIGH_U16;
+use crate::LOW_U16;
 use crate::common::common_constants::RAMEND;
 use crate::ihex_mgmt::ihex_mgmt::Segment;
 use crate::instructions::instructions::INSTRUCTIONS;
@@ -82,14 +83,11 @@ fn decrement_stack_pointer(cpu: &mut CPU) {
 
 pub struct CPU {
 
-    // the z flag
+    // the zero flag
     pub z: bool,
 
-    // // stack pointer high, low
-    // pub sph: u8,
-    sph: u8,
-    // pub spl: u8,
-    spl: u8,
+    // the carry flag
+    pub c: bool,
 
     // pc always points to the instruction after the current instruction so it does not start at 0x00 but at 0x02
     pub pc: i32,
@@ -107,8 +105,7 @@ pub struct CPU {
 impl Default for CPU {
     fn default() -> Self {
         Self { z: false,
-            sph: 0x00u8,
-            spl: 0x00u8,
+            c: false,
             pc: 0x02i32,
             register_file: [0; 32usize],
             sram: [0; RAMEND as usize],
@@ -119,11 +116,11 @@ impl Default for CPU {
 
 impl CPU {
 
-    pub fn new(z: bool, pc: i32, register_file: [u8; 32usize], sram: [u8; RAMEND as usize], sfr: [u8; 255usize]) -> Self {
+    #[allow(dead_code, unused)]
+    pub fn new(z: bool, c: bool, pc: i32, register_file: [u8; 32usize], sram: [u8; RAMEND as usize], sfr: [u8; 255usize]) -> Self {
         Self { 
             z: z,
-            sph: 0x00u8,
-            spl: 0x00u8,
+            c: c,
             pc: pc,
             register_file: register_file,
             sram: sram,
@@ -162,6 +159,37 @@ impl CPU {
         return &mut self.sfr[value];
     }
 
+    #[allow(dead_code, unused)]
+    fn register_z_high(&mut self) -> &mut u8 {
+        return &mut self.register_file[30];
+    }
+
+    #[allow(dead_code, unused)]
+    fn register_z_low(&mut self) -> &mut u8 {
+        return &mut self.register_file[31];
+    }
+
+    fn get_z(&mut self) -> u16 {
+        ((self.register_file[30] as u16) << 8u16) | self.register_file[31] as u16
+    }
+
+    fn set_z(&mut self, value: u16) {
+        self.register_file[30] = HIGH_U16!(value);
+        self.register_file[31] = LOW_U16!(value);
+    }
+
+    // data_space is terminology used in the datasheet of the ATmega328p for SRAM memory access
+    // as opposed to I/O space which is terminology for the memory mapped special function registers
+    fn store_to_data_space(&mut self, address: usize, value: u8) {
+        //todo!("Store value {} to address {} in data space!", value, address);
+        log::info!("Store value {} to address {} in data space!", value, address);
+    }
+
+    fn store_to_i_o_space(&mut self, address: usize, value: u8) {
+        // output the value stored in register r_val into memory to the address a_val
+        self.sfr[address] = value;
+    }
+
     pub fn execute_instruction(&mut self, segment: &Segment) {
 
         // get the current instruction
@@ -185,21 +213,44 @@ impl CPU {
 
         let mut cpu: &mut CPU = self;
 
+        // DEBUG
+        log::info!("Executing instruction: {:?}", instruction.instruction_type);
+
         // execute the instruction
         match instruction.instruction_type {
+
+            /*   5 */
+            InstructionType::ADC => {
+                log::info!("[ADC]");
+
+                let r_value: usize = value_storage[&'r'] as usize;
+                let d_value: usize = value_storage[&'d'] as usize;
+
+                let carry_as_u8: u8 = cpu.c as u8;
+                cpu.register_file[d_value] += cpu.register_file[r_value] + carry_as_u8;
+
+                log::trace!(
+                    "[ADC] result value: {}",
+                    cpu.register_file[d_value]
+                );
+
+                log::info!("adc r{}, d{} - carry{}", r_value, d_value, cpu.c);
+
+                cpu.pc += 2i32;
+            }
             
             /*   6 */
             InstructionType::ADD => {
-                log::trace!("[ADD]");
+                log::info!("[ADD]");
 
-                let r_value16 = value_storage[&'r'];
-                let d_value16 = value_storage[&'d'];
+                let r_value16: usize = value_storage[&'r'] as usize;
+                let d_value16: usize = value_storage[&'d'] as usize;
 
-                cpu.register_file[d_value16 as usize] += cpu.register_file[r_value16 as usize];
+                cpu.register_file[d_value16] += cpu.register_file[r_value16];
 
                 log::trace!(
                     "[ADD] result value: {}",
-                    cpu.register_file[d_value16 as usize]
+                    cpu.register_file[d_value16]
                 );
 
                 log::info!("add r{}, d{}", r_value16, d_value16);
@@ -231,7 +282,8 @@ impl CPU {
                     if cpu.z {
                         cpu.pc += 2i32;
                     } else {
-                        cpu.pc = (cpu.pc as i16 + offset as i16) as i32;
+                        let offset_in_bytes: i8 = offset / 8i8;
+                        cpu.pc = (cpu.pc as i16 + offset_in_bytes as i16) as i32;
                     }
                 }
             }
@@ -278,7 +330,8 @@ impl CPU {
                 let data = cpu.pc;
                 push_to_stack_i16(&mut cpu, data as i16);
 
-                log::info!("call - stack pointer: {:#04x} {:#04x}", cpu.sph, cpu.spl);
+                //log::info!("call - stack pointer: {:#04x} {:#04x}", cpu.sph, cpu.spl);
+                log::info!("stack pointer: {} {}", cpu.stack_info_high(), cpu.stack_info_low());
 
                 // jump to address
                 cpu.pc += k_val_i32;
@@ -414,12 +467,12 @@ impl CPU {
 
             /*  73 */
             InstructionType::LDI => {
-                log::trace!("[LDI]");
+                log::info!("[LDI]");
 
                 let k_val = value_storage[&'K'];
-                log::trace!("K: {k_val:#b} {k_val:#x}");
+                log::info!("K: {k_val:#b} {k_val:#x}");
                 let d_val = value_storage[&'d'];
-                log::trace!("d: {d_val:#b} {d_val:#x}");
+                log::info!("d: {d_val:#b} {d_val:#x}");
 
                 // "Loads an 8-bit constant directly to register 16 to 31."
                 // To compute the register to use, add the offset 16 to the parsed value
@@ -472,61 +525,11 @@ impl CPU {
                 log::trace!("r_val: {r_val:#b} {r_val:#x} {r_val}");
                 let val: u8 = cpu.register_file[r_val as usize];
 
-                cpu.sfr[a_val as usize] = val;
-
+                // DEBUG
                 log::info!("out {:?}, {:?}", a_val, val);
 
-                // // TODO output the value stored in register r_val into memory to the address a_val
-                // let dest: IoDestination = IoDestination::from_code(a_val);
-                // log::trace!("[OUT] dest: {:?} source-register: {:?}", dest, r_val);
-                // log::trace!("out dest: {:?} src: {:?}", dest, r_val);
-
-                // match dest {
-
-                //     IoDestination::SPH => {
-
-                //         // take value out of the register
-                //         log::trace!("r_val: {r_val:#b} {r_val:#x} {r_val}");
-                //         let val: u8 = cpu.register_file[r_val as usize];
-
-                //         // write value into the destination
-                //         log::trace!("val: {val:#b} {val:#x} {val}");
-                //         cpu.sph = val;
-
-                //         log::trace!("stack pointer: {:#04x} {:#04x}", cpu.sph, cpu.spl);
-                //     }
-
-                //     IoDestination::SPL => {
-                //         //log::info!("r_val: {r_val:#b} {r_val:#x} {r_val}");
-                //         let val: u8 = cpu.register_file[r_val as usize];
-                //         //log::info!("val: {val:#b} {val:#x} {val}");
-                //         cpu.spl = val;
-
-                //         log::trace!("stack pointer: {:#04x} {:#04x}", cpu.sph, cpu.spl);
-                //     }
-
-                //     IoDestination::DDRB | IoDestination::PORTB | IoDestination::PINB => {
-                //         log::trace!("r_val: {r_val:#b} {r_val:#x} {r_val}");
-                //         let val: u8 = cpu.register_file[r_val as usize];
-                //         log::trace!("val: {val:#b} {val:#x} {val}");
-
-                //         // write the value into SRAM
-                //         cpu.sram[a_val as usize] = val;
-                //     }
-
-                //     IoDestination::DDRC | IoDestination::PORTC | IoDestination::PINC => {
-                //         log::trace!("r_val: {r_val:#b} {r_val:#x} {r_val}");
-                //         let val: u8 = cpu.register_file[r_val as usize];
-                //         log::trace!("val: {val:#b} {val:#x} {val}");
-
-                //         // write the value into SRAM
-                //         cpu.sram[a_val as usize] = val;
-                //     }
-
-                //     IoDestination::UNKNOWN => {
-                //         panic!("UNKNOWN enum value!")
-                //     } // _ => panic!("Unknown enum value!")
-                // }
+                // output the value stored in register r_val into memory to the address a_val
+                cpu.store_to_i_o_space(a_val as usize, val);
 
                 cpu.pc += 2i32;
             }
@@ -543,7 +546,6 @@ impl CPU {
                 pop_from_stack_u8(&mut cpu);
 
                 log::info!("stack pointer: {} {}", cpu.stack_info_high(), cpu.stack_info_low());
-                //cpu.stack_info();
             }
 
             /*  90 */
@@ -558,7 +560,6 @@ impl CPU {
                 let data = cpu.register_file[d_val as usize];
                 push_to_stack_u8(&mut cpu, data);
 
-                //log::info!("stack pointer: {:#04x} {:#04x}", *cpu.sph(), *cpu.spl());
                 log::info!("stack pointer: {} {}", cpu.stack_info_high(), cpu.stack_info_low());
             }
 
@@ -580,13 +581,11 @@ impl CPU {
 
                 log::info!("kk: {:04x} {:016b} {}", kk, kk, kk);
 
-                //cpu.pc += kk as i32;
-
                 // push return address onto the stack
                 let data: i32 = cpu.pc;
                 push_to_stack_i16(&mut cpu, data as i16);
 
-                log::info!("stack pointer: {:#04x} {:#04x}", cpu.sph, cpu.spl);
+                log::info!("stack pointer: {} {}", cpu.stack_info_high(), cpu.stack_info_low());
 
                 // jump to address
                 cpu.pc += kk as i32;
@@ -609,7 +608,8 @@ impl CPU {
 
                 cpu.pc = k_val as i32;
 
-                log::info!("ret - stack pointer: {:#04x} {:#04x}", cpu.sph, cpu.spl);
+                //log::info!("ret - stack pointer: {:#04x} {:#04x}", cpu.sph, cpu.spl);
+                log::info!("stack pointer: {} {}", cpu.stack_info_high(), cpu.stack_info_low());
             }
 
             /*  94 */
@@ -633,12 +633,97 @@ impl CPU {
                 cpu.pc += kk as i32;
             }
 
+            /* 120 */
+            // store data into memory (data space) at the address stored in Z
+            // (data space != I/O space (for I/O space, use the OUT instruction))
+            InstructionType::ST_STD_Z_1 => {
+
+                // Z: Post incremented
+                log::info!("[ST_STD_Z_1]");
+
+                // retrieved the encoded value for the r register
+                let r_val: u16 = value_storage[&'r'];
+                log::info!("r: {r_val:#b} {r_val:#x} {r_val}");
+
+                // retrieve the current value from the r register
+                let data: u8 = cpu.register_file[r_val as usize];
+
+                // retrieve the data (address) stored inside Z
+                let value_z: u16 = cpu.get_z();
+
+                // store data into memory (data space) at the address stored in Z
+                // (data space != I/O space (for I/O space, use the OUT instruction))
+                cpu.store_to_data_space(value_z as usize, data);
+
+                // // (post) increment Z
+                // value_z = value_z + 1;
+
+                // // write back Z
+                // cpu.set_z(value_z);
+
+                cpu.pc += 2i32;
+            }
+            InstructionType::ST_STD_Z_2 => {
+
+                // Z: Post incremented
+                log::info!("[ST_STD_Z_2]");
+
+                // retrieved the encoded value for the r register
+                let r_val: u16 = value_storage[&'r'];
+                log::info!("r: {r_val:#b} {r_val:#x} {r_val}");
+
+                // retrieve the current value from the r register
+                let data: u8 = cpu.register_file[r_val as usize];
+
+                // retrieve the data (address) stored inside Z
+                let mut value_z: u16 = cpu.get_z();
+
+                // store data into memory (data space) at the address stored in Z
+                // (data space != I/O space (for I/O space, use the OUT instruction))
+                cpu.store_to_data_space(value_z as usize, data);
+
+                // (post) increment Z
+                value_z = value_z + 1;
+
+                // write back Z
+                cpu.set_z(value_z);
+
+                cpu.pc += 2i32;
+            }
+            InstructionType::ST_STD_Z_3 => {
+
+                // Z: Post incremented
+                log::info!("[ST_STD_Z_3]");
+
+                // retrieved the encoded value for the r register
+                let r_val: u16 = value_storage[&'r'];
+                log::info!("r: {r_val:#b} {r_val:#x} {r_val}");
+
+                // retrieve the current value from the r register
+                let data: u8 = cpu.register_file[r_val as usize];
+
+                // retrieve the data (address) stored inside Z
+                let mut value_z: u16 = cpu.get_z();
+
+                // (pre) decrement Z
+                value_z = value_z - 1;
+
+                // store data into memory (data space) at the address stored in Z
+                // (data space != I/O space (for I/O space, use the OUT instruction))
+                cpu.store_to_data_space(value_z as usize, data);
+
+                // write back Z
+                cpu.set_z(value_z);
+
+                cpu.pc += 2i32;
+            }
+
             InstructionType::UNKNOWN => {
-                panic!("Unknown instruction!");
+                panic!("Unknown instruction: {:?}", instruction.instruction_type);
             }
 
             _ => {
-                panic!("Unknown instruction!");
+                panic!("Unknown instruction: {:?}", instruction.instruction_type);
             }
         }
         

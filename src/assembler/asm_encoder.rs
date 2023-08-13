@@ -29,13 +29,37 @@ macro_rules! LOW {
 }
 
 #[macro_export]
+macro_rules! HIGH_U16 {
+    // match like arm for macro
+    ($a:expr) => {
+        // macro expand to this code
+        {
+            // $a and $b will be templated using the value/variable provided to macro
+            ($a >> 8u16) as u8
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! LOW_U16 {
+    // match like arm for macro
+    ($a:expr) => {
+        // macro expand to this code
+        {
+            // $a and $b will be templated using the value/variable provided to macro
+            (($a & 0xFFu16) & 0xFFu16) as u8
+        }
+    };
+}
+
+#[macro_export]
 macro_rules! HIGH_I16 {
     // match like arm for macro
     ($a:expr) => {
         // macro expand to this code
         {
             // $a and $b will be templated using the value/variable provided to macro
-            ($a >> 8u16)
+            ($a >> 8i16)
         }
     };
 }
@@ -167,9 +191,17 @@ impl AsmEncoder {
         log::info!("Encoding: {}" , asm_record);
 
         match asm_record.instruction_type {
+            /*   5 */
+            InstructionType::ADC => {
+                Self::encode_adc(&self, segment, asm_record.reg_1, asm_record.reg_2);
+            }
             /*   6 */
             InstructionType::ADD => {
                 Self::encode_add(&self, segment, asm_record.reg_1, asm_record.reg_2);
+            }
+            /*  17 */
+            InstructionType::BREAK => {
+                Self::encode_break(&self, segment);
             }
             /*  27 */
             InstructionType::BRNE => {
@@ -179,6 +211,10 @@ impl AsmEncoder {
             InstructionType::CALL => {
                 Self::encode_call(&self, segment, &asm_record.idx, &asm_record.target_label);
             }
+            /*  43 */
+            InstructionType::CLR => {
+                Self::encode_clr(&self, segment, asm_record.reg_1);
+            }
             /*  53 */
             InstructionType::DEC => {
                 Self::encode_dec(&self, segment, asm_record.reg_1);
@@ -187,7 +223,7 @@ impl AsmEncoder {
             InstructionType::IN => {
                 Self::encode_in(&self, segment, asm_record.reg_1, asm_record.data);
             }
-            /* 65 */ 
+            /*  65 */ 
             InstructionType::INC => {
                 Self::encode_inc(&self, segment, asm_record.reg_1);
             }
@@ -209,7 +245,6 @@ impl AsmEncoder {
             }
             /*  88 */
             InstructionType::OUT => {
-                //Self::encode_out(self, segment, asm_record.io_dest, asm_record.reg_1);
                 Self::encode_out(self, segment, asm_record.reg_1, asm_record.reg_2);
             }
             /*  89 */
@@ -233,11 +268,46 @@ impl AsmEncoder {
                 Self::encode_rjmp(&self, segment, &asm_record.idx, &asm_record.target_label);
             }
 
-            _ => panic!("Unknown instruction!"),
+            /* 120 */
+            InstructionType::ST_STD_Z_1 => {
+                Self::encode_st_std_z_1(&self, segment, asm_record.reg_1);
+            }
+            InstructionType::ST_STD_Z_2 => {
+                Self::encode_st_std_z_2(&self, segment, asm_record.reg_1);
+            }
+            InstructionType::ST_STD_Z_3 => {
+                Self::encode_st_std_z_3(&self, segment, asm_record.reg_1);
+            }
+
+            _ => panic!("Unknown instruction! {:?}", asm_record.instruction_type),
         }
     }
 
     /// 5. ADC – Add with Carry
+    /// adc - Add without carry (Rd ← Rd + Rr)
+    /// Adds two registers without the C Flag and places the result in the destination register Rd.
+    /// 0000 11rd dddd rrrr
+    fn encode_adc(&self, segment: &mut Segment, register_d: u16, register_r: u16) {
+        // register is increased by 16 to arrive at the register id
+        let register_d_offset: u16 = register_d;
+        let register_r_offset: u16 = register_r;
+
+        let r_mask: u16 = ((register_r_offset >> 4u16) << 9u16) | (register_r_offset & 0x0Fu16);
+
+        let result: u16 = 0x1C00u16 | (r_mask | register_d_offset << 4u16);
+
+        log::trace!("add d{} r{}", register_d_offset, register_r_offset);
+
+        log::trace!("ENC ADC: {:#02x}", (result >> 0u16) as u8);
+        segment.data.push((result >> 0u16) as u8);
+        segment.size += 1u32;
+
+        log::trace!("ENC ADC: {:#02x}", (result >> 8u16) as u8);
+        segment.data.push((result >> 8u16) as u8);
+        segment.size += 1u32;
+    }
+
+    /// 6. ADD – Add without Carry
     /// add - Add without carry (Rd ← Rd + Rr)
     /// 0000 11rd dddd rrrr
     fn encode_add(&self, segment: &mut Segment, register_d: u16, register_r: u16) {
@@ -260,6 +330,27 @@ impl AsmEncoder {
         segment.size += 1u32;
     }
 
+    /// 17. BREAK 
+    /// The BREAK instruction is used by the On-chip Debug system, and is normally not used in the application
+    /// software. When the BREAK instruction is executed, the AVR CPU is set in the Stopped Mode. This gives
+    /// the On-chip Debugger access to internal resources.
+    /// If any Lock bits are set, or either the JTAGEN or OCDEN Fuses are unprogrammed, the CPU will treat
+    /// the BREAK instruction as a NOP and will not enter the Stopped mode.
+    /// This instruction is not available in all devices. Refer to the device specific instruction set summary
+    /// 1001 0101 1001 1000
+    fn encode_break(&self, segment: &mut Segment) {
+
+        let result: u16 = 0x9598;
+
+        log::trace!("ENC BREAK: {:#02x}", (result >> 0u16) as u8);
+        segment.data.push((result >> 0u16) as u8);
+        segment.size += 1u32;
+
+        log::trace!("ENC BREAK: {:#02x}", (result >> 8u16) as u8);
+        segment.data.push((result >> 8u16) as u8);
+        segment.size += 1u32;
+    }
+
     /// 27. BRNE – Branch if Not Equal
     /// 1111 01kk kkkk k001
     fn encode_brne(&self, segment: &mut Segment, label: &String) {
@@ -267,11 +358,11 @@ impl AsmEncoder {
         let offset_k: u16 = self.labels[label] as u16;
         let result: u16 = 0xF401u16 | (offset_k << 3u16);
 
-        log::info!("ENC BRNE: {:#02x}", (result >> 0u16) as u8);
+        log::trace!("ENC BRNE: {:#02x}", (result >> 0u16) as u8);
         segment.data.push((result >> 0u16) as u8);
         segment.size += 1u32;
 
-        log::info!("ENC BRNE: {:#02x}", (result >> 8u16) as u8);
+        log::trace!("ENC BRNE: {:#02x}", (result >> 8u16) as u8);
         segment.data.push((result >> 8u16) as u8);
         segment.size += 1u32;
     }
@@ -318,6 +409,22 @@ impl AsmEncoder {
         //log::info!("result: {:#026b}", result);
     }
 
+    /// 43. CLR – Clear
+    /// Clears a register. This instruction performs an Exclusive OR between a register and itself. This will clear
+    /// all bits in the register
+    /// 0010 01dd dddd dddd
+    fn encode_clr(&self, segment: &mut Segment, register_d: u16) {
+        let result: u16 = 0x2400u16 | register_d;
+
+        log::trace!("ENC CLR: {:#02x}", (result >> 0u16) as u8);
+        segment.data.push((result >> 0u16) as u8);
+        segment.size += 1u32;
+
+        log::trace!("ENC CLR: {:#02x}", (result >> 8u16) as u8);
+        segment.data.push((result >> 8u16) as u8);
+        segment.size += 1u32;
+    }
+
     /// 53. DEC – Decrement
     /// 1001 010d dddd 1010
     fn encode_dec(&self, segment: &mut Segment, register_d: u16) {
@@ -325,11 +432,11 @@ impl AsmEncoder {
         let register: u16 = register_d;
         let result: u16 = 0x940Au16 | (register << 4u16);
 
-        log::info!("ENC DEC: {:#02x}", (result >> 0u16) as u8);
+        log::trace!("ENC DEC: {:#02x}", (result >> 0u16) as u8);
         segment.data.push((result >> 0u16) as u8);
         segment.size += 1u32;
 
-        log::info!("ENC DEC: {:#02x}", (result >> 8u16) as u8);
+        log::trace!("ENC DEC: {:#02x}", (result >> 8u16) as u8);
         segment.data.push((result >> 8u16) as u8);
         segment.size += 1u32;
     }
@@ -578,9 +685,10 @@ impl AsmEncoder {
 
     /// 90. PUSH – Push Register on Stack
     fn encode_push(&self, segment: &mut Segment, register_d: u16) {
-        if register_d > 31 {
-            panic!("Invalid register for PUSH! Only registers [r0, r31] are allowed")
-        }
+
+        // if register_d > 31 {
+        //     panic!("Invalid register for PUSH! Only registers [r0, r31] are allowed")
+        // }
 
         let result: u16 = 0x920Fu16 | (register_d << 4u16);
 
@@ -666,6 +774,75 @@ impl AsmEncoder {
         segment.size += 1u32;
 
         log::trace!("ENC RJMP: {:#02x}", (result >> 8u16) as u8);
+        segment.data.push((result >> 8u16) as u8);
+        segment.size += 1u32;
+
+        log::trace!("result: {:#026b}", result);
+    }
+
+    /// 120. ST (STD) – Store Indirect From Register to Data Space using Index Z
+    /// Stores one byte indirect with or without displacement from a register to data space.
+    /// ST Z, Rr
+    /// 1000 001r rrrr 0000
+    fn encode_st_std_z_1(&self, segment: &mut Segment, register_r: u16) {
+        
+        if register_r > 31 {
+            panic!("Invalid register for encode_st_std_z_1! Only registers [r0, r31] are allowed")
+        }
+
+        let result: u16 = 0x8200u16 | (register_r << 4u16);
+
+        log::trace!("result: {:#32b}", result);
+
+        log::trace!("ENC st_std_z_1: {:#02x}", (result >> 0u16) as u8);
+        segment.data.push((result >> 0u16) as u8);
+        segment.size += 1u32;
+
+        log::trace!("ENC st_std_z_1: {:#02x}", (result >> 8u16) as u8);
+        segment.data.push((result >> 8u16) as u8);
+        segment.size += 1u32;
+
+        log::trace!("result: {:#026b}", result);
+    }
+    /// ST Z+, Rr
+    /// 1001 001r rrrr 0001
+    fn encode_st_std_z_2(&self, segment: &mut Segment, register_r: u16) {
+        
+        if register_r > 31 {
+            panic!("Invalid register for encode_st_std_z_2! Only registers [r0, r31] are allowed")
+        }
+
+        let result: u16 = 0x9201u16 | (register_r << 4u16);
+
+        log::trace!("result: {:#32b}", result);
+
+        log::trace!("ENC st_std_z_2: {:#02x}", (result >> 0u16) as u8);
+        segment.data.push((result >> 0u16) as u8);
+        segment.size += 1u32;
+
+        log::trace!("ENC st_std_z_2: {:#02x}", (result >> 8u16) as u8);
+        segment.data.push((result >> 8u16) as u8);
+        segment.size += 1u32;
+
+        log::trace!("result: {:#026b}", result);
+    }
+    /// ST -Z, Rr
+    /// 1001 001r rrrr 0010
+    fn encode_st_std_z_3(&self, segment: &mut Segment, register_r: u16) {
+        
+        if register_r > 31 {
+            panic!("Invalid register for encode_st_std_z_3! Only registers [r0, r31] are allowed")
+        }
+
+        let result: u16 = 0x9202u16 | (register_r << 4u16);
+
+        log::trace!("result: {:#32b}", result);
+
+        log::trace!("ENC st_std_z_3: {:#02x}", (result >> 0u16) as u8);
+        segment.data.push((result >> 0u16) as u8);
+        segment.size += 1u32;
+
+        log::trace!("ENC st_std_z_3: {:#02x}", (result >> 8u16) as u8);
         segment.data.push((result >> 8u16) as u8);
         segment.size += 1u32;
 

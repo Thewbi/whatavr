@@ -477,10 +477,22 @@ pub fn match_instruction<R: crate::io::Read>(
         InstructionType::SPM_2 => {
             process_spm2(rdr, &word, index, value_storage);
         } // SPM #2 – Store Program Memory.......................................................................171
+        
         /* 118 */
-        InstructionType::ST => {
-            process_st(rdr, &word, index, value_storage);
-        } // – Store Indirect From Register to Data Space using Index X.........................173
+        // InstructionType::ST => {
+        //     process_st(rdr, &word, index, value_storage);
+        // } // – Store Indirect From Register to Data Space using Index X.........................173
+        InstructionType::ST_STD_X_1 => {
+            process_st_std_1(rdr, &word, index, value_storage);
+        }
+        InstructionType::ST_STD_X_2 => {
+            process_st_std_2(rdr, &word, index, value_storage);
+        }
+        InstructionType::ST_STD_X_3 => {
+            process_st_std_3(rdr, &word, index, value_storage);
+        }
+        
+        
         // /* 119 */ InstructionType::ST_STD_Y => { process_st_std_y(rdr, &word, index, value_storage); }, // – Store Indirect From Register to Data Space using Index Y..............175
         InstructionType::ST_STD_Y_1 => {
             process_st_std_y_1(rdr, &word, index, value_storage);
@@ -556,8 +568,7 @@ pub fn process_adc<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_add<R: crate::io::Read>(
@@ -565,8 +576,7 @@ pub fn process_add<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_adiw<R: crate::io::Read>(
@@ -593,8 +603,7 @@ pub fn process_and<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_andi<R: crate::io::Read>(
@@ -625,8 +634,7 @@ pub fn process_asr<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_bclr<R: crate::io::Read>(
@@ -634,8 +642,7 @@ pub fn process_bclr<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_bld<R: crate::io::Read>(
@@ -643,8 +650,7 @@ pub fn process_bld<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_brbc<R: crate::io::Read>(
@@ -652,8 +658,7 @@ pub fn process_brbc<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_brbs<R: crate::io::Read>(
@@ -661,8 +666,7 @@ pub fn process_brbs<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_brcc<R: crate::io::Read>(
@@ -670,8 +674,7 @@ pub fn process_brcc<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_brcs<R: crate::io::Read>(
@@ -679,8 +682,7 @@ pub fn process_brcs<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_break<R: crate::io::Read>(
@@ -688,8 +690,7 @@ pub fn process_break<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_breq<R: crate::io::Read>(
@@ -697,8 +698,7 @@ pub fn process_breq<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_brge<R: crate::io::Read>(
@@ -706,8 +706,7 @@ pub fn process_brge<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_brhc<R: crate::io::Read>(
@@ -715,8 +714,7 @@ pub fn process_brhc<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_brhs<R: crate::io::Read>(
@@ -724,8 +722,7 @@ pub fn process_brhs<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_brid<R: crate::io::Read>(
@@ -733,8 +730,7 @@ pub fn process_brid<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_brie<R: crate::io::Read>(
@@ -742,8 +738,7 @@ pub fn process_brie<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_brlo<R: crate::io::Read>(
@@ -751,8 +746,7 @@ pub fn process_brlo<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_brlt<R: crate::io::Read>(
@@ -802,8 +796,7 @@ pub fn process_brmi<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_brpl<R: crate::io::Read>(
@@ -811,8 +804,7 @@ pub fn process_brpl<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_brsh<R: crate::io::Read>(
@@ -820,8 +812,7 @@ pub fn process_brsh<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_brtc<R: crate::io::Read>(
@@ -829,8 +820,7 @@ pub fn process_brtc<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_brts<R: crate::io::Read>(
@@ -838,8 +828,7 @@ pub fn process_brts<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_brvc<R: crate::io::Read>(
@@ -847,8 +836,7 @@ pub fn process_brvc<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_brvs<R: crate::io::Read>(
@@ -856,8 +844,7 @@ pub fn process_brvs<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_bset<R: crate::io::Read>(
@@ -865,8 +852,7 @@ pub fn process_bset<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_bst<R: crate::io::Read>(
@@ -874,8 +860,7 @@ pub fn process_bst<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_call<R: crate::io::Read>(
@@ -924,8 +909,7 @@ pub fn process_cbi<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_cbr<R: crate::io::Read>(
@@ -933,8 +917,7 @@ pub fn process_cbr<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_clc<R: crate::io::Read>(
@@ -942,8 +925,7 @@ pub fn process_clc<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_clh<R: crate::io::Read>(
@@ -951,8 +933,7 @@ pub fn process_clh<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_cli<R: crate::io::Read>(
@@ -972,8 +953,7 @@ pub fn process_cln<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_clr<R: crate::io::Read>(
@@ -995,8 +975,7 @@ pub fn process_cls<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_clt<R: crate::io::Read>(
@@ -1004,8 +983,7 @@ pub fn process_clt<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_clv<R: crate::io::Read>(
@@ -1013,8 +991,7 @@ pub fn process_clv<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_clz<R: crate::io::Read>(
@@ -1022,8 +999,7 @@ pub fn process_clz<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_com<R: crate::io::Read>(
@@ -1031,8 +1007,7 @@ pub fn process_com<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_cp<R: crate::io::Read>(
@@ -1040,8 +1015,7 @@ pub fn process_cp<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_cpc<R: crate::io::Read>(
@@ -1095,8 +1069,7 @@ pub fn process_cpse<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_dec<R: crate::io::Read>(
@@ -1104,8 +1077,7 @@ pub fn process_dec<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_des<R: crate::io::Read>(
@@ -1113,8 +1085,7 @@ pub fn process_des<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_eicall<R: crate::io::Read>(
@@ -1122,8 +1093,7 @@ pub fn process_eicall<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_eijmp<R: crate::io::Read>(
@@ -1131,8 +1101,7 @@ pub fn process_eijmp<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_elpm<R: crate::io::Read>(
@@ -1140,8 +1109,7 @@ pub fn process_elpm<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_eor<R: crate::io::Read>(
@@ -1175,8 +1143,7 @@ pub fn process_fmul<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_fmuls<R: crate::io::Read>(
@@ -1184,8 +1151,7 @@ pub fn process_fmuls<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_fmulsu<R: crate::io::Read>(
@@ -1193,8 +1159,7 @@ pub fn process_fmulsu<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_icall<R: crate::io::Read>(
@@ -1202,8 +1167,7 @@ pub fn process_icall<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_ijmp<R: crate::io::Read>(
@@ -1211,8 +1175,7 @@ pub fn process_ijmp<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_in<R: crate::io::Read>(
@@ -1246,8 +1209,7 @@ pub fn process_inc<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_jmp<R: crate::io::Read>(
@@ -1316,8 +1278,7 @@ pub fn process_lac<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_las<R: crate::io::Read>(
@@ -1325,8 +1286,7 @@ pub fn process_las<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_lat<R: crate::io::Read>(
@@ -1334,8 +1294,7 @@ pub fn process_lat<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_ld<R: crate::io::Read>(
@@ -1343,8 +1302,7 @@ pub fn process_ld<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_ld_ldd_y<R: crate::io::Read>(
@@ -1352,8 +1310,7 @@ pub fn process_ld_ldd_y<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_ld_ldd_z<R: crate::io::Read>(
@@ -1361,8 +1318,7 @@ pub fn process_ld_ldd_z<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_ldi<R: crate::io::Read>(
@@ -1401,8 +1357,7 @@ pub fn process_lds<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_lds_16bit<R: crate::io::Read>(
@@ -1410,8 +1365,7 @@ pub fn process_lds_16bit<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_lpm<R: crate::io::Read>(
@@ -1419,8 +1373,7 @@ pub fn process_lpm<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_lsl<R: crate::io::Read>(
@@ -1428,8 +1381,7 @@ pub fn process_lsl<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_lsr<R: crate::io::Read>(
@@ -1437,8 +1389,7 @@ pub fn process_lsr<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_mov<R: crate::io::Read>(
@@ -1446,8 +1397,7 @@ pub fn process_mov<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_movw<R: crate::io::Read>(
@@ -1455,8 +1405,7 @@ pub fn process_movw<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_mul<R: crate::io::Read>(
@@ -1464,8 +1413,7 @@ pub fn process_mul<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_muls<R: crate::io::Read>(
@@ -1473,8 +1421,7 @@ pub fn process_muls<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_mulsu<R: crate::io::Read>(
@@ -1482,8 +1429,7 @@ pub fn process_mulsu<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_neg<R: crate::io::Read>(
@@ -1491,8 +1437,7 @@ pub fn process_neg<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_nop<R: crate::io::Read>(
@@ -1512,8 +1457,7 @@ pub fn process_or<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_ori<R: crate::io::Read>(
@@ -1647,8 +1591,7 @@ pub fn process_reti<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_rjmp<R: crate::io::Read>(
@@ -1677,8 +1620,7 @@ pub fn process_rol<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_ror<R: crate::io::Read>(
@@ -1686,8 +1628,7 @@ pub fn process_ror<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_sbc<R: crate::io::Read>(
@@ -1695,8 +1636,7 @@ pub fn process_sbc<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_sbci<R: crate::io::Read>(
@@ -1727,8 +1667,7 @@ pub fn process_sbi<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_sbic<R: crate::io::Read>(
@@ -1736,8 +1675,7 @@ pub fn process_sbic<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_sbis<R: crate::io::Read>(
@@ -1745,8 +1683,7 @@ pub fn process_sbis<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_sbiw<R: crate::io::Read>(
@@ -1754,8 +1691,7 @@ pub fn process_sbiw<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_sbr<R: crate::io::Read>(
@@ -1763,8 +1699,7 @@ pub fn process_sbr<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_sbrc<R: crate::io::Read>(
@@ -1772,8 +1707,7 @@ pub fn process_sbrc<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_sbrs<R: crate::io::Read>(
@@ -1781,8 +1715,7 @@ pub fn process_sbrs<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_sec<R: crate::io::Read>(
@@ -1790,8 +1723,7 @@ pub fn process_sec<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_seh<R: crate::io::Read>(
@@ -1799,8 +1731,7 @@ pub fn process_seh<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_sei<R: crate::io::Read>(
@@ -1808,8 +1739,7 @@ pub fn process_sei<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_sen<R: crate::io::Read>(
@@ -1817,8 +1747,7 @@ pub fn process_sen<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_ser<R: crate::io::Read>(
@@ -1826,8 +1755,7 @@ pub fn process_ser<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_ses<R: crate::io::Read>(
@@ -1835,8 +1763,7 @@ pub fn process_ses<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_set<R: crate::io::Read>(
@@ -1844,8 +1771,7 @@ pub fn process_set<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_sev<R: crate::io::Read>(
@@ -1853,8 +1779,7 @@ pub fn process_sev<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_sez<R: crate::io::Read>(
@@ -1862,8 +1787,7 @@ pub fn process_sez<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_sleep<R: crate::io::Read>(
@@ -1871,8 +1795,7 @@ pub fn process_sleep<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_spm<R: crate::io::Read>(
@@ -1880,8 +1803,7 @@ pub fn process_spm<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
 
 #[allow(dead_code, unused)]
 pub fn process_spm2<R: crate::io::Read>(
@@ -1889,16 +1811,45 @@ pub fn process_spm2<R: crate::io::Read>(
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
-) {
-}
+) { todo!("()"); }
+
+// #[allow(dead_code, unused)]
+// pub fn process_st<R: crate::io::Read>(
+//     rdr: &mut R,
+//     word: &u16,
+//     index: &mut usize,
+//     value_storage: &mut HashMap<char, u16>,
+// ) {
+// }
 
 #[allow(dead_code, unused)]
-pub fn process_st<R: crate::io::Read>(
+pub fn process_st_std_1<R: crate::io::Read>(
     rdr: &mut R,
     word: &u16,
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
 ) {
+    todo!("process_st_std_1()");
+}
+
+#[allow(dead_code, unused)]
+pub fn process_st_std_2<R: crate::io::Read>(
+    rdr: &mut R,
+    word: &u16,
+    index: &mut usize,
+    value_storage: &mut HashMap<char, u16>,
+) {
+    todo!("process_st_std_2()");
+}
+
+#[allow(dead_code, unused)]
+pub fn process_st_std_3<R: crate::io::Read>(
+    rdr: &mut R,
+    word: &u16,
+    index: &mut usize,
+    value_storage: &mut HashMap<char, u16>,
+) {
+    todo!("process_st_std_3()");
 }
 
 #[allow(dead_code, unused)]
@@ -1912,16 +1863,10 @@ pub fn process_st_std_y_1<R: crate::io::Read>(
         "STD Y (A) = 119. ST (STD) – Store Indirect From Register to Data Space using Index Y"
     );
 
-    // 1000 001r rrrr 1000
-
-    //log::info!("{word:#018b} {word:#02x}");
-    //log::info!("  1000001rrrrr1000");
-
-    // let mut var_storage:HashMap<char, u16> = HashMap::new();
-    // bit_pattern_match(word, "1000001rrrrr1000", &mut var_storage);
-
     let r_val = value_storage[&'r'];
-    //log::info!("r: {r_val:#b} {r_val:#x} {r_val}");
+
+    todo!("process_st_std_y_1()");
+
 }
 
 #[allow(dead_code, unused)]
@@ -1931,6 +1876,7 @@ pub fn process_st_std_y_2<R: crate::io::Read>(
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
 ) {
+    todo!("process_st_std_y_2()");
 }
 
 #[allow(dead_code, unused)]
@@ -1940,6 +1886,7 @@ pub fn process_st_std_y_3<R: crate::io::Read>(
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
 ) {
+    todo!("process_st_std_y_3()");
 }
 
 #[allow(dead_code, unused)]
@@ -1949,6 +1896,7 @@ pub fn process_st_std_y_4<R: crate::io::Read>(
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
 ) {
+    todo!("process_st_std_y_4()");
 }
 
 #[allow(dead_code, unused)]
@@ -1958,6 +1906,7 @@ pub fn process_st_std_z_1<R: crate::io::Read>(
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
 ) {
+    todo!("process_st_std_z_1()");
 }
 
 #[allow(dead_code, unused)]
@@ -1967,6 +1916,7 @@ pub fn process_st_std_z_2<R: crate::io::Read>(
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
 ) {
+    todo!("process_st_std_z_2()");
 }
 
 #[allow(dead_code, unused)]
@@ -1976,6 +1926,7 @@ pub fn process_st_std_z_3<R: crate::io::Read>(
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
 ) {
+    todo!("process_st_std_z_3()");
 }
 
 #[allow(dead_code, unused)]
@@ -1985,6 +1936,7 @@ pub fn process_st_std_z_4<R: crate::io::Read>(
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
 ) {
+    todo!("process_st_std_z_4()");
 }
 
 #[allow(dead_code, unused)]
@@ -1994,6 +1946,7 @@ pub fn process_st_std_z<R: crate::io::Read>(
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
 ) {
+    todo!("process_st_std_z()");
 }
 
 #[allow(dead_code, unused)]
@@ -2003,6 +1956,7 @@ pub fn process_sts<R: crate::io::Read>(
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
 ) {
+    todo!("process_sts()");
 }
 
 #[allow(dead_code, unused)]
@@ -2012,6 +1966,7 @@ pub fn process_sts_16bit<R: crate::io::Read>(
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
 ) {
+    todo!("process_sts_16bit()");
 }
 
 #[allow(dead_code, unused)]
@@ -2021,6 +1976,7 @@ pub fn process_sub<R: crate::io::Read>(
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
 ) {
+    todo!("process_sub()");
 }
 
 #[allow(dead_code, unused)]
@@ -2053,6 +2009,7 @@ pub fn process_swap<R: crate::io::Read>(
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
 ) {
+    todo!("process_swap()");
 }
 
 #[allow(dead_code, unused)]
@@ -2062,6 +2019,7 @@ pub fn process_tst<R: crate::io::Read>(
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
 ) {
+    todo!("process_tst()");
 }
 
 #[allow(dead_code, unused)]
@@ -2071,6 +2029,7 @@ pub fn process_wdr<R: crate::io::Read>(
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
 ) {
+    todo!("process_wdr()");
 }
 
 #[allow(dead_code, unused)]
@@ -2080,4 +2039,5 @@ pub fn process_xch<R: crate::io::Read>(
     index: &mut usize,
     value_storage: &mut HashMap<char, u16>,
 ) {
+    todo!("process_xch()");
 }

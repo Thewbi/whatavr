@@ -25,7 +25,6 @@ use std::rc::Rc;
 use crate::assembler::asm_encoder::AsmEncoder;
 use crate::assembler::asm_record::AsmRecord;
 use crate::assembler::asm_visitor::DefaultAssemblerVisitor;
-use crate::common::common_constants::RAMEND;
 use crate::cpu::cpu::CPU;
 use crate::ihex_mgmt::ihex_mgmt::parse_hex_file;
 use crate::ihex_mgmt::ihex_mgmt::Segment;
@@ -63,8 +62,8 @@ lazy_static! {
 //
 // cargo build
 // cargo run
-// cargo run --bin whatavr
 // cargo run --bin build_parser
+// cargo run --bin whatavr
 //
 // cargo fmt
 fn main() -> io::Result<()> {
@@ -159,11 +158,13 @@ fn main() -> io::Result<()> {
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/jmp.asm"); // good for regression test (will increment r17 until overflow)
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/pin_change_interrupt_demo.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/preprocessor.asm");
-    asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/push_pop.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/push_pop.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/scratchpad.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/setup_stack.asm"); // regression test
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/timer_polling_example.asm");
     //asm_file_path.push_str("C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/avrasm/inc/m328Pdef.inc");
+    asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/hwnp_excercise_1.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/st_std_test.asm");
 
     let data = fs::read_to_string(asm_file_path).expect("Unable to read file");
     log::info!("\n{}", data);

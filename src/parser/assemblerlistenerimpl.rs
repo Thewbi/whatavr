@@ -8,8 +8,9 @@ use super::{
 };
 use crate::{parser::assemblerparser::InstructionContext, assembler::{asm_record::AsmRecord, io_destination::IoDestination}, instructions::instruction_type::InstructionType, ihex_mgmt::ihex_mgmt::Segment, cpu::cpu::CPU, LOW, HIGH};
 use crate::parser::assemblerparser::Label_definitionContext;
-use crate::parser::assemblerparser::ParameterContext;
+// use crate::parser::assemblerparser::ParameterContext;
 
+#[allow(non_camel_case_types)]
 pub struct assemblerListenerImpl {
 
     pub reg_1: String,
@@ -225,19 +226,19 @@ impl<'input> assemblerListener<'input> for assemblerListenerImpl {
         self.last_terminal = String::default();
     }
 
-    /**
-     * Enter a parse tree produced by {@link assemblerParser#parameter}.
-     * @param ctx the parse tree
-     */
-    fn enter_parameter(&mut self, _ctx: &ParameterContext<'input>) {}
+    // /**
+    //  * Enter a parse tree produced by {@link assemblerParser#parameter}.
+    //  * @param ctx the parse tree
+    //  */
+    // fn enter_parameter(&mut self, _ctx: &ParameterContext<'input>) {}
 
-    /**
-     * Exit a parse tree produced by {@link assemblerParser#parameter}.
-     * @param ctx the parse tree
-     */
-    fn exit_parameter(&mut self, _ctx: &ParameterContext<'input>) {
-        log::info!("[exit_parameter] ... ");
-    }
+    // /**
+    //  * Exit a parse tree produced by {@link assemblerParser#parameter}.
+    //  * @param ctx the parse tree
+    //  */
+    // fn exit_parameter(&mut self, _ctx: &ParameterContext<'input>) {
+    //     log::info!("[exit_parameter] ... ");
+    // }
 
     /**
      * Enter a parse tree produced by {@link assemblerParser#param}.
