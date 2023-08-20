@@ -68,9 +68,6 @@ lazy_static! {
 // cargo fmt
 fn main() -> io::Result<()> {
 
-    // let mut map = HASHMAP.lock().unwrap();
-    // map.insert(3, "sample");
-
     log::info!("whatavr starting ...");
 
     //
@@ -166,7 +163,8 @@ fn main() -> io::Result<()> {
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/st_std_test.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/pin_change_interrupt_demo.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/pin_change_interrupt_demo.asm");
-    asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/rjh_coding_avr-asm-add-16.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/rjh_coding_avr-asm-add-16.asm");
+    asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/include_test.asm");
 
     let data = fs::read_to_string(asm_file_path).expect("Unable to read file");
     log::info!("\n{}", data);
@@ -230,6 +228,8 @@ fn main() -> io::Result<()> {
     log::info!("Phase - AST Visiting");
     log::info!("*************************************************");
 
+    // the visitor traverses the AST (Abstract Syntax Tree) and creates
+    // AsmRecords. It will insert these ARMRecords into the records parameter
     let mut visitor = DefaultAssemblerVisitor {
         result_value: String::default(),
         ident: 0u16,
@@ -245,7 +245,6 @@ fn main() -> io::Result<()> {
         label: String::default(),
         target_label: String::default(),
         return_val: Vec::new(),
-        //constant_storage: HashMap::new(),
         preprocessor_directive: bool::default(),
         debug_output: true,
     };
@@ -284,21 +283,9 @@ fn main() -> io::Result<()> {
     log::info!("Phase - Program Execution");
     log::info!("*************************************************");
 
-    // ATmega328p cpu
-    // let mut cpu: CPU = CPU::new(
-    //     false,
-    //     // sph: 0x00u8,
-    //     // spl: 0x00u8,
-    //     0x02i32,
-    //     [0; 32usize],
-    //     [0; RAMEND as usize],
-    //     [0; 255usize],
-    // );
     let mut cpu: CPU = CPU::default();
 
-    //let map = HASHMAP.lock().unwrap();
-
-    // main loop that executes the instruction
+    // main loop that executes the instructions
     let mut done: bool = false;
     while !done {
 
@@ -317,6 +304,9 @@ fn main() -> io::Result<()> {
 
         // execute the next instruction
         cpu.execute_instruction(&assembler_segment);
+
+        // DEBUG - output the CPU state
+        println!("{}", cpu);
     }
 
     log_end();

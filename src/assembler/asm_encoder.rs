@@ -800,41 +800,8 @@ impl AsmEncoder {
             return;
         }
 
-        //#[allow(unused)]
-        //let mut a_val: u16 = 0x00;
         let a_val: u16 = register_a;
         let r_val: u16 = register_r;
-
-        // match io_dest {
-        //     IoDestination::SPL => {
-        //         a_val = 0x01;
-        //     }
-        //     IoDestination::SPH => {
-        //         a_val = 0x02;
-        //     }
-
-        //     IoDestination::PORTB => {
-        //         a_val = 0x25;
-        //     }
-        //     IoDestination::DDRB => {
-        //         a_val = 0x24;
-        //     }
-        //     IoDestination::PINB => {
-        //         a_val = 0x23;
-        //     }
-
-        //     IoDestination::PORTC => {
-        //         a_val = 0x28;
-        //     }
-        //     IoDestination::DDRC => {
-        //         a_val = 0x27;
-        //     }
-        //     IoDestination::PINC => {
-        //         a_val = 0x26;
-        //     }
-
-        //     _ => panic!("Unknown enum value"),
-        // }
 
         let result: u16 = (0b1011100000000000u16
             | ((a_val >> 4u16) << 9u16)

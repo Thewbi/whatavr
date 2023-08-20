@@ -53,8 +53,6 @@ pub struct DefaultAssemblerVisitor {
 
     pub return_val: Vec<String>,
 
-    //pub constant_storage: HashMap<String, String>,
-
     pub preprocessor_directive: bool,
 
     pub debug_output: bool,
@@ -144,10 +142,16 @@ impl DefaultAssemblerVisitor {
         // C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328Pdef.inc
         if "include".eq(&assembler_directive[1]) {
 
-            let unwrapped_name = &assembler_directive[2].replace("\"", "");
+            let unwrapped_name: &String = &assembler_directive[2].replace("\"", "");
 
             let mut asm_file_path: String = String::new();
-            asm_file_path.push_str("C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/avrasm/inc/");
+            // .inc files are resolved from the system include folder
+            // .asm files are included from the current folder
+            if unwrapped_name.ends_with(".inc") {
+                asm_file_path.push_str("C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/avrasm/inc/");
+            } else {
+                asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/");
+            }
             asm_file_path.push_str(unwrapped_name);
 
             log::info!("Including \"{}\"", &asm_file_path.clone());
@@ -184,7 +188,6 @@ impl DefaultAssemblerVisitor {
                 label: String::default(),
                 target_label: String::default(),
                 return_val: Vec::new(),
-                //constant_storage: HashMap::new(),
                 preprocessor_directive: bool::default(),
                 debug_output: false,
             };
@@ -194,15 +197,12 @@ impl DefaultAssemblerVisitor {
         
             log::trace!("{:?}", visitor_result);
 
-            // copy the constant storage into the parent visitor
-            // https://users.rust-lang.org/t/is-there-a-nice-way-to-copy-the-contents-of-an-entire-hashmap-to-another/52647/4
-            //self.constant_storage.extend(visitor.constant_storage);
+            // log::trace!("{:?}", visitor.records);
 
-            // let mut map = HASHMAP.unwrap();
-            // map.insert(assembler_directive[2].to_string(), assembler_directive[4].to_string());
-
-            //let mut map = HASHMAP.lock().unwrap();
-            //map.extend(visitor.constant_storage);
+            // insert all parsed AsmRecords into the parent
+            if visitor.records.len() > 0 {
+                self.records.append(&mut visitor.records);
+            }
 
             return;
         }
