@@ -953,19 +953,15 @@ impl AsmEncoder {
     fn encode_rjmp(&self, segment: &mut Segment, idx: &usize, label: &String) {
 
         let label_address: i16 = self.labels[label] as i16;
-
         log::trace!("label_address: {:#06x}", label_address);
 
         let mut offset_k: i16 = label_address - (*idx as i16);
-
         log::trace!("offset_k: {:#06x} {}", offset_k, offset_k);
 
         offset_k &= 0b0000111111111111i16;
-
         log::trace!("offset_k: {:#06x} {}", offset_k, offset_k);
 
         let result: i16 = (0b1100 << 12) | offset_k;
-
         log::trace!("result: {:#32b}", result);
 
         log::trace!("ENC RJMP: {:#02x}", (result >> 0u16) as u8);

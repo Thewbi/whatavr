@@ -89,6 +89,9 @@ pub struct CPU {
     // the carry flag
     pub c: bool,
 
+    // the half-carry flag
+    pub h: bool,
+
     // pc always points to the instruction after the current instruction so it does not start at 0x00 but at 0x02
     pub pc: i32,
 
@@ -104,8 +107,10 @@ pub struct CPU {
 
 impl Default for CPU {
     fn default() -> Self {
-        Self { z: false,
+        Self { 
+            z: false,
             c: false,
+            h: false,
             pc: 0x02i32,
             register_file: [0; 32usize],
             sram: [0; RAMEND as usize],
@@ -121,6 +126,7 @@ impl CPU {
         Self { 
             z: z,
             c: c,
+            h: false,
             pc: pc,
             register_file: register_file,
             sram: sram,
@@ -167,6 +173,30 @@ impl CPU {
     #[allow(dead_code, unused)]
     fn register_z_low(&mut self) -> &mut u8 {
         return &mut self.register_file[31];
+    }
+
+    fn set_c(&mut self) {
+        self.c = true;
+    }
+
+    fn reset_c(&mut self) {
+        self.c = false;
+    }
+
+    fn get_c(&mut self) -> bool {
+        self.c
+    }
+
+    fn set_h(&mut self) {
+        self.h = true;
+    }
+
+    fn reset_h(&mut self) {
+        self.h = false;
+    }
+
+    fn get_h(&mut self) -> bool {
+        self.h
     }
 
     fn get_z(&mut self) -> u16 {
@@ -223,12 +253,32 @@ impl CPU {
             InstructionType::ADC => {
                 log::info!("[ADC]");
 
-                let r_value: usize = value_storage[&'r'] as usize;
                 let d_value: usize = value_storage[&'d'] as usize;
+                let r_value: usize = value_storage[&'r'] as usize;
 
                 let carry_as_u8: u8 = cpu.c as u8;
-                cpu.register_file[d_value] += cpu.register_file[r_value] + carry_as_u8;
 
+                // since rust panics when a result does not fit into a variable
+                // and two u8 can make a u16, store temp result in a u16 variable
+                let mut temp_result: u16 = cpu.register_file[d_value] as u16;
+                temp_result += cpu.register_file[r_value] as u16;
+                temp_result += carry_as_u8 as u16;
+
+                // if there is an overflow ...
+                if temp_result > 255u16 {
+
+                    // set carry and half carry
+                    cpu.set_c();
+                    cpu.set_h();
+
+                    // store only the lower byte into the register
+                    cpu.register_file[d_value] = LOW_U16!(temp_result);
+
+                } else {
+                    cpu.register_file[d_value] += cpu.register_file[r_value] + carry_as_u8;
+                }
+
+                // DEBUG
                 log::trace!(
                     "[ADC] result value: {}",
                     cpu.register_file[d_value]
@@ -243,17 +293,34 @@ impl CPU {
             InstructionType::ADD => {
                 log::info!("[ADD]");
 
-                let r_value16: usize = value_storage[&'r'] as usize;
-                let d_value16: usize = value_storage[&'d'] as usize;
+                let d_value: usize = value_storage[&'d'] as usize;
+                let r_value: usize = value_storage[&'r'] as usize;
 
-                cpu.register_file[d_value16] += cpu.register_file[r_value16];
+                // since rust panics when a result does not fit into a variable
+                // and two u8 can make a u16, store temp result in a u16 variable
+                let mut temp_result: u16 = cpu.register_file[d_value] as u16;
+                temp_result += cpu.register_file[r_value] as u16;
+
+                // if there is an overflow ...
+                if temp_result > 255u16 {
+
+                    // set carry and half carry
+                    cpu.set_c();
+                    cpu.set_h();
+
+                    // store only the lower byte into the register
+                    cpu.register_file[d_value] = LOW_U16!(temp_result);
+
+                } else {
+                    cpu.register_file[d_value] += cpu.register_file[r_value];
+                }
 
                 log::trace!(
                     "[ADD] result value: {}",
-                    cpu.register_file[d_value16]
+                    cpu.register_file[d_value]
                 );
 
-                log::info!("add r{}, d{}", r_value16, d_value16);
+                log::info!("add r{}, d{}", r_value, d_value);
 
                 cpu.pc += 2i32;
             }
@@ -323,7 +390,7 @@ impl CPU {
                 // assemble the parameter k
                 let k_val: i16 = ((k_hi << 16u8) + k_lo) as i16;
 
-                // sign extend to i32
+                // extend to i32
                 let k_val_i32: i32 = k_val as i32;
 
                 // push return address onto the stack
@@ -459,7 +526,7 @@ impl CPU {
                 // assemble the parameter k
                 let k_val: i16 = ((k_hi << 16u8) + k_lo) as i16;
 
-                // sign extend to i32
+                // extend to i32
                 let k_val_i32: i32 = k_val as i32;
 
                 cpu.pc += k_val_i32;
@@ -572,9 +639,10 @@ impl CPU {
 
                 log::info!("k: {:04x} {:016b}", k, k);
 
-                // sign extend
-                k |= 0xF000;
-
+                // sign extend (800 decimal = 1000 0000 0000 binary)
+                if k >= 800 {
+                    k |= 0xF000;
+                }
                 log::info!("k: {:04x} {:016b} {}", k as i16, k as i16, k as i16);
 
                 let kk: i16 = k as i16;
@@ -618,16 +686,15 @@ impl CPU {
 
                 // get the first 16 bit
                 let mut k: u16 = value_storage[&'k'] as u16;
-
                 log::info!("k: {:04x} {:016b}", k, k);
 
-                // sign extend
-                k |= 0xF000;
-
+                // sign extend (800 decimal = 1000 0000 0000 binary)
+                if k >= 800 {
+                    k |= 0xF000;
+                }
                 log::info!("k: {:04x} {:016b} {}", k as i16, k as i16, k as i16);
 
                 let kk: i16 = k as i16;
-
                 log::info!("kk: {:04x} {:016b} {}", kk, kk, kk);
 
                 cpu.pc += kk as i32;

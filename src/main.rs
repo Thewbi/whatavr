@@ -164,7 +164,9 @@ fn main() -> io::Result<()> {
     //asm_file_path.push_str("C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/avrasm/inc/m328Pdef.inc");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/hwnp_excercise_1.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/st_std_test.asm");
-    asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/pin_change_interrupt_demo.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/pin_change_interrupt_demo.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/pin_change_interrupt_demo.asm");
+    asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/rjh_coding_avr-asm-add-16.asm");
 
     let data = fs::read_to_string(asm_file_path).expect("Unable to read file");
     log::info!("\n{}", data);
