@@ -43,11 +43,6 @@ impl IoDestination {
         }
     }
 
-    /// .
-    ///
-    /// # Panics
-    ///
-    /// Panics if .
     #[allow(unused)]
     pub const fn from_code(code: u16) -> IoDestination {
         panic!("");

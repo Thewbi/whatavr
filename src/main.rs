@@ -49,7 +49,7 @@ extern crate lazy_static;
 use std::sync::Mutex;
 lazy_static! {
     static ref HASHMAP: Mutex<HashMap<String, String>> = {
-        let mut m = HashMap::new();
+        let m = HashMap::new();
         Mutex::new(m)
     };
 }
@@ -156,6 +156,7 @@ fn main() -> io::Result<()> {
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/preprocessor.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/push_pop.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/scratchpad.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/scratchpad2.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/setup_stack.asm"); // regression test
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/timer_polling_example.asm");
     //asm_file_path.push_str("C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/avrasm/inc/m328Pdef.inc");
@@ -164,7 +165,7 @@ fn main() -> io::Result<()> {
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/pin_change_interrupt_demo.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/pin_change_interrupt_demo.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/rjh_coding_avr-asm-add-16.asm");
-    asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/include_test.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/include_test.asm");
 
     let data = fs::read_to_string(asm_file_path).expect("Unable to read file");
     log::info!("\n{}", data);

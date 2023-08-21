@@ -2,6 +2,8 @@
 ; CALL and RET
 ;
 
+.include "m328Pdef.inc"
+
 ; initialize the stack
 ; encode_ldi(&mut assembler_segment, &mut idx, 16u16, LOW!(RAMEND));
 ; encode_out(&mut assembler_segment, &mut idx, IO_Destination::SPL, 16u16);

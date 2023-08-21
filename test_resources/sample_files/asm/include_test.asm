@@ -1,14 +1,14 @@
-.equ	SPL	= 0x3d
+;.equ	SPL	= 0x3d
 ;.equ	SPH	= 0x3e
 
 ;ldi r16, LOW(RAMEND)
-out SPL, r16
+;out SPL, r16
 ;ldi r16, HIGH(RAMEND)
 ;out SPH, r16
 
+.include "m328Pdef.inc"
 
+.include "include_me.asm"
 
-; .include "include_me.asm"
-
-;push	r18
-;push	r24
+push	r18
+push	r24

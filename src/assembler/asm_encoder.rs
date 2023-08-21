@@ -413,6 +413,10 @@ impl AsmEncoder {
     /// kkkk kkkk kkkk kkkk
     fn encode_call(&self, segment: &mut Segment, idx: &usize, label: &String) {
 
+        if label.is_empty() {
+            panic!("No label found for call instruction!");
+        }
+
         let label_address: i32 = self.labels[label] as i32;
         let mut offset_k: i32 = label_address - (*idx as i32);
 
@@ -945,7 +949,7 @@ impl AsmEncoder {
     /// 99. SBI – Set Bit in I/O Register
     /// 1001 1010 AAAA Abbb
     #[allow(dead_code)]
-    fn encode_sbi(&self, segment: &mut Segment, idx: &usize, register_a: u16, bit_to_set: u16) {
+    fn encode_sbi(&self, segment: &mut Segment, _idx: &usize, register_a: u16, bit_to_set: u16) {
 
         if register_a > 31 {
             panic!("Invalid register for SBI! Only registers [0, 31] are allowed!")
@@ -968,7 +972,7 @@ impl AsmEncoder {
     /// 108. SEI – Set Global Interrupt Flag
     /// 1001 0100 0111 1000
     #[allow(dead_code)]
-    fn encode_sei(&self, segment: &mut Segment, idx: &usize) {
+    fn encode_sei(&self, segment: &mut Segment, _idx: &usize) {
 
         let result: u16 = 0x9478u16;
 

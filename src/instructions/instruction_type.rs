@@ -282,17 +282,21 @@ impl InstructionType {
             115 => InstructionType::SLEEP, //................................................................................................................. 168
             116 => InstructionType::SPM, // – Store Program Memory............................................................................169
             117 => InstructionType::SPM_2, // SPM #2 – Store Program Memory.......................................................................171
+            
             118 => InstructionType::ST_STD_X_1,
-            118 => InstructionType::ST_STD_X_2,
-            118 => InstructionType::ST_STD_X_3,
+            // 118 => InstructionType::ST_STD_X_2,
+            // 118 => InstructionType::ST_STD_X_3,
+            
             119 => InstructionType::ST_STD_Y_1, 
-            119 => InstructionType::ST_STD_Y_2, 
-            119 => InstructionType::ST_STD_Y_3, 
-            119 => InstructionType::ST_STD_Y_4, 
+            // 119 => InstructionType::ST_STD_Y_2,
+            // 119 => InstructionType::ST_STD_Y_3,
+            // 119 => InstructionType::ST_STD_Y_4,
+            
             120 => InstructionType::ST_STD_Z_1, 
-            120 => InstructionType::ST_STD_Z_2, 
-            120 => InstructionType::ST_STD_Z_3, 
-            120 => InstructionType::ST_STD_Z_4, 
+            // 120 => InstructionType::ST_STD_Z_2,
+            // 120 => InstructionType::ST_STD_Z_3,
+            // 120 => InstructionType::ST_STD_Z_4,
+            
             121 => InstructionType::STS, // STS – Store Direct to Data Space.......................................................................179
             122 => InstructionType::STS_16bit, // STS (16-bit) – Store Direct to Data Space.......................................................... 180
             123 => InstructionType::SUB, // – Subtract Without Carry.............................................................................181

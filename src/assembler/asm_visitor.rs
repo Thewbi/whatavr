@@ -243,8 +243,6 @@ impl<'i> ParseTreeVisitorCompat<'i> for DefaultAssemblerVisitor {
 
     fn aggregate_results(&self, aggregate: Self::Return, next: Self::Return) -> Self::Return {
         // https://stackoverflow.com/questions/40792801/what-is-the-best-way-to-concatenate-vectors-in-rust
-        //let c: Vec<&'i str> = aggregate.iter().cloned().chain(next.iter().cloned()).collect(); // Cloned
-        //c
         let c: Vec<String> = aggregate.iter().cloned().chain(next.iter().cloned()).collect(); // Cloned
         c
     }
@@ -291,6 +289,7 @@ impl<'i> assemblerVisitorCompat<'i> for DefaultAssemblerVisitor {
             self.preprocessor_directive = false;
             self.ascend_ident();
             self.reset_self();
+
             return vec![];
         }
         // look for assembler directives
@@ -300,6 +299,7 @@ impl<'i> assemblerVisitorCompat<'i> for DefaultAssemblerVisitor {
             self.parse_assembler_directive(&children_result);
             self.ascend_ident();
             self.reset_self();
+
             return vec![];
         }
         // do not deal with records that only consists of labels
@@ -307,6 +307,7 @@ impl<'i> assemblerVisitorCompat<'i> for DefaultAssemblerVisitor {
         if self.label != "" && self.mnemonic == "" {
             self.ascend_ident();
             self.reset_self();
+            
             return vec![];
         }
         if self.reg_1 != "" {
@@ -382,12 +383,10 @@ impl<'i> assemblerVisitorCompat<'i> for DefaultAssemblerVisitor {
 
             // perform special handling for the LDS command which has 2 variants
 
-            let mut instruction_type: InstructionType = InstructionType::UNKNOWN;
+            let instruction_type: InstructionType;
 
             let without_prefix = self.reg_2.trim_start_matches("0x");
             let reg_2_as_u16: u16 = u16::from_str_radix(without_prefix, 16).unwrap();
-
-            //let mut register_offset: u16 = 0u16;
 
             // if the second parameter is a value that fits into 7 bit, choose 
             // the 16 bit variant of LDS. Otherwise choose the 32 bit variant.
@@ -410,7 +409,7 @@ impl<'i> assemblerVisitorCompat<'i> for DefaultAssemblerVisitor {
                 self.label.clone(), 
                 instruction_type, 
                 self.record.reg_1, 
-                self.record.reg_2 /*- register_offset*/, 
+                self.record.reg_2, 
                 self.record.data, 
                 self.target_label.clone(), 
                 self.record.io_dest);
@@ -420,12 +419,10 @@ impl<'i> assemblerVisitorCompat<'i> for DefaultAssemblerVisitor {
 
             // perform special handling for the STS command which has 2 variants
 
-            let mut instruction_type: InstructionType = InstructionType::UNKNOWN;
+            let instruction_type: InstructionType;
 
             let without_prefix = self.reg_1.trim_start_matches("0x");
             let reg_1_as_u16: u16 = u16::from_str_radix(without_prefix, 16).unwrap();
-
-            // let mut register_offset: u16 = 0u16;
 
             // if the second parameter is a value that fits into 7 bit, choose 
             // the 16 bit variant of LDS. Otherwise choose the 32 bit variant.
@@ -448,7 +445,7 @@ impl<'i> assemblerVisitorCompat<'i> for DefaultAssemblerVisitor {
                 self.label.clone(), 
                 instruction_type, 
                 self.record.reg_1, 
-                self.record.reg_2 /*- register_offset*/, 
+                self.record.reg_2, 
                 self.record.data, 
                 self.target_label.clone(), 
                 self.record.io_dest);
@@ -458,7 +455,7 @@ impl<'i> assemblerVisitorCompat<'i> for DefaultAssemblerVisitor {
 
             // perform special handling for the ST command which has 11 variants
 
-            let mut instruction_type: InstructionType = InstructionType::UNKNOWN;
+            let instruction_type: InstructionType;
 
             // expectation: 
             // self.record.data contains the pointer base (X, Y or Z)
@@ -514,8 +511,8 @@ impl<'i> assemblerVisitorCompat<'i> for DefaultAssemblerVisitor {
                 self.record.data, 
                 self.target_label.clone(), 
                 self.record.io_dest);
+                
             self.records.push(rec);
-
         }
         self.ascend_ident();
         self.reset_self();
@@ -550,50 +547,51 @@ impl<'i> assemblerVisitorCompat<'i> for DefaultAssemblerVisitor {
         self.descend_ident("visit_param");
         let children_result = self.visit_children(ctx);
         let result_join = children_result.join("");
-        
-        // try to resolve constants
-        let map = HASHMAP.lock().unwrap();
-        if map.contains_key(&result_join) {
-            let constant_value = map.get(&result_join).unwrap();
-            if self.reg_1 == "" {
-                self.reg_1 = constant_value.to_string();
-            } else if self.reg_2 == "" {
-                self.reg_2 = constant_value.to_string();
-            }
-            self.last_terminal = String::default();
-            self.ascend_ident();
-            return vec![];
-        }
 
         if self.reg_1 == "" && self.is_register_name(&self.last_terminal) {
             self.reg_1 = self.last_terminal.clone();
         } else if self.reg_2 == "" && self.is_register_name(&self.last_terminal) {
             self.reg_2 = self.last_terminal.clone();
         } else {
-            self.data = children_result.join("");
+
+            // https://users.rust-lang.org/t/check-if-string-is-numeric/16988/3
+            // check if a string contains a number 
+            let test = result_join.trim().parse::<f64>();
+            match test {
+                Ok(ok) => {
+                    println!("it is a decimal ({})", ok);
+
+                    self.data = children_result.join("");
+                },
+                Err(e) => {
+                    println!("not a decimal ({})", e);
+
+                    // try to resolve constants
+                    let map = HASHMAP.lock().unwrap();
+                    if map.contains_key(&result_join) {
+                        let constant_value = map.get(&result_join).unwrap();
+                        if self.reg_1 == "" {
+                            self.reg_1 = constant_value.to_string();
+                        } else if self.reg_2 == "" {
+                            self.reg_2 = constant_value.to_string();
+                        }
+                        self.last_terminal = String::default();
+                        self.ascend_ident();
+                        return vec![];
+                    }
+
+                    //panic!("Cannot decode: \"{:?}\"! Define this constant or include C:\\Program Files (x86)\\Atmel\\Studio\\7.0\\packs\\atmel\\ATmega_DFP\\1.7.374\\avrasm\\inc\\m328def.inc", result_join);
+
+                    self.target_label = self.last_terminal.clone();
+
+                }, 
+            }
         }
 
         self.last_terminal = String::default();
         self.ascend_ident();
         return vec![];
     }
-
-    // fn visit_parameter(&mut self, ctx: &parser::assemblerparser::ParameterContext<'i>) -> Self::Return {
-    //     self.descend_ident("visit_parameter");
-    //     let children_result = self.visit_children(ctx);
-
-    //     if self.reg_1 == "" && self.is_register_name(&self.last_terminal) {
-    //         self.reg_1 = self.last_terminal.clone();
-    //     } else if self.reg_2 == "" && self.is_register_name(&self.last_terminal) {
-    //         self.reg_2 = self.last_terminal.clone();
-    //     } else {
-    //         self.data = self.last_terminal.clone();
-    //     }
-
-    //     self.last_terminal = String::default();
-    //     self.ascend_ident();
-    //     children_result
-    // }
 
     fn visit_macro_placeholder(&mut self, ctx: &parser::assemblerparser::Macro_placeholderContext<'i>) -> Self::Return {
         self.descend_ident("visit_macro_placeholder");
@@ -654,21 +652,6 @@ impl<'i> assemblerVisitorCompat<'i> for DefaultAssemblerVisitor {
                 self.ascend_ident();
                 return children_result;
             }
-            
-            // // // todo fix this!
-            // // //panic!("fix this");
-            // // println!("FIX THIS!");
-            // // println!("FIX THIS!");
-            // // println!("FIX THIS!");
-            // // DDC0
-            // if "DDC0".eq(&children_result[0]) {
-            //     children_result[0] = "1".to_string();
-
-            //     self.ascend_ident();
-            //     return children_result;
-            // }
-
-            // panic!("Fix this!");
 
         }
 

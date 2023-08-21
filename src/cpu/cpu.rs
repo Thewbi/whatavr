@@ -190,10 +190,12 @@ impl CPU {
         self.c = true;
     }
 
+    #[allow(dead_code)]
     fn reset_c(&mut self) {
         self.c = false;
     }
 
+    #[allow(dead_code)]
     fn get_c(&mut self) -> bool {
         self.c
     }
@@ -202,10 +204,12 @@ impl CPU {
         self.h = true;
     }
 
+    #[allow(dead_code)]
     fn reset_h(&mut self) {
         self.h = false;
     }
 
+    #[allow(dead_code)]
     fn get_h(&mut self) -> bool {
         self.h
     }
