@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{ihex_mgmt::ihex_mgmt::Segment, instructions::instruction_type::InstructionType};
+use crate::{ihex_mgmt::ihex_mgmt::Segment, instructions::instruction_type::InstructionType, common::number_literal_parser::number_literal_to_u16};
 
 use super::asm_record::AsmRecord;
 
@@ -583,22 +583,33 @@ impl AsmEncoder {
     /// 66. JMP – Jump
     /// 1001 010k kkkk 110k
     /// kkkk kkkk kkkk kkkk
-    fn encode_jmp(&mut self, segment: &mut Segment, idx: &usize, label: &String) {
+    fn encode_jmp(&mut self, segment: &mut Segment, idx: &usize, label_or_immediate: &String) {
 
-        if label.is_empty() {
-            log::error!("Encoding JMP instruction but the label is missing!");
+        if label_or_immediate.is_empty() {
+            log::error!("Encoding JMP instruction but the label/immediate is missing!");
             self.encoding_success = false;
             return
         }
 
-        if !self.labels.contains_key(label) {
-            log::error!("Encoding JMP instruction but label \"{}\" is not defined!", label);
-            self.encoding_success = false;
-            return
-        }
+        let mut offset_k: i32;
 
-        let label_address: i32 = self.labels[label] as i32;
-        let mut offset_k: i32 = label_address - (*idx as i32);
+        if self.labels.contains_key(label_or_immediate) {
+
+            let label_address: i32 = self.labels[label_or_immediate] as i32;
+            offset_k = label_address - (*idx as i32);
+
+        } else {
+
+            offset_k = number_literal_to_u16(label_or_immediate) as i32;
+
+        } 
+        // else {
+
+        //     log::error!("Encoding JMP instruction but there is no immediate and label \"{}\" is not defined!", label_or_immediate);
+        //     self.encoding_success = false;
+        //     return
+
+        // }
 
         log::trace!("offset_k: {:#06x}", offset_k);
         log::trace!("offset_k: {:#06x}", offset_k as u32);

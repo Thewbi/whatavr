@@ -327,6 +327,9 @@ impl<'i> assemblerVisitorCompat<'i> for DefaultAssemblerVisitor {
             self.record.io_dest = IoDestination::from_string(self.data.as_str());
             if self.record.io_dest == IoDestination::UNKNOWN
             {
+
+                // todo somehow find a way to use common::number_literal_to_u16() instead of this if else
+
                 if self.data.to_lowercase().starts_with("0b")
                 {
                     // parse binary
