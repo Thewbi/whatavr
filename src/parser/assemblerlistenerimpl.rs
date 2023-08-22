@@ -159,7 +159,7 @@ impl<'input> assemblerListener<'input> for assemblerListenerImpl {
 
         if self.reg_1 != "" {
 
-            if self.reg_1.starts_with("r")
+            if self.reg_1.to_lowercase().starts_with("r")
             {
                 asm_record.reg_1 = self.reg_1[1..].parse::<u16>().unwrap();
             }
@@ -167,7 +167,7 @@ impl<'input> assemblerListener<'input> for assemblerListenerImpl {
 
         if self.reg_2 != "" {
 
-            if self.reg_2.starts_with("r")
+            if self.reg_2.to_lowercase().starts_with("r")
             {
                 asm_record.reg_2 = self.reg_2[1..].parse::<u16>().unwrap();
             }
@@ -252,9 +252,9 @@ impl<'input> assemblerListener<'input> for assemblerListenerImpl {
      */
     fn exit_param(&mut self, _ctx: &ParamContext<'input>) {
 
-        if self.reg_1 == "" && self.last_terminal.starts_with("r") {
+        if self.reg_1 == "" && self.last_terminal.to_lowercase().starts_with("r") {
             self.reg_1 = self.last_terminal.clone();
-        } else if self.reg_2 == "" && self.last_terminal.starts_with("r") {
+        } else if self.reg_2 == "" && self.last_terminal.to_lowercase().starts_with("r") {
             self.reg_2 = self.last_terminal.clone();
         } else {
             self.data = self.last_terminal.clone();

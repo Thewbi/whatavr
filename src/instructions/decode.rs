@@ -17,8 +17,10 @@ pub fn decode_instruction<'a>(
 
     // go through all the instructions
     for instruction in instructions_list {
+
         // find the instruction that matches the bit pattern
         if bit_match(data, &instruction.bit_pattern) {
+            
             // parse the bit pattern into the values
             bit_pattern_match(data, &instruction.bit_pattern, value_storage);
 

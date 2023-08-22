@@ -95,52 +95,45 @@ impl DefaultAssemblerVisitor {
 
     // https://rust-lang-nursery.github.io/rust-cookbook/text/regex.html
     pub fn is_register_name(&self, input: &str) -> bool {
-        let re = Regex::new("^r(\\d|[12]\\d|3[01])$").unwrap();
+        let re = Regex::new("^(r|R)(\\d|[12]\\d|3[01])$").unwrap();
         re.is_match(input)
     }
 
     pub fn parse_assembler_directive(&mut self, assembler_directive: &Vec<String>) {
         log::trace!("parse_assembler_directive");
 
-        if "cseg".eq(&assembler_directive[1]) {
-            // ignored
-            return;
-        }
+        let asm_directive = assembler_directive[1].to_lowercase();
 
-        if "device".eq(&assembler_directive[1]) {
-            // ignored
-            return;
-        }
+        if "cseg".eq(&asm_directive) {
 
-        // Set a symbolic name on a register.
-        // The DEF directive allows the registers to be referred to through symbols. A defined symbol can be used
-        // in the rest of the program to refer to the register it is assigned to. A register can have several symbolic
-        // names attached to it. A symbol can be redefined later in the program.
-        if "def".eq(&assembler_directive[1]) {
+            // ignored
+
+        } else if "device".eq(&asm_directive) {
+
+            // ignored
+
+        } else if "def".eq(&asm_directive) {
+
+            // Set a symbolic name on a register.
+            // The DEF directive allows the registers to be referred to through symbols. A defined symbol can be used
+            // in the rest of the program to refer to the register it is assigned to. A register can have several symbolic
+            // names attached to it. A symbol can be redefined later in the program.
             
-            //self.constant_storage.insert(assembler_directive[2].to_string(), assembler_directive[4].to_string());
-
             let mut map = HASHMAP.lock().unwrap();
             map.insert(assembler_directive[2].to_string(), assembler_directive[4].to_string());
-
-            return;
-        }
-
-        // Set a symbol equal to an expression.
-        // The EQU directive assigns a value to a label. This label can then be used in later expressions. A label
-        // assigned to a value by the EQU directive is a constant and can not be changed or redefined.
-        if "equ".eq(&assembler_directive[1]) {
             
-            //self.constant_storage.insert(assembler_directive[2].to_string(), assembler_directive[4].to_string());
+        } else if "equ".eq(&asm_directive) {
+
+            // Set a symbol equal to an expression.
+            // The EQU directive assigns a value to a label. This label can then be used in later expressions. A label
+            // assigned to a value by the EQU directive is a constant and can not be changed or redefined.
             
             let mut map = HASHMAP.lock().unwrap();
             map.insert(assembler_directive[2].to_string(), assembler_directive[4].to_string());
 
-            return;
-        }
+        } else if "include".eq(&asm_directive) {
 
-        // C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328Pdef.inc
-        if "include".eq(&assembler_directive[1]) {
+            // C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328Pdef.inc
 
             let unwrapped_name: &String = &assembler_directive[2].replace("\"", "");
 
@@ -197,22 +190,20 @@ impl DefaultAssemblerVisitor {
         
             log::trace!("{:?}", visitor_result);
 
-            // log::trace!("{:?}", visitor.records);
-
             // insert all parsed AsmRecords into the parent
             if visitor.records.len() > 0 {
                 self.records.append(&mut visitor.records);
             }
 
-            return;
-        }
+        } else if "org".eq(&asm_directive) {
 
-        if "org".eq(&assembler_directive[1]) {
             // ignored
-            return;
-        }
 
-        panic!();
+        } else {
+
+            panic!();
+
+        }
     }
 
 }
@@ -311,7 +302,7 @@ impl<'i> assemblerVisitorCompat<'i> for DefaultAssemblerVisitor {
             return vec![];
         }
         if self.reg_1 != "" {
-            if self.reg_1.starts_with("r")
+            if self.reg_1.to_lowercase().starts_with("r")
             {
                 self.record.reg_1 = self.reg_1[1..].parse::<u16>().unwrap();
             } 
@@ -322,7 +313,7 @@ impl<'i> assemblerVisitorCompat<'i> for DefaultAssemblerVisitor {
             }
         }
         if self.reg_2 != "" {
-            if self.reg_2.starts_with("r")
+            if self.reg_2.to_lowercase().starts_with("r")
             {
                 self.record.reg_2 = self.reg_2[1..].parse::<u16>().unwrap();
             }
@@ -336,13 +327,13 @@ impl<'i> assemblerVisitorCompat<'i> for DefaultAssemblerVisitor {
             self.record.io_dest = IoDestination::from_string(self.data.as_str());
             if self.record.io_dest == IoDestination::UNKNOWN
             {
-                if self.data.starts_with("0b")
+                if self.data.to_lowercase().starts_with("0b")
                 {
                     // parse binary
                     let without_prefix = self.data.trim_start_matches("0b");
                     self.record.data = u16::from_str_radix(without_prefix, 2).unwrap();
                 } 
-                else if self.data.starts_with("0x")
+                else if self.data.to_lowercase().starts_with("0x")
                 {
                     // parse hex
                     let without_prefix = self.data.trim_start_matches("0x");
@@ -427,14 +418,10 @@ impl<'i> assemblerVisitorCompat<'i> for DefaultAssemblerVisitor {
             // if the second parameter is a value that fits into 7 bit, choose 
             // the 16 bit variant of LDS. Otherwise choose the 32 bit variant.
             if reg_1_as_u16 <= 0x7F {
+                // 16 bit version
                 instruction_type = InstructionType::STS_16bit;
-
-                // // the 16 bit version only uses 4 bit to encode the registers 
-                // // r0 to r31. Since 32 does not fit into 4 bit, an offset of
-                // // 16 is used and only half the registers can be used in the
-                // // 16 bit version
-                // register_offset = 16u16;
             } else {
+                // 32 bit version
                 instruction_type = InstructionType::STS;
             }
 

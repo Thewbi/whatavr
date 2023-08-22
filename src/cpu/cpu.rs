@@ -235,6 +235,64 @@ impl CPU {
         self.sfr[address] = value;
     }
 
+    fn read_from_i_o_space(&mut self, address: usize) -> u8 {
+        self.sfr[address]
+    }
+
+    fn read_next_two_byte(&mut self, segment: &Segment) -> u16 {
+
+        // get the next 16 stored at the pc since the JMP command is encoded using 32 bit (4 byte)
+        let temp_pc: i32 = self.pc;
+
+        let word_hi: u16 = segment.data[(temp_pc + 1i32) as usize] as u16;
+        //log::info!("READ: {:#02x}", word_hi as u8);
+
+        let word_lo: u16 = segment.data[temp_pc as usize] as u16;
+        //log::info!("READ: {:#02x}", word_lo as u8);
+
+        let k_lo: u16 = ((word_hi << 8u8) + word_lo).into();
+        
+        k_lo
+
+    }
+
+    fn read_next_four_byte(&mut self, segment: &Segment, k_hi: &u32) -> i32 {
+
+        // // get the first 16 bit
+        // let k_hi: u32 = value_storage[&'k'].into();
+
+        // // get the next 16 stored at the pc since the JMP command is encoded using 32 bit (4 byte)
+        // let temp_pc: i32 = cpu.pc;
+
+        // let word_hi: u16 = segment.data[(temp_pc + 1i32) as usize] as u16;
+        // log::trace!("READ: {:#02x}", word_hi as u8);
+
+        // let word_lo: u16 = segment.data[temp_pc as usize] as u16;
+        // log::trace!("READ: {:#02x}", word_lo as u8);
+
+        // let k_lo: u32 = ((word_hi << 8u8) + word_lo).into();
+
+        // // assemble the parameter k
+        // let k_val: i16 = ((k_hi << 16u8) + k_lo) as i16;
+
+        // // extend to i32
+        // let k_val_i32: i32 = k_val as i32;
+
+        // get the first 16 bit
+        //let k_hi: u32 = self.value_storage[&'k'].into();
+
+        let k_lo: u32 = self.read_next_two_byte(segment) as u32;
+        
+        // assemble the parameter k
+        let k_val: i16 = ((k_hi << 16u8) + k_lo) as i16;
+
+        // extend to i32
+        let k_val_i32: i32 = k_val as i32;
+
+        k_val_i32
+
+    }
+
     pub fn execute_instruction(&mut self, segment: &Segment) {
 
         // get the current instruction
@@ -391,25 +449,11 @@ impl CPU {
                 // get the first 16 bit
                 let k_hi: u32 = value_storage[&'k'].into();
 
-                // get the next 16 stored at the pc since the JMP command is encoded using 32 bit (4 byte)
-                let temp_pc: i32 = cpu.pc;
-
-                let word_hi: u16 = segment.data[(temp_pc + 1i32) as usize] as u16;
-                log::trace!("READ: {:#02x}", word_hi as u8);
-
-                let word_lo: u16 = segment.data[temp_pc as usize] as u16;
-                log::trace!("READ: {:#02x}", word_lo as u8);
-
-                let k_lo: u32 = ((word_hi << 8u8) + word_lo).into();
-
-                // assemble the parameter k
-                let k_val: i16 = ((k_hi << 16u8) + k_lo) as i16;
-
-                // extend to i32
-                let k_val_i32: i32 = k_val as i32;
+                // get the next 16 bit
+                let k_val_i32: i32 = cpu.read_next_four_byte(segment, &k_hi);
 
                 // push return address onto the stack
-                let data = cpu.pc;
+                let data: i32 = cpu.pc;
                 push_to_stack_i16(&mut cpu, data as i16);
 
                 //log::info!("call - stack pointer: {:#04x} {:#04x}", cpu.sph, cpu.spl);
@@ -527,22 +571,8 @@ impl CPU {
                 // get the first 16 bit
                 let k_hi: u32 = value_storage[&'k'].into();
 
-                // get the next 16 stored at the pc since the JMP command is encoded using 32 bit (4 byte)
-                let temp_pc: i32 = cpu.pc;
-
-                let word_hi: u16 = segment.data[(temp_pc + 1i32) as usize] as u16;
-                //log::info!("READ: {:#02x}", word_hi as u8);
-
-                let word_lo: u16 = segment.data[temp_pc as usize] as u16;
-                //log::info!("READ: {:#02x}", word_lo as u8);
-
-                let k_lo: u32 = ((word_hi << 8u8) + word_lo).into();
-
-                // assemble the parameter k
-                let k_val: i16 = ((k_hi << 16u8) + k_lo) as i16;
-
-                // extend to i32
-                let k_val_i32: i32 = k_val as i32;
+                // get the next 16 bit
+                let k_val_i32: i32 = cpu.read_next_four_byte(segment, &k_hi);
 
                 cpu.pc += k_val_i32;
             }
@@ -558,7 +588,7 @@ impl CPU {
 
                 // "Loads an 8-bit constant directly to register 16 to 31."
                 // To compute the register to use, add the offset 16 to the parsed value
-                let register = d_val + 16;
+                let register: u16 = d_val + 16;
                 //log::info!("[LDI] Using register: r{}", register);
 
                 log::trace!("{temp_pc:#02x}: {word:#06x} ldi r{register:#02}, {k_val:#02x}");
@@ -574,9 +604,9 @@ impl CPU {
             InstructionType::MOV => {
                 log::info!("[MOV]");
 
-                let r_register = value_storage[&'r'];
+                let r_register: u16 = value_storage[&'r'];
                 log::trace!("K: {r_register:#b} {r_register:#x}");
-                let d_register = value_storage[&'d'];
+                let d_register: u16 = value_storage[&'d'];
                 log::trace!("d: {d_register:#b} {d_register:#x}");
 
                 let k_val: u8 = cpu.register_file[r_register as usize];
@@ -715,6 +745,24 @@ impl CPU {
                 cpu.pc += kk as i32;
             }
 
+            /*  99 */
+            InstructionType::SBI => {
+                log::info!("[SBI]");
+
+                let address: usize = value_storage[&'A'] as usize;
+                let bit: u16 = value_storage[&'b'] as u16;
+
+                // read from special function registers
+                let mut register_value:u8 = cpu.read_from_i_o_space(address);
+                
+                register_value |= 1 << bit;
+
+                // output the value stored in register r_val into memory to the address a_val
+                cpu.store_to_i_o_space(address as usize, register_value);
+
+                cpu.pc += 2i32;
+            }
+
             /* 120 */
             // store data into memory (data space) at the address stored in Z
             // (data space != I/O space (for I/O space, use the OUT instruction))
@@ -798,6 +846,28 @@ impl CPU {
                 cpu.set_z(value_z);
 
                 cpu.pc += 2i32;
+            }
+
+            /* 120 */
+            // Stores one byte from a Register to the data space
+            InstructionType::STS => {
+                log::info!("[STS] 32 bit version");
+
+                log::info!("value_storage: {:?}", value_storage);
+
+                // retrieved the encoded value for the r register
+                let register: u16 = value_storage[&'d'];
+                log::info!("r: {register:#b} {register:#x} {register}");
+
+                // retrieve the current value from the r register
+                let register_value: u8 = cpu.register_file[register as usize];
+
+                // read the address from the next two bytes in memory
+                let address: u16 = cpu.read_next_two_byte(segment);
+
+                cpu.store_to_data_space(address as usize, register_value);
+
+                cpu.pc += 4i32;
             }
 
             InstructionType::UNKNOWN => {

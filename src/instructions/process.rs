@@ -519,11 +519,11 @@ pub fn match_instruction<R: crate::io::Read>(
         InstructionType::ST_STD_Z_4 => {
             process_st_std_z_4(rdr, &word, index, value_storage);
         }
-        /* 121 */
+        /* 121 32-bit variant of the instruction */
         InstructionType::STS => {
             process_sts(rdr, &word, index, value_storage);
         } // STS – Store Direct to Data Space.......................................................................179
-        /* 122 */
+        /* 122 16-bit variant of the instruction */
         InstructionType::STS_16bit => {
             process_sts_16bit(rdr, &word, index, value_storage);
         } // STS (16-bit) – Store Direct to Data Space.......................................................... 180

@@ -1,5 +1,13 @@
 ; https://www.youtube.com/watch?v=uBHvHNJ1A7I
-.global timer1
+;.global timer1
+
+.include "m328Pdef.inc"
+
+stack_init:
+    ldi     r16, LOW(RAMEND)
+    out     SPL, r16
+    ldi     r16, HIGH(RAMEND)
+    out     SPH, r16
 
 timer1:
     LDI     R16, 0b00100000         ; to toggle PB5 (D13)
@@ -17,7 +25,7 @@ label_1:
 
 delay_timer1:                       ; 1 sec delay via timer 1 
 
-.EQU value 57724                    ; value to give 0.5 sec delay
+.EQU value = 57724                  ; value to give 0.5 sec delay
     LDI     R20, hi8(value)
     STS     TCNT1H, R20
     LDI     R20, lo8(value)
@@ -33,9 +41,9 @@ label_2:
     SBRS    R20, TOV1               ; check if TOV=1, skip next instruction
     RJMP    label_2                 ; else loop back and check TOV1 flag 
     ;-------------------------------------------------------
-    LDI   R20, 1<<TOV1
-    OUT   TIFR1, R20                ; clear TOV1 flag
+;    LDI   R20, 1<<TOV1
+;    OUT   TIFR1, R20                ; clear TOV1 flag
     ;-------------------------------------------------------
-    LDI   R20, 0b00000000
-    STS   TCCR1B, R20               ; stop timer0
-    RET
+;    LDI   R20, 0b00000000
+;    STS   TCCR1B, R20               ; stop timer0
+;    RET

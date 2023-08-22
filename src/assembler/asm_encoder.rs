@@ -293,7 +293,11 @@ impl AsmEncoder {
             }
             /*  99 */
             InstructionType::SBI => {
-                Self::encode_sbi(&self, segment, &asm_record.idx, asm_record.reg_1, asm_record.reg_2);
+                let param2_value: u16;
+                if asm_record.reg_2 == 255 { param2_value = asm_record.data; } else { param2_value = asm_record.reg_2; }
+                Self::encode_sbi(&self, segment, &asm_record.idx, asm_record.reg_1, param2_value);
+                //Self::encode_sbi(&self, segment, &asm_record.idx, asm_record.reg_1, asm_record.data);
+                //Self::encode_sbi(&self, segment, &asm_record.idx, asm_record.reg_1, asm_record.reg_2);
             }
             /*  108 */
             InstructionType::SEI => {
@@ -313,7 +317,7 @@ impl AsmEncoder {
 
             /* 121 */
             InstructionType::STS => {
-                Self::encode_sts(&self, segment, asm_record.reg_1, asm_record.data);
+                Self::encode_sts(&self, segment, asm_record.reg_2, asm_record.reg_1);
             }
             /* 122 */
             InstructionType::STS_16bit => {
