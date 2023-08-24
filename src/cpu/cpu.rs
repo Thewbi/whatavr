@@ -142,7 +142,7 @@ impl Default for CPU {
 impl std::fmt::Display for CPU {
 
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "\nr16: {:02X?}", self.register_file[16])?;
+        write!(f, "r16: {:02X?}", self.register_file[16])?;
         write!(f, "\nr17: {:02X?}", self.register_file[17])?;
         write!(f, "\nr18: {:02X?}", self.register_file[18])?;
         write!(f, "\nr19: {:02X?}", self.register_file[19])
@@ -418,7 +418,7 @@ impl CPU {
                     cpu.register_file[d_value]
                 );
 
-                log::info!("add r{}, d{}", r_value, d_value);
+                log::info!("add r{}, r{}", d_value, r_value);
 
                 cpu.pc += 2i32;
             }

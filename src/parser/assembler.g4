@@ -6,7 +6,7 @@ grammar assembler;
 pub type LocalTokenFactory<'input> = antlr_rust::token_factory::ArenaCommonFactory<'input>;
 }
 
-asm_file : NEWLINE* row (NEWLINE* row)* NEWLINE* EOF ;
+asm_file : NEWLINE* row ( NEWLINE* row )* NEWLINE* EOF ;
 
 row : 
     asm_instrinsic_instruction
@@ -22,9 +22,8 @@ row :
 
 instruction : mnemonic ( param ( COMMA param )? )? ;
 
-param : (IDENTIFIER (PLUS | MINUS)? ) | expression | asm_intrinsic_usage | macro_placeholder ;
+param : ( ( MINUS )? IDENTIFIER ( PLUS )? ) | expression | asm_intrinsic_usage | macro_placeholder ;
 
-// examples: delayms 500
 macro_usage : IDENTIFIER ( expression )* ;
 
 label_definition : IDENTIFIER COLON ;
@@ -88,11 +87,11 @@ asm_instrinsic_instruction :
     ;
 
 asm_intrinsic_usage :
-    IDENTIFIER OPENING_BRACKET (IDENTIFIER | macro_placeholder) CLOSEING_BRACKET
+    IDENTIFIER OPENING_BRACKET ( IDENTIFIER | macro_placeholder ) CLOSEING_BRACKET
     ;
 
 preprocessor_directive : 
-    HASH_TAG (IF | ENDIF | IDENTIFIER | HEX_NUMBER | BINARY_NUMBER | NUMBER )+
+    HASH_TAG ( IF | ENDIF | IDENTIFIER | HEX_NUMBER | BINARY_NUMBER | NUMBER )+
     ;
 
 mnemonic :

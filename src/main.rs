@@ -25,6 +25,7 @@ use std::rc::Rc;
 use crate::assembler::asm_encoder::AsmEncoder;
 use crate::assembler::asm_record::AsmRecord;
 use crate::assembler::asm_visitor::DefaultAssemblerVisitor;
+use crate::assembler::asm_visitor_new::NewAssemblerVisitor;
 use crate::cpu::cpu::CPU;
 use crate::ihex_mgmt::ihex_mgmt::parse_hex_file;
 use crate::ihex_mgmt::ihex_mgmt::Segment;
@@ -156,7 +157,7 @@ fn main() -> io::Result<()> {
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/preprocessor.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/push_pop.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/scratchpad.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/scratchpad2.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/scratchpad_2.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/setup_stack.asm"); // regression test
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/timer_polling_example.asm");
     //asm_file_path.push_str("C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/avrasm/inc/m328Pdef.inc");
@@ -170,7 +171,41 @@ fn main() -> io::Result<()> {
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/twos_complement_overflow.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/sts.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/timebase.asm");
-    asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/out.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/out.asm");
+
+    // ld, st, call, ret, push, pop, mov, movw, and, inc, dec, andi, add, adc, adiw, ldi, lsr, 
+    // lsl, brne, brbc, breq, brsh, brge, brlt, rol, ror, sbi, cbi, sbc, subi
+
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/ld.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/st.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/call.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/ret.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/push.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/pop.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/mov.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/movw.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/and.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/inc.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/dec.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/andi.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/add.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/adc.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/adiw.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/ldi.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/lsr.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/lsl.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/brne.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/brbc.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/breq.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/brsh.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/brge.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/brlt.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/rol.asm");
+    asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/ror.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/sbi.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/cbi.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/sbc.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/subi.asm");
 
     let data = fs::read_to_string(asm_file_path).expect("Unable to read file");
     log::info!("\n{}", data);
@@ -234,30 +269,41 @@ fn main() -> io::Result<()> {
     log::info!("Phase - AST Visiting");
     log::info!("*************************************************");
 
-    // the visitor traverses the AST (Abstract Syntax Tree) and creates
-    // AsmRecords. It will insert these ARMRecords into the records parameter
-    let mut visitor = DefaultAssemblerVisitor {
-        result_value: String::default(),
-        ident: 0u16,
+    // // the visitor traverses the AST (Abstract Syntax Tree) and creates
+    // // AsmRecords. It will insert these ARMRecords into the records parameter
+    // let mut visitor = DefaultAssemblerVisitor {
+    //     result_value: String::default(),
+    //     ident: 0u16,
+    //     records: Vec::new(),
+    //     record: AsmRecord::default(),
+    //     text: String::default(),
+    //     last_terminal: String::default(),
+    //     intrinsic_usage: String::default(),
+    //     mnemonic: String::default(),
+    //     reg_1: String::default(),
+    //     reg_2: String::default(),
+    //     data: String::default(),
+    //     label: String::default(),
+    //     target_label: String::default(),
+    //     return_val: Vec::new(),
+    //     preprocessor_directive: bool::default(),
+    //     debug_output: true,
+    // };
+    // visitor.record.clear();
+
+    // new visitor
+    let mut visitor = NewAssemblerVisitor {
         records: Vec::new(),
         record: AsmRecord::default(),
-        text: String::default(),
-        last_terminal: String::default(),
-        intrinsic_usage: String::default(),
-        mnemonic: String::default(),
-        reg_1: String::default(),
-        reg_2: String::default(),
-        data: String::default(),
-        label: String::default(),
-        target_label: String::default(),
-        return_val: Vec::new(),
-        preprocessor_directive: bool::default(),
+
+        ident: 0u16,
         debug_output: true,
+
+        return_val: Vec::new(),
     };
     visitor.record.clear();
 
     let visitor_result = visitor.visit(&*root);
-
     log::trace!("{:?}", visitor_result);
 
     //
@@ -294,6 +340,8 @@ fn main() -> io::Result<()> {
     // main loop that executes the instructions
     let mut done: bool = false;
     while !done {
+
+        println!("\n");
 
         // get the current instruction
         let temp_pc: i32 = cpu.pc - 0x02;

@@ -11,6 +11,7 @@ use crate::HIGH;
 use crate::assembler::asm_record::AsmRecord;
 use crate::assembler::io_destination::IoDestination;
 use crate::common::common_constants::RAMEND;
+use crate::common::register_parser::is_register_name;
 use crate::instructions::instruction_type::InstructionType;
 use crate::parser;
 use crate::parser::assemblerparser::InstructionContext;
@@ -21,7 +22,7 @@ use crate::parser::assemblervisitor::assemblerVisitorCompat;
 use crate::parser::assemblerparser::Preprocessor_directiveContext;
 use antlr_rust::tree::ParseTree;
 
-use regex::Regex;
+
 
 pub struct DefaultAssemblerVisitor {
         
@@ -91,12 +92,6 @@ impl DefaultAssemblerVisitor {
         self.data = String::default();
         self.record.clear();
         self.preprocessor_directive = bool::default();
-    }
-
-    // https://rust-lang-nursery.github.io/rust-cookbook/text/regex.html
-    pub fn is_register_name(&self, input: &str) -> bool {
-        let re = Regex::new("^(r|R)(\\d|[12]\\d|3[01])$").unwrap();
-        re.is_match(input)
     }
 
     pub fn parse_assembler_directive(&mut self, assembler_directive: &Vec<String>) {
@@ -258,6 +253,8 @@ impl<'i> assemblerVisitorCompat<'i> for DefaultAssemblerVisitor {
         // the very last line contained a label definition
         // force a NOP operation and place the label onto that NOP operation
         if self.label != "" {
+
+            // create a new record
             let asm_record: AsmRecord = AsmRecord::new(
                 self.label.clone(), 
                 InstructionType::NOP, 
@@ -266,6 +263,8 @@ impl<'i> assemblerVisitorCompat<'i> for DefaultAssemblerVisitor {
                 0, 
                 String::from(""), 
                 IoDestination::UNKNOWN);
+
+            // store the record into the result
             self.records.push(asm_record);
         }
         children_result
@@ -538,9 +537,9 @@ impl<'i> assemblerVisitorCompat<'i> for DefaultAssemblerVisitor {
         let children_result = self.visit_children(ctx);
         let result_join = children_result.join("");
 
-        if self.reg_1 == "" && self.is_register_name(&self.last_terminal) {
+        if self.reg_1 == "" && is_register_name(&self.last_terminal) {
             self.reg_1 = self.last_terminal.clone();
-        } else if self.reg_2 == "" && self.is_register_name(&self.last_terminal) {
+        } else if self.reg_2 == "" && is_register_name(&self.last_terminal) {
             self.reg_2 = self.last_terminal.clone();
         } else {
 

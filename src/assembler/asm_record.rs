@@ -11,10 +11,10 @@ pub struct AsmRecord {
 
     pub label: String,
 
+    pub instruction_type: InstructionType,
+
     pub reg_1: u16,
     pub reg_2: u16,
-
-    pub instruction_type: InstructionType,
 
     pub data: u16,
 
@@ -68,9 +68,12 @@ impl AsmRecord {
 
 impl fmt::Display for AsmRecord {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "(label:{}, instruction_type:{}, target_label:{})", 
+        write!(f, "(label:{}, instruction_type:{}, reg_1:{} {:#04x}, reg_2:{} {:#04x}, data:{} {:#04x}, target_label:{})", 
             self.label, 
-            self.instruction_type.to_string(), 
+            self.instruction_type.to_string(),
+            self.reg_1, self.reg_1,
+            self.reg_2, self.reg_2,
+            self.data, self.data,
             self.target_label)
     }
 }
