@@ -83,14 +83,29 @@ fn decrement_stack_pointer(cpu: &mut CPU) {
 
 pub struct CPU {
 
-    // the zero flag
-    pub z: bool,
-
     // the carry flag
     pub c: bool,
 
+    // the zero flag
+    pub z: bool,
+
+    // Negative Flag
+    pub n: bool,
+
+    // Two's complement overflow indicator
+    pub v: bool,
+
+    // N ⊕ V, for signed tests
+    pub s: bool,
+
     // the half-carry flag
     pub h: bool,
+
+    // Transfer bit used by BLD and BST instructions
+    pub t: bool,
+
+    // Global Interrupt Enable/Disable Flag
+    pub i: bool,    
 
     // pc always points to the instruction after the current instruction so it does not start at 0x00 but at 0x02
     pub pc: i32,
@@ -108,9 +123,14 @@ pub struct CPU {
 impl Default for CPU {
     fn default() -> Self {
         Self { 
-            z: false,
             c: false,
+            z: false,
+            n: false,
+            v: false,
+            s: false,
             h: false,
+            t: false,
+            i: false,
             pc: 0x02i32,
             register_file: [0; 32usize],
             sram: [0; RAMEND as usize],
@@ -133,11 +153,16 @@ impl std::fmt::Display for CPU {
 impl CPU {
 
     #[allow(dead_code, unused)]
-    pub fn new(z: bool, c: bool, pc: i32, register_file: [u8; 32usize], sram: [u8; RAMEND as usize], sfr: [u8; 255usize]) -> Self {
+    pub fn new(pc: i32, register_file: [u8; 32usize], sram: [u8; RAMEND as usize], sfr: [u8; 255usize]) -> Self {
         Self { 
-            z: z,
-            c: c,
+            c: false,
+            z: false,
+            n: false,
+            v: false,
+            s: false,
             h: false,
+            t: false,
+            i: false,
             pc: pc,
             register_file: register_file,
             sram: sram,
@@ -483,6 +508,7 @@ impl CPU {
             // },
 
             /*  43 */
+            // eor	r1, r1 (register with itself, is encoded to the same machine code as clr r1)
             InstructionType::CLR => {
                 log::info!("[CLR]");
 
@@ -490,6 +516,12 @@ impl CPU {
 
                 log::trace!("Clearing register d: {:#06x}", d);
                 cpu.register_file[d as usize] = 0x00;
+
+                // updating flags
+                cpu.s = false;
+                cpu.v = false;
+                cpu.n = false;
+                cpu.z = true;
 
                 cpu.pc += 2i32;
             }

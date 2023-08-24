@@ -265,7 +265,13 @@ impl AsmEncoder {
             }
             /*  88 */
             InstructionType::OUT => {
-                Self::encode_out(self, segment, asm_record.reg_1, asm_record.reg_2);
+                let mut param_1: u16 = asm_record.reg_1;
+                let mut param_2: u16 = asm_record.reg_2;
+                if param_2 == 0xFF {
+                    param_1 = number_literal_to_u16(&asm_record.target_label);
+                    param_2 = asm_record.reg_1;
+                }
+                Self::encode_out(self, segment, param_1, param_2);
             }
             /*  89 */
             InstructionType::POP => {
@@ -298,6 +304,12 @@ impl AsmEncoder {
                 Self::encode_sbi(&self, segment, &asm_record.idx, asm_record.reg_1, param2_value);
                 //Self::encode_sbi(&self, segment, &asm_record.idx, asm_record.reg_1, asm_record.data);
                 //Self::encode_sbi(&self, segment, &asm_record.idx, asm_record.reg_1, asm_record.reg_2);
+            }
+            /*  105 */
+            InstructionType::SBRS => {
+                let param2_value: u16;
+                if asm_record.reg_2 == 255 { param2_value = asm_record.data; } else { param2_value = asm_record.reg_2; }
+                Self::encode_sbrs(&self, segment, &asm_record.idx, asm_record.reg_1, param2_value);
             }
             /*  108 */
             InstructionType::SEI => {
@@ -980,6 +992,29 @@ impl AsmEncoder {
         segment.size += 1u32;
 
         log::trace!("ENC SBI: {:#02x}", (result >> 8u16) as u8);
+        segment.data.push((result >> 8u16) as u8);
+        segment.size += 1u32;
+    }
+
+    /// 105. SBRS – Skip if Bit in Register is Set
+    /// 1111 111r rrrr 0bbb
+    #[allow(dead_code)]
+    fn encode_sbrs(&self, segment: &mut Segment, _idx: &usize, register_r: u16, bit_to_set: u16) {
+
+        if register_r > 31 {
+            panic!("Invalid register for SBRS! Only registers [0, 31] are allowed!")
+        }
+        if bit_to_set > 8 {
+            panic!("Invalid bit for SBRS! Only bits [0, 7] are allowed!")
+        }
+
+        let result: u16 = 0xFE00u16 | register_r << 4usize | bit_to_set;
+
+        log::trace!("ENC SBRS: {:#02x}", (result >> 0u16) as u8);
+        segment.data.push((result >> 0u16) as u8);
+        segment.size += 1u32;
+
+        log::trace!("ENC SBRS: {:#02x}", (result >> 8u16) as u8);
         segment.data.push((result >> 8u16) as u8);
         segment.size += 1u32;
     }

@@ -41,9 +41,9 @@ label_2:
     SBRS    R20, TOV1               ; check if TOV=1, skip next instruction
     RJMP    label_2                 ; else loop back and check TOV1 flag 
     ;-------------------------------------------------------
-;    LDI   R20, 1<<TOV1
-;    OUT   TIFR1, R20                ; clear TOV1 flag
+    LDI     R20, 1<<TOV1
+    OUT     TIFR1, R20                ; clear TOV1 flag
     ;-------------------------------------------------------
-;    LDI   R20, 0b00000000
-;    STS   TCCR1B, R20               ; stop timer0
-;    RET
+    LDI     R20, 0b00000000
+    STS     TCCR1B, R20               ; stop timer0
+    RET
