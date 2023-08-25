@@ -127,12 +127,20 @@ use super::{instruction_definition::InstructionDefinition, instruction_type::Ins
     /* 115 => InstructionType::SLEEP */         const SLEEP:        InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::SLEEP),       instruction_type: InstructionType::SLEEP,       bit_pattern: "1001 0101 1000 1000" };
     /* 116 => InstructionType::SPM */           const SPM:          InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::SPM),         instruction_type: InstructionType::SPM,         bit_pattern: "1001 0101 1110 1000" };
     // /* 117 => InstructionType::SPM_2 */         const SPM_2:        InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::SPM_2),       instruction_type: InstructionType::SPM_2,       bit_pattern: "" };
+    
     // /* 118 => InstructionType::ST */            const ST:           InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::ST),          instruction_type: InstructionType::ST,          bit_pattern: "" };
+    
+    // /* 118 => InstructionType::ST_STD_X */     const ST_STD_X:     InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::ST_STD_Y),    instruction_type: InstructionType::ST_STD_Y,    bit_pattern: "" };
+    const ST_STD_X_1:     InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::ST_STD_X_1),    instruction_type: InstructionType::ST_STD_X_1,    bit_pattern: "1001 001r rrrr 1100" };
+    const ST_STD_X_2:     InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::ST_STD_X_2),    instruction_type: InstructionType::ST_STD_X_2,    bit_pattern: "1001 001r rrrr 1101" };
+    const ST_STD_X_3:     InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::ST_STD_X_3),    instruction_type: InstructionType::ST_STD_X_3,    bit_pattern: "1001 001r rrrr 1110" };
+    
     // /*  119 => InstructionType::ST_STD_Y */     const ST_STD_Y:     InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::ST_STD_Y),    instruction_type: InstructionType::ST_STD_Y,    bit_pattern: "" };
     const ST_STD_Y_1:     InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::ST_STD_Y_1),    instruction_type: InstructionType::ST_STD_Y_1,    bit_pattern: "1000 001r rrrr 1000" };
     const ST_STD_Y_2:     InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::ST_STD_Y_2),    instruction_type: InstructionType::ST_STD_Y_2,    bit_pattern: "1001 001r rrrr 1001" };
     const ST_STD_Y_3:     InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::ST_STD_Y_3),    instruction_type: InstructionType::ST_STD_Y_3,    bit_pattern: "1001 001r rrrr 1010" };
     const ST_STD_Y_4:     InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::ST_STD_Y_4),    instruction_type: InstructionType::ST_STD_Y_4,    bit_pattern: "10q0 qq1r rrrr 1qqq" };
+    
     // /*  120 => InstructionType::ST_STD_Z */     const ST_STD_Z:     InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::ST_STD_Z),    instruction_type: InstructionType::ST_STD_Z,    bit_pattern: "" };
     const ST_STD_Z_1:     InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::ST_STD_Z_1),    instruction_type: InstructionType::ST_STD_Z_1,    bit_pattern: "1000 001r rrrr 0000" };
     const ST_STD_Z_2:     InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::ST_STD_Z_2),    instruction_type: InstructionType::ST_STD_Z_2,    bit_pattern: "1001 001r rrrr 0001" };
@@ -285,6 +293,10 @@ use super::{instruction_definition::InstructionDefinition, instruction_type::Ins
         SPM,
         // SPM_2, // TODO
         // ST, // TODO
+        // ST_STD_X, // split up into subcommands
+        ST_STD_X_1,
+        ST_STD_X_2,
+        ST_STD_X_3,
         // ST_STD_Y, // split up into subcommands
         ST_STD_Y_1,
         ST_STD_Y_2,

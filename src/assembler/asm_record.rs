@@ -68,7 +68,7 @@ impl AsmRecord {
 
 impl fmt::Display for AsmRecord {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "(label:{}, instruction_type:{}, reg_1:{} {:#04x}, reg_2:{} {:#04x}, data:{} {:#04x}, target_label:{})", 
+        write!(f, "(label:{}, itype:{}, reg_1:{} {:#04x}, reg_2:{} {:#04x}, data:{} {:#04x}, target_label:{})", 
             self.label, 
             self.instruction_type.to_string(),
             self.reg_1, self.reg_1,

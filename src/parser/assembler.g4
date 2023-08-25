@@ -435,7 +435,7 @@ DOUBLE_SLASH_LINE_COMMENT : '//' .*? '\n' -> channel(HIDDEN) ;
 STRING : '"' ('""'|~'"')* '"' ; // quote-quote is an escaped quote
 
 NUMBER : [0-9]+ ;
-HEX_NUMBER : '0' 'x' [a-fA-F0-9]+ ;
+HEX_NUMBER : ('0' 'x' | '$') [a-fA-F0-9]+ ;
 BINARY_NUMBER : '0' 'b' [0,1]+ ;
 
 IDENTIFIER : [a-zA-Z_]([a-zA-Z0-9_])* ;

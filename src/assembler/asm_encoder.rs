@@ -188,9 +188,10 @@ impl AsmEncoder {
 
     pub fn encode(&mut self, segment: &mut Segment, asm_record: &AsmRecord) {
 
-        log::info!("Encoding: {}" , asm_record);
+        log::info!("Encoding: \n{}" , asm_record);
 
         match asm_record.instruction_type {
+
             /*   5 */
             InstructionType::ADC => {
                 Self::encode_adc(&self, segment, asm_record.reg_1, asm_record.reg_2);
@@ -316,6 +317,17 @@ impl AsmEncoder {
                 Self::encode_sei(&self, segment, &asm_record.idx);
             }
 
+            /* 118 */
+            InstructionType::ST_STD_X_1 => {
+                Self::encode_st_std_x_1(&self, segment, asm_record.reg_1);
+            }
+            InstructionType::ST_STD_X_2 => {
+                Self::encode_st_std_x_2(&self, segment, asm_record.reg_1);
+            }
+            InstructionType::ST_STD_X_3 => {
+                Self::encode_st_std_x_3(&self, segment, asm_record.reg_1);
+            }
+
             /* 120 */
             InstructionType::ST_STD_Z_1 => {
                 Self::encode_st_std_z_1(&self, segment, asm_record.reg_1);
@@ -412,7 +424,12 @@ impl AsmEncoder {
     /// 1111 01kk kkkk k001
     fn encode_brne(&self, segment: &mut Segment, label: &String) {
 
-        let offset_k: u16 = self.labels[label] as u16;
+        let mut offset_k: u16 = self.labels[label] as u16;
+
+        // why do I need this? is this correct?
+        offset_k = offset_k * 2;
+        
+        // do I need to use some kind of little endian encoding?
         let result: u16 = 0xF401u16 | (offset_k << 3u16);
 
         log::trace!("ENC BRNE: {:#02x}", (result >> 0u16) as u8);
@@ -1033,6 +1050,75 @@ impl AsmEncoder {
         log::trace!("ENC SEI: {:#02x}", (result >> 8u16) as u8);
         segment.data.push((result >> 8u16) as u8);
         segment.size += 1u32;
+    }
+
+    /// 118. ST (STD) – Store Indirect From Register to Data Space using Index X
+    /// Stores one byte indirect with or without displacement from a register to data space.
+    /// ST X, Rr
+    /// 1001 001r rrrr 1100
+    fn encode_st_std_x_1(&self, segment: &mut Segment, register_r: u16) {
+        
+        if register_r > 31 {
+            panic!("Invalid register for encode_st_std_x_1! Only registers [r0, r31] are allowed")
+        }
+
+        let result: u16 = 0x920Cu16 | (register_r << 4u16);
+
+        log::trace!("result: {:#32b}", result);
+
+        log::trace!("ENC st_std_x_1: {:#02x}", (result >> 0u16) as u8);
+        segment.data.push((result >> 0u16) as u8);
+        segment.size += 1u32;
+
+        log::trace!("ENC st_std_x_1: {:#02x}", (result >> 8u16) as u8);
+        segment.data.push((result >> 8u16) as u8);
+        segment.size += 1u32;
+
+        log::trace!("result: {:#026b}", result);
+    }
+    /// ST X+, Rr
+    /// 1001 001r rrrr 1101
+    fn encode_st_std_x_2(&self, segment: &mut Segment, register_r: u16) {
+        
+        if register_r > 31 {
+            panic!("Invalid register for encode_st_std_x_2! Only registers [r0, r31] are allowed")
+        }
+
+        let result: u16 = 0x920du16 | (register_r << 4u16);
+
+        log::trace!("result: {:#32b}", result);
+
+        log::trace!("ENC st_std_x_2: {:#02x}", (result >> 0u16) as u8);
+        segment.data.push((result >> 0u16) as u8);
+        segment.size += 1u32;
+
+        log::trace!("ENC st_std_x_2: {:#02x}", (result >> 8u16) as u8);
+        segment.data.push((result >> 8u16) as u8);
+        segment.size += 1u32;
+
+        log::trace!("result: {:#026b}", result);
+    }
+    /// ST -X, Rr
+    /// 1001 001r rrrr 1110
+    fn encode_st_std_x_3(&self, segment: &mut Segment, register_r: u16) {
+        
+        if register_r > 31 {
+            panic!("Invalid register for encode_st_std_x_3! Only registers [r0, r31] are allowed")
+        }
+
+        let result: u16 = 0x920eu16 | (register_r << 4u16);
+
+        log::trace!("result: {:#32b}", result);
+
+        log::trace!("ENC st_std_x_3: {:#02x}", (result >> 0u16) as u8);
+        segment.data.push((result >> 0u16) as u8);
+        segment.size += 1u32;
+
+        log::trace!("ENC st_std_x_3: {:#02x}", (result >> 8u16) as u8);
+        segment.data.push((result >> 8u16) as u8);
+        segment.size += 1u32;
+
+        log::trace!("result: {:#026b}", result);
     }
 
     /// 120. ST (STD) – Store Indirect From Register to Data Space using Index Z

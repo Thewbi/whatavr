@@ -239,6 +239,24 @@ impl CPU {
         self.h
     }
 
+    fn get_x(&mut self) -> u16 {
+        ((self.register_file[26] as u16) << 8u16) | self.register_file[27] as u16
+    }
+
+    fn set_x(&mut self, value: u16) {
+        self.register_file[26] = HIGH_U16!(value);
+        self.register_file[27] = LOW_U16!(value);
+    }
+
+    fn get_y(&mut self) -> u16 {
+        ((self.register_file[28] as u16) << 8u16) | self.register_file[29] as u16
+    }
+
+    fn set_y(&mut self, value: u16) {
+        self.register_file[28] = HIGH_U16!(value);
+        self.register_file[29] = LOW_U16!(value);
+    }
+
     fn get_z(&mut self) -> u16 {
         ((self.register_file[30] as u16) << 8u16) | self.register_file[31] as u16
     }
@@ -252,7 +270,8 @@ impl CPU {
     // as opposed to I/O space which is terminology for the memory mapped special function registers
     fn store_to_data_space(&mut self, address: usize, value: u8) {
         //todo!("Store value {} to address {} in data space!", value, address);
-        log::info!("Store value {} to address {} in data space!", value, address);
+        log::info!("Store value {} {:#04X} to address {} {:#04X} in data space!", value, value, address, address);
+        log::info!("");
     }
 
     fn store_to_i_o_space(&mut self, address: usize, value: u8) {
@@ -448,7 +467,7 @@ impl CPU {
                         cpu.pc += 2i32;
                     } else {
                         let offset_in_bytes: i8 = offset / 8i8;
-                        cpu.pc = (cpu.pc as i16 + offset_in_bytes as i16) as i32;
+                        cpu.pc = (cpu.pc as i16 + 2*offset_in_bytes as i16) as i32;
                     }
                 }
             }
@@ -461,7 +480,7 @@ impl CPU {
 
                 // check the Z-flag
                 if cpu.z {
-                    cpu.pc += offset;
+                    cpu.pc += 2*offset;
                 } else {
                     cpu.pc += 2i32;
                 }
@@ -777,6 +796,28 @@ impl CPU {
                 cpu.pc += kk as i32;
             }
 
+            /*  98 */
+            InstructionType::SBCI => {
+                log::info!("[SBCI]");
+
+                let k_val: u8 = value_storage[&'K'] as u8;
+                let d_val: u16 = value_storage[&'d'] as u16;
+
+                let register: u16 = d_val + 16;
+
+                println!("k: {}, d: {}", k_val, register);
+
+                let data: u8 = cpu.register_file[register as usize];
+                let mut arithmetic_val: u8 = data;
+                arithmetic_val -= k_val;
+                if cpu.c {
+                    arithmetic_val -= 1u8;
+                }
+                cpu.register_file[register as usize] = arithmetic_val;
+
+                cpu.pc += 2i32;
+            }
+
             /*  99 */
             InstructionType::SBI => {
                 log::info!("[SBI]");
@@ -791,6 +832,91 @@ impl CPU {
 
                 // output the value stored in register r_val into memory to the address a_val
                 cpu.store_to_i_o_space(address as usize, register_value);
+
+                cpu.pc += 2i32;
+            }
+
+            /* 118 */
+            // store data into memory (data space) at the address stored in X
+            // (data space != I/O space (for I/O space, use the OUT instruction))
+            InstructionType::ST_STD_X_1 => {
+
+                // Z: Post incremented
+                log::info!("[ST_STD_X_1]");
+
+                // retrieved the encoded value for the r register
+                let r_val: u16 = value_storage[&'r'];
+                log::info!("r: {r_val:#b} {r_val:#x} {r_val}");
+
+                // retrieve the current value from the r register
+                let data: u8 = cpu.register_file[r_val as usize];
+
+                // retrieve the data (address) stored inside X
+                let value_z: u16 = cpu.get_z();
+
+                // store data into memory (data space) at the address stored in X
+                // (data space != I/O space (for I/O space, use the OUT instruction))
+                cpu.store_to_data_space(value_z as usize, data);
+
+                // // (post) increment X
+                // value_x = value_x + 1;
+
+                // // write back Z
+                // cpu.set_z(value_z);
+
+                cpu.pc += 2i32;
+            }
+            InstructionType::ST_STD_X_2 => {
+
+                // X: Post incremented
+                log::info!("[ST_STD_X_2]");
+
+                // retrieved the encoded value for the r register
+                let r_val: u16 = value_storage[&'r'];
+                log::info!("r: {r_val:#b} {r_val:#x} {r_val}");
+
+                // retrieve the current value from the r register
+                let data: u8 = cpu.register_file[r_val as usize];
+
+                // retrieve the data (address) stored inside X
+                let mut value_x: u16 = cpu.get_x();
+
+                // store data into memory (data space) at the address stored in Z
+                // (data space != I/O space (for I/O space, use the OUT instruction))
+                cpu.store_to_data_space(value_x as usize, data);
+
+                // (post) increment X
+                value_x = value_x + 1;
+
+                // write back X
+                cpu.set_x(value_x);
+
+                cpu.pc += 2i32;
+            }
+            InstructionType::ST_STD_X_3 => {
+
+                // X: Post incremented
+                log::info!("[ST_STD_X_3]");
+
+                // retrieved the encoded value for the r register
+                let r_val: u16 = value_storage[&'r'];
+                log::info!("r: {r_val:#b} {r_val:#x} {r_val}");
+
+                // retrieve the current value from the r register
+                let data: u8 = cpu.register_file[r_val as usize];
+
+                // retrieve the data (address) stored inside X
+                let mut value_x: u16 = cpu.get_x();
+
+                // (pre) decrement X
+                value_x = value_x - 1;
+
+                // store data into memory (data space) at the address stored in X
+                // (data space != I/O space (for I/O space, use the OUT instruction))
+                cpu.store_to_data_space(value_x as usize, data);
+
+                // write back X
+                cpu.set_x(value_x);
 
                 cpu.pc += 2i32;
             }

@@ -11,6 +11,7 @@ use std::rc::Rc;
 use crate::assembler::asm_record::AsmRecord;
 use crate::assembler::io_destination::IoDestination;
 use crate::common::common_constants::RAMEND;
+use crate::common::number_literal_parser::is_number_literal_u16;
 use crate::common::number_literal_parser::number_literal_to_u16;
 use crate::common::register_parser::is_register_name;
 use crate::common::register_parser::register_name_to_u16;
@@ -41,9 +42,13 @@ pub struct NewAssemblerVisitor {
 
     // traversal
     pub return_val: Vec<String>,
+
+    // label
+    pub label: String,
 }
 
 impl NewAssemblerVisitor {
+
     pub fn ascend_ident(&mut self) {
         if !self.debug_output {
             return;
@@ -122,6 +127,28 @@ impl<'i> ParseTreeVisitorCompat<'i> for NewAssemblerVisitor {
 }
 
 impl<'i> assemblerVisitorCompat<'i> for NewAssemblerVisitor {
+
+    fn visit_row(&mut self, ctx: &parser::assemblerparser::RowContext<'i>) -> Self::Return {
+
+        self.descend_ident("visit_row");
+        let children_result = self.visit_children(ctx);
+        self.ascend_ident();
+
+        println!("cr: {:?}", children_result);
+
+        // let records_len: usize = self.records.len();
+        // if records_len > 0usize
+        // {
+            if children_result.len() == 2usize && children_result[1].eq(":")
+            {
+                //self.records[records_len - 1usize].label = children_result[0usize].clone();
+                self.label = children_result[0usize].clone();
+            }
+        //}
+
+        children_result
+    }
+
     fn visit_instruction(&mut self, ctx: &InstructionContext<'i>) -> Self::Return {
 
         self.descend_ident("visit_instruction");
@@ -133,56 +160,128 @@ impl<'i> assemblerVisitorCompat<'i> for NewAssemblerVisitor {
         let mut asm_record = AsmRecord::default();
 
         let mnemonic: &String = &visit_children_result[0];
-        asm_record.instruction_type = InstructionType::from_string(mnemonic.as_str());
 
-        if visit_children_result.len() > 1 {
-            let param_1: &String = &visit_children_result[1];
-            let param_1_as_number: u16;
-            if is_register_name(param_1) {
-                param_1_as_number = register_name_to_u16(param_1);
-                asm_record.reg_1 = param_1_as_number;
-            } else {
-                param_1_as_number = number_literal_to_u16(&param_1);
-                asm_record.reg_1 = param_1_as_number;
+        if mnemonic.to_uppercase().eq("ST")
+        {
+            // cr: ["st", "X", "+", "r17"]
+
+            let mut idx: usize = 1usize;
+
+            let val_1: &String = &visit_children_result[1];
+            let val_2: &String = &visit_children_result[2];
+
+            // can touples and matching be used here somehow?
+
+            let mut base_upper_case_as_string: String = String::default();
+            if val_1.eq("-")
+            {
+                base_upper_case_as_string.push_str("-");
+                base_upper_case_as_string.push_str(val_2);
+                idx += 2usize;
             }
-        }
+            else if val_2.eq("+")
+            {
+                base_upper_case_as_string.push_str(val_1);
+                base_upper_case_as_string.push_str("+");
+                idx += 2usize;
+            }
+            else 
+            {
+                base_upper_case_as_string.push_str(val_1);
+                idx += 1usize;
+            }
 
-        if visit_children_result.len() > 2 {
-            let param_2: &String = &visit_children_result[2];
+            if base_upper_case_as_string == "X" {
+                asm_record.instruction_type = InstructionType::ST_STD_X_1;
+            } else if base_upper_case_as_string == "X+" {
+                asm_record.instruction_type = InstructionType::ST_STD_X_2;
+            } else if base_upper_case_as_string == "-X" {
+                asm_record.instruction_type = InstructionType::ST_STD_X_3;
+            } else if base_upper_case_as_string == "Y" {
+                asm_record.instruction_type = InstructionType::ST_STD_Y_1;
+            } else if base_upper_case_as_string == "Y+" {
+                asm_record.instruction_type = InstructionType::ST_STD_Y_2;
+            } else if base_upper_case_as_string == "-Y" {
+                asm_record.instruction_type = InstructionType::ST_STD_Y_3;
+            } else if base_upper_case_as_string.starts_with("Y+") {
+                asm_record.instruction_type = InstructionType::ST_STD_Y_4;
+            } else if base_upper_case_as_string == "Z" {
+                asm_record.instruction_type = InstructionType::ST_STD_Z_1;
+            } else if base_upper_case_as_string == "Z+" {
+                asm_record.instruction_type = InstructionType::ST_STD_Z_2;
+            } else if base_upper_case_as_string == "-Z" {
+                asm_record.instruction_type = InstructionType::ST_STD_Z_3;
+            } else if base_upper_case_as_string.starts_with("Z+") {
+                asm_record.instruction_type = InstructionType::ST_STD_Z_4;
+            } else {
+                panic!("Unknown option \"{}\"", base_upper_case_as_string);
+            }
+
+            let param_2: &String = &visit_children_result[idx];
             let param_2_as_number: u16;
             if is_register_name(param_2) {
                 param_2_as_number = register_name_to_u16(param_2);
-                asm_record.reg_2 = param_2_as_number;
+                asm_record.reg_1 = param_2_as_number;
             } else {
                 param_2_as_number = number_literal_to_u16(&param_2);
-                asm_record.data = param_2_as_number; // test: ldi
+                asm_record.data = param_2_as_number;
+            }
+            idx += 1usize;
+        }
+        else 
+        {
+            asm_record.instruction_type = InstructionType::from_string(mnemonic.as_str());
+
+            if visit_children_result.len() > 1 {
+
+                let param_1: &String = &visit_children_result[1];
+                let param_1_as_number: u16;
+
+                if is_register_name(param_1) 
+                {
+                    param_1_as_number = register_name_to_u16(param_1);
+                    asm_record.reg_1 = param_1_as_number;
+                } 
+                else if is_number_literal_u16(param_1) 
+                {
+                    param_1_as_number = number_literal_to_u16(&param_1);
+                    asm_record.reg_1 = param_1_as_number;
+                }
+                else 
+                {
+                    asm_record.target_label = param_1.to_string();
+                }
+            }
+
+            if visit_children_result.len() > 2 {
+
+                let param_2: &String = &visit_children_result[2];
+                let param_2_as_number: u16;
+
+                if is_register_name(param_2) 
+                {
+                    param_2_as_number = register_name_to_u16(param_2);
+                    asm_record.reg_2 = param_2_as_number;
+                } 
+                else if is_number_literal_u16(param_2) 
+                {
+                    param_2_as_number = number_literal_to_u16(&param_2);
+                    asm_record.data = param_2_as_number;
+                }
+                else 
+                {
+                    asm_record.target_label = param_2.to_string();
+                }
             }
         }
 
-        // // create an AsmRecord so it can be added to the application code
-        // let asm_record = AsmRecord::new(
-        //     String::default(),
-        //     InstructionType::from_string(mnemonic.as_str()),
-        //     param_1_as_number,
-        //     param_2_as_number,
-        //     0u16,
-        //     String::default(),
-        //     IoDestination::UNKNOWN,
-        // );
+        if !self.label.is_empty()
+        {
+            asm_record.label = self.label.clone();
+            self.label = String::default();
+        }
 
         self.records.push(asm_record);
-
-        // // create an AsmRecord so it can be added to the application code
-        // let rec = AsmRecord::new(
-        //     self.label.clone(),
-        //     InstructionType::from_string(&self.mnemonic.as_str()),
-        //     self.record.reg_1,
-        //     self.record.reg_2,
-        //     self.record.data,
-        //     self.target_label.clone(),
-        //     self.record.io_dest);
-
-        // self.records.push(rec);
 
         visit_children_result
     }
