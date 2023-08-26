@@ -21,4 +21,4 @@ lazy_static = "1.4.0"
 # checked out and manually build, locally referenced
 # because the pre-compiled dependencies that are available online are not up to date
 [dependencies.antlr-rust]
-path = "../antlr4rust-master"
+path = "../antlr4rust"

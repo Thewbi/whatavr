@@ -10,6 +10,7 @@ use std::collections::HashMap;
 use std::io;
 use std::io::Cursor;
 use std::io::Write;
+use std::path::PathBuf;
 
 use antlr_rust::common_token_stream::CommonTokenStream;
 use antlr_rust::token_factory::ArenaCommonFactory;
@@ -139,7 +140,8 @@ fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>)
     let mut token_value_storage: HashMap<String, isize> = HashMap::new();
 
     let mut token_file_path: String = String::new();
-    token_file_path.push_str("C:/aaa_se/rust/whatavr/src/parser/assembler.tokens");
+    //token_file_path.push_str("C:/aaa_se/rust/whatavr/src/parser/assembler.tokens");
+    token_file_path.push_str("src/parser/assembler.tokens");
 
     // open the file in read-only mode (ignoring errors).
     let file = File::open(token_file_path).unwrap();
@@ -229,7 +231,7 @@ fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>)
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/store_load_sram.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/odd_even_test.asm");
 
-    // ld, st, call, ret, push, pop, mov, movw, and, inc, dec, andi, add, adc, adiw, ldi, lsr, 
+    // ld, st, call, ret, push, pop, mov, movw, and, inc, dec, andi, add, adc, adiw, ldi, lsr,
     // lsl, brne, brbc, breq, brsh, brge, brlt, rol, ror, sbi, cbi, sbc, subi
 
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/ld.asm");
@@ -263,7 +265,10 @@ fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>)
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/sbc.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/subi.asm");
 
-    let data = fs::read_to_string(asm_file_path).expect("Unable to read file");
+    let srcdir = PathBuf::from(&asm_file_path);
+    println!("absolute path: {:?}", fs::canonicalize(&srcdir));
+
+    let data = fs::read_to_string(&asm_file_path).expect("Unable to read file");
     log::info!("\n{}", data);
 
     let input_stream: InputStream<&str> = InputStream::new(data.as_str());
@@ -458,13 +463,13 @@ fn dissassemble() -> io::Result<()> {
     //let hex: bool = false;
     //if hex {
 
-    let mut segments: Vec<Segment> = Vec::new();
+        let mut segments: Vec<Segment> = Vec::new();
     load_segment_from_hex_file(&mut segments);
 
-    // // DEBUG dump parsed segments
-    // for seg in segments.iter_mut() {
-    //     log::info!("Segment: {}", seg);
-    // }
+        // // DEBUG dump parsed segments
+        // for seg in segments.iter_mut() {
+        //     log::info!("Segment: {}", seg);
+        // }
 
     const DISSASSEMBLE: bool = false;
     if DISSASSEMBLE {
@@ -490,37 +495,37 @@ fn dissassemble() -> io::Result<()> {
         // disassenble the entire segment
         //
 
-        let mut rdr = Cursor::new(&segment_0.data);
-        while index < segment_0.data.len() {
+            let mut rdr = Cursor::new(&segment_0.data);
+            while index < segment_0.data.len() {
 
-            let word: u16 = rdr.read_u16::<LittleEndian>().unwrap().into();
-            index += 2;
+                let word: u16 = rdr.read_u16::<LittleEndian>().unwrap().into();
+                index += 2;
 
-            log::trace!("word: {:#06x} {:b}", word, word);
+                log::trace!("word: {:#06x} {:b}", word, word);
 
-            let mut value_storage: HashMap<char, u16> = HashMap::new();
-            let instruction: &InstructionDefinition =
-                decode_instruction(word, INSTRUCTIONS, &UNKNOWN, &mut value_storage);
+                let mut value_storage: HashMap<char, u16> = HashMap::new();
+                let instruction: &InstructionDefinition =
+                    decode_instruction(word, INSTRUCTIONS, &UNKNOWN, &mut value_storage);
 
-            log::info!("instruction {:?}", instruction.instruction_type);
-            if instruction.instruction_type == InstructionType::EOR
-                || instruction.instruction_type == InstructionType::CLR
-            {
-                log::info!(
-                    "EOR and CLR similar. CLI is implemented by EOR the register with itself!"
-                );
-            }
+                log::info!("instruction {:?}", instruction.instruction_type);
+                if instruction.instruction_type == InstructionType::EOR
+                    || instruction.instruction_type == InstructionType::CLR
+                {
+                    log::info!(
+                        "EOR and CLR similar. CLI is implemented by EOR the register with itself!"
+                    );
+                }
 
             // produce output of the disassembly process
-            match_instruction(
-                &instruction,
-                &mut rdr,
-                &word,
-                &mut index,
-                &mut value_storage,
-            );
+                match_instruction(
+                    &instruction,
+                    &mut rdr,
+                    &word,
+                    &mut index,
+                    &mut value_storage,
+                );
+            }
         }
-    }
 
     // }
 
