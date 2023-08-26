@@ -148,7 +148,9 @@ fn main() -> io::Result<()> {
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/asm_3.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/asm_4.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/call_and_return.asm"); // regression test
-    asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/def_assembler_directive.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/call_test.asm");
+    asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/call_test_2.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/def_assembler_directive.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/expression.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/inc.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/intrinsic.asm");

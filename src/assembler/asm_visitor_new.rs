@@ -149,7 +149,7 @@ impl<'i> NewAssemblerVisitor {
 
         let val_1: &String = &visit_children_result[2];
         let mut val_2: String = String::default();
-        if (visit_children_result.len() > 3)
+        if visit_children_result.len() > 3
         {
             val_2 = visit_children_result[3].clone();
         }
@@ -417,13 +417,13 @@ impl<'i> assemblerVisitorCompat<'i> for NewAssemblerVisitor {
                 }
                 else 
                 {
-                    let param1_as_string = param_1.to_string();
+                    let param_as_string = param_1.to_string();
 
                     // try to resolve constants
                     let map = HASHMAP.lock().unwrap();
-                    if map.contains_key(&param1_as_string) 
+                    if map.contains_key(&param_as_string) 
                     {
-                        let constant_value = map.get(&param1_as_string).unwrap();
+                        let constant_value = map.get(&param_as_string).unwrap();
 
                         if is_number_literal_u16(constant_value)
                         {
@@ -436,7 +436,7 @@ impl<'i> assemblerVisitorCompat<'i> for NewAssemblerVisitor {
                     }
                     else 
                     {
-                        asm_record.target_label = param1_as_string;
+                        asm_record.target_label = param_as_string;
                     }
                 }
             }
@@ -458,7 +458,27 @@ impl<'i> assemblerVisitorCompat<'i> for NewAssemblerVisitor {
                 }
                 else 
                 {
-                    asm_record.target_label = param_2.to_string();
+                    let param_as_string = param_2.to_string();
+
+                    // try to resolve constants
+                    let map = HASHMAP.lock().unwrap();
+                    if map.contains_key(&param_as_string) 
+                    {
+                        let constant_value = map.get(&param_as_string).unwrap();
+
+                        if is_number_literal_u16(constant_value)
+                        {
+                            asm_record.reg_2 = number_literal_to_u16(constant_value);
+                        } 
+                        else if is_register_name(constant_value)
+                        {
+                            asm_record.reg_2 = register_name_to_u16(constant_value);
+                        }
+                    }
+                    else 
+                    {
+                        asm_record.target_label = param_as_string;
+                    }
                 }
             }
         }
@@ -516,6 +536,30 @@ impl<'i> assemblerVisitorCompat<'i> for NewAssemblerVisitor {
             self.reset_self();
         }
 
+        visit_children_result
+    }
+
+    fn visit_asm_intrinsic_usage(&mut self, ctx: &parser::assemblerparser::Asm_intrinsic_usageContext<'i>) -> Self::Return {
+        self.descend_ident("visit_asm_intrinsic_usage");
+        let visit_children_result = self.visit_children(ctx);
+        self.ascend_ident();
+
+        println!("cr: {:?}", visit_children_result);
+
+        let joined = visit_children_result.join("");
+
+        // self.intrinsic_usage = self.last_terminal.clone();
+        if "LOW(RAMEND)" == joined {
+            let low_ramend: u16 = crate::LOW!(RAMEND);
+            //self.last_terminal = low_ramend.to_string();
+            return vec![low_ramend.to_string().clone()];
+        }
+        if "HIGH(RAMEND)" == joined {
+            let high_ramend: u16 = HIGH!(RAMEND);
+            //self.last_terminal = high_ramend.to_string();
+            return vec![high_ramend.to_string().clone()];
+        }
+        
         visit_children_result
     }
 

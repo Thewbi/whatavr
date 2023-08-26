@@ -201,6 +201,28 @@ impl CPU {
         return &mut self.sfr[value];
     }
 
+    fn get_sph(&self) -> u8 {
+        
+        let map = HASHMAP.lock().unwrap();
+        let value_as_string = map.get("SPH").unwrap();
+
+        let without_prefix = value_as_string.trim_start_matches("0x");
+        let value: usize = usize::from_str_radix(without_prefix, 16).unwrap();
+
+        return self.sfr[value];
+    }
+
+    fn get_spl(&self) -> u8 {
+        
+        let map = HASHMAP.lock().unwrap();
+        let value_as_string = map.get("SPL").unwrap();
+
+        let without_prefix = value_as_string.trim_start_matches("0x");
+        let value: usize = usize::from_str_radix(without_prefix, 16).unwrap();
+
+        return self.sfr[value];
+    }
+
     #[allow(dead_code, unused)]
     fn register_z_high(&mut self) -> &mut u8 {
         return &mut self.register_file[30];
@@ -568,11 +590,22 @@ impl CPU {
                 let k_val_i32: i32 = cpu.read_next_four_byte(segment, &k_hi);
 
                 // push return address onto the stack
-                let data: i32 = cpu.pc;
+                let mut data: i32 = cpu.pc;
+
+                // the manual explicitly states that pc+2 is pushed onto the stack
+                data += 2i32;
+
                 push_to_stack_i16(&mut cpu, data as i16);
 
-                //log::info!("call - stack pointer: {:#04x} {:#04x}", cpu.sph, cpu.spl);
-                log::info!("stack pointer: {} {}", cpu.stack_info_high(), cpu.stack_info_low());
+                log::trace!("call - >>> Pushed to stack: {data:#06X}");
+
+                let sph_temp: u8 = cpu.get_sph();
+                let spl_temp: u8 = cpu.get_spl();
+
+                log::trace!("call - stack pointer: {:#04x} {:#04x}", sph_temp, spl_temp);
+                log::info!("call {:#04x} {:#04x}", sph_temp, spl_temp);
+                
+                log::trace!("stack pointer: {} {}", cpu.stack_info_high(), cpu.stack_info_low());
 
                 // jump to address
                 cpu.pc += k_val_i32;
@@ -754,7 +787,7 @@ impl CPU {
 
             /*  73 */
             InstructionType::LDI => {
-                log::info!("[LDI]");
+                log::trace!("[LDI]");
 
                 let k_val = value_storage[&'K'];
                 log::trace!("K: {k_val:#b} {k_val:#x}");
@@ -767,7 +800,7 @@ impl CPU {
                 //log::info!("[LDI] Using register: r{}", register);
 
                 log::trace!("{temp_pc:#02x}: {word:#06x} ldi r{register:#02}, {k_val:#02x}");
-                log::trace!("ldi r{register:#02}, {k_val:#02x}");
+                log::info!("ldi r{register:#02}, {k_val:#02x}");
 
                 // execute
                 cpu.register_file[register as usize] = k_val as u8;
@@ -794,6 +827,8 @@ impl CPU {
             /*  85 */
             InstructionType::NOP => {
                 log::trace!("[NOP]");
+
+                log::info!("nop");
                 cpu.pc += 2i32;
             }
 
@@ -822,31 +857,37 @@ impl CPU {
 
             /*  89 */
             InstructionType::POP => {
-                log::info!("[POP]");
+                log::trace!("[POP]");
 
                 let d_val: u16 = value_storage[&'d'];
-                log::info!("d: {d_val:#b} {d_val:#x} {d_val}");
+                log::trace!("d: {d_val:#b} {d_val:#x} {d_val}");
 
                 cpu.pc += 2i32;
 
-                pop_from_stack_u8(&mut cpu);
+                let stack_content: u8 = pop_from_stack_u8(&mut cpu);
 
-                log::info!("stack pointer: {} {}", cpu.stack_info_high(), cpu.stack_info_low());
+                log::info!("pop {d_val:#x}");
+
+                cpu.register_file[d_val as usize] = stack_content;
+
+                log::trace!("stack pointer: {} {}", cpu.stack_info_high(), cpu.stack_info_low());
             }
 
             /*  90 */
             InstructionType::PUSH => {
-                log::info!("[PUSH]");
+                log::trace!("[PUSH]");
 
                 let d_val: u16 = value_storage[&'d'];
-                log::info!("d: {d_val:#b} {d_val:#x} {d_val}");
+                log::trace!("d: {d_val:#b} {d_val:#x} {d_val}");
 
                 cpu.pc += 2i32;
 
-                let data = cpu.register_file[d_val as usize];
+                let data: u8 = cpu.register_file[d_val as usize];
                 push_to_stack_u8(&mut cpu, data);
 
-                log::info!("stack pointer: {} {}", cpu.stack_info_high(), cpu.stack_info_low());
+                log::info!("push {data:#x}");
+
+                log::trace!("stack pointer: {} {}", cpu.stack_info_high(), cpu.stack_info_low());
             }
 
             /* 91 */
@@ -869,7 +910,11 @@ impl CPU {
                 log::info!("kk: {:04x} {:016b} {}", kk, kk, kk);
 
                 // push return address onto the stack
-                let data: i32 = cpu.pc;
+                let mut data: i32 = cpu.pc;
+
+                // the manual explicitly states that pc+2 is pushed onto the stack
+                data += 2i32;
+
                 push_to_stack_i16(&mut cpu, data as i16);
 
                 log::info!("stack pointer: {} {}", cpu.stack_info_high(), cpu.stack_info_low());
@@ -882,39 +927,44 @@ impl CPU {
             InstructionType::RET => {
                 log::trace!("[RET]");
 
-                // let d_val: u16 = value_storage[&'d'];
-                // log::info!("d: {d_val:#b} {d_val:#x} {d_val}");
-
-                // cpu.pc += 2i32;
-
-                // let data = cpu.register_file[d_val as usize];
-                let k_hi: u16 = pop_from_stack_u8(&mut cpu) as u16;
                 let k_lo: u16 = pop_from_stack_u8(&mut cpu) as u16;
+                let k_hi: u16 = pop_from_stack_u8(&mut cpu) as u16;
+
+                log::trace!("ret - <<< stack popped: {:#04x} {:#04x}", k_hi, k_lo);
 
                 let k_val: i16 = ((k_hi << 8i16) + k_lo) as i16;
 
+                log::trace!("ret - <<< stack popped: {k_val:#06X}");
+
                 cpu.pc = k_val as i32;
+                //cpu.pc = (k_val * 2i16) as i32;
+                cpu.pc += 2i32;
+                //cpu.pc += 4i32;
+
+                log::info!("ret");
 
                 //log::info!("ret - stack pointer: {:#04x} {:#04x}", cpu.sph, cpu.spl);
-                log::info!("stack pointer: {} {}", cpu.stack_info_high(), cpu.stack_info_low());
+                log::trace!("stack pointer: {} {}", cpu.stack_info_high(), cpu.stack_info_low());
             }
 
             /*  94 */
             InstructionType::RJMP => {
-                log::info!("[RJMP]");
+                log::trace!("[RJMP]");
 
                 // get the first 16 bit
                 let mut k: u16 = value_storage[&'k'] as u16;
-                log::info!("k: {:04x} {:016b}", k, k);
+                log::trace!("k: {:04x} {:016b}", k, k);
 
                 // sign extend (800 decimal = 1000 0000 0000 binary)
                 if k >= 800 {
                     k |= 0xF000;
                 }
-                log::info!("k: {:04x} {:016b} {}", k as i16, k as i16, k as i16);
+                log::trace!("k: {:04x} {:016b} {}", k as i16, k as i16, k as i16);
 
                 let kk: i16 = k as i16;
-                log::info!("kk: {:04x} {:016b} {}", kk, kk, kk);
+                log::trace!("kk: {:04x} {:016b} {}", kk, kk, kk);
+
+                log::info!("rjmp: {kk:04x}");
 
                 cpu.pc += kk as i32;
             }

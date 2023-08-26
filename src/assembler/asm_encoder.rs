@@ -291,13 +291,15 @@ impl AsmEncoder {
             }
             /*  88 */
             InstructionType::OUT => {
-                let mut param_1: u16 = asm_record.reg_1;
-                let mut param_2: u16 = asm_record.reg_2;
-                if param_2 == 0xFF {
-                    param_1 = number_literal_to_u16(&asm_record.target_label);
-                    param_2 = asm_record.reg_1;
-                }
-                Self::encode_out(self, segment, param_1, param_2);
+                // let mut param_1: u16 = asm_record.reg_1;
+                // let mut param_2: u16 = asm_record.reg_2;
+                // if param_2 == 0xFF {
+                //     param_1 = number_literal_to_u16(&asm_record.target_label);
+                //     param_2 = asm_record.reg_1;
+                // }
+                //Self::encode_out(self, segment, param_1, param_2);
+
+                Self::encode_out(self, segment, asm_record.reg_1, asm_record.reg_2);
             }
             /*  89 */
             InstructionType::POP => {
