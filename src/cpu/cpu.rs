@@ -181,46 +181,60 @@ impl CPU {
     // https://stackoverflow.com/questions/35390615/writing-getter-setter-properties-in-rust
     fn sph(&mut self) -> &mut u8 {
 
-        let map = HASHMAP.lock().unwrap();
-        let value_as_string = map.get("SPH").unwrap();
+        // let map = HASHMAP.lock().unwrap();
+        // let value_as_string = map.get("SPH").unwrap();
 
-        let without_prefix = value_as_string.trim_start_matches("0x");
-        let value: usize = usize::from_str_radix(without_prefix, 16).unwrap();
+        // let without_prefix = value_as_string.trim_start_matches("0x");
+        // let value: usize = usize::from_str_radix(without_prefix, 16).unwrap();
 
-        return &mut self.sfr[value];
+        //return &mut self.sfr[value];
+
+        // ATmega328p
+        // 6.5.1 SPH and SPL – Stack Pointer High and Stack Pointer Low Register
+        // 0x3E (0x5E) stack pointer high
+        return &mut self.sfr[0x3E];
     }
 
     fn spl(&mut self) -> &mut u8 {
         
-        let map = HASHMAP.lock().unwrap();
-        let value_as_string = map.get("SPL").unwrap();
+        // let map = HASHMAP.lock().unwrap();
+        // let value_as_string = map.get("SPL").unwrap();
 
-        let without_prefix = value_as_string.trim_start_matches("0x");
-        let value: usize = usize::from_str_radix(without_prefix, 16).unwrap();
+        // let without_prefix = value_as_string.trim_start_matches("0x");
+        // let value: usize = usize::from_str_radix(without_prefix, 16).unwrap();
 
-        return &mut self.sfr[value];
+        // return &mut self.sfr[value];
+
+        // ATmega328p
+        // 6.5.1 SPH and SPL – Stack Pointer High and Stack Pointer Low Register
+        // 0x3D (0x5D) stack pointer low
+        return &mut self.sfr[0x3D];
     }
 
     fn get_sph(&self) -> u8 {
         
-        let map = HASHMAP.lock().unwrap();
-        let value_as_string = map.get("SPH").unwrap();
+        // let map = HASHMAP.lock().unwrap();
+        // let value_as_string = map.get("SPH").unwrap();
 
-        let without_prefix = value_as_string.trim_start_matches("0x");
-        let value: usize = usize::from_str_radix(without_prefix, 16).unwrap();
+        // let without_prefix = value_as_string.trim_start_matches("0x");
+        // let value: usize = usize::from_str_radix(without_prefix, 16).unwrap();
 
-        return self.sfr[value];
+        // return self.sfr[value];
+
+        return self.sfr[0x3E];
     }
 
     fn get_spl(&self) -> u8 {
         
-        let map = HASHMAP.lock().unwrap();
-        let value_as_string = map.get("SPL").unwrap();
+        // let map = HASHMAP.lock().unwrap();
+        // let value_as_string = map.get("SPL").unwrap();
 
-        let without_prefix = value_as_string.trim_start_matches("0x");
-        let value: usize = usize::from_str_radix(without_prefix, 16).unwrap();
+        // let without_prefix = value_as_string.trim_start_matches("0x");
+        // let value: usize = usize::from_str_radix(without_prefix, 16).unwrap();
 
-        return self.sfr[value];
+        // return self.sfr[value];
+
+        return self.sfr[0x3D];
     }
 
     #[allow(dead_code, unused)]
@@ -377,7 +391,8 @@ impl CPU {
     pub fn execute_instruction(&mut self, segment: &Segment) {
 
         // get the current instruction
-        let temp_pc: i32 = self.pc - 0x02;
+        //let temp_pc: i32 = self.pc - 0x02;
+        let temp_pc: i32 = self.pc;
 
         // check for end of code
         if segment.size <= temp_pc as u32 {
@@ -389,6 +404,9 @@ impl CPU {
         let word_hi: u16 = segment.data[(temp_pc + 1i32) as usize].into();
         let word_lo: u16 = segment.data[temp_pc as usize].into();
         let word: u16 = (word_hi << 8u8) + word_lo;
+
+        // this will print the word that contains the encoded instruction that is executed next
+        //println!("hex: {:04x}", word);
 
         // decode the current instruction
         let mut value_storage: HashMap<char, u16> = HashMap::new();
@@ -405,7 +423,7 @@ impl CPU {
 
             /*   5 */
             InstructionType::ADC => {
-                log::info!("[ADC]");
+                log::trace!("[ADC]");
 
                 let d_value: usize = value_storage[&'d'] as usize;
                 let r_value: usize = value_storage[&'r'] as usize;
@@ -438,14 +456,14 @@ impl CPU {
                     cpu.register_file[d_value]
                 );
 
-                log::info!("adc r{}, d{} - carry{}", r_value, d_value, cpu.c);
+                log::info!("adc r{}, d{} - carry: {}", r_value, d_value, cpu.c);
 
                 cpu.pc += 2i32;
             }
             
             /*   6 */
             InstructionType::ADD => {
-                log::info!("[ADD]");
+                log::trace!("[ADD]");
 
                 let d_value: usize = value_storage[&'d'] as usize;
                 let r_value: usize = value_storage[&'r'] as usize;
@@ -584,10 +602,11 @@ impl CPU {
                 log::trace!("[CALL]");
 
                 // get the first 16 bit
-                let k_hi: u32 = value_storage[&'k'].into();
+                let k_val: u32 = value_storage[&'k'].into();
 
                 // get the next 16 bit
-                let k_val_i32: i32 = cpu.read_next_four_byte(segment, &k_hi);
+                cpu.pc += 2;
+                let k_val_i32: i32 = cpu.read_next_four_byte(segment, &k_val);
 
                 // push return address onto the stack
                 let mut data: i32 = cpu.pc;
@@ -603,12 +622,15 @@ impl CPU {
                 let spl_temp: u8 = cpu.get_spl();
 
                 log::trace!("call - stack pointer: {:#04x} {:#04x}", sph_temp, spl_temp);
-                log::info!("call {:#04x} {:#04x}", sph_temp, spl_temp);
+                log::trace!("call {:#04x} {:#04x}", sph_temp, spl_temp);
+
+                log::info!("call {:#06x}", k_val_i32 as u16);
                 
                 log::trace!("stack pointer: {} {}", cpu.stack_info_high(), cpu.stack_info_low());
 
                 // jump to address
-                cpu.pc += k_val_i32;
+                //cpu.pc += k_val_i32;
+                cpu.pc = k_val_i32 * 2;
             }
 
             // /*  41 */
@@ -938,7 +960,7 @@ impl CPU {
 
                 cpu.pc = k_val as i32;
                 //cpu.pc = (k_val * 2i16) as i32;
-                cpu.pc += 2i32;
+                //cpu.pc += 2i32;
                 //cpu.pc += 4i32;
 
                 log::info!("ret");
@@ -961,12 +983,22 @@ impl CPU {
                 }
                 log::trace!("k: {:04x} {:016b} {}", k as i16, k as i16, k as i16);
 
-                let kk: i16 = k as i16;
+                let twos_complement_1: i16 = (k as i16);
+                //println!("{}", twos_complement_1);
+
+                let twos_complement: u16 = (k as i16 * -1i16) as u16;
+                let resultt: i16 = twos_complement as i16;
+
+                //println!("{}", resultt);
+
+                let kk: i32 = k as i32;
                 log::trace!("kk: {:04x} {:016b} {}", kk, kk, kk);
 
-                log::info!("rjmp: {kk:04x}");
+                let offset: i32 = ((twos_complement_1 + 1i16) * 2i16) as i32;
 
-                cpu.pc += kk as i32;
+                log::info!("rjmp: {offset:04x}");
+
+                cpu.pc += offset;
             }
 
             /*  98 */

@@ -78,6 +78,55 @@ fn main() -> io::Result<()> {
     init_logging();
     log_start();
 
+    // // asm source code
+    // let mut segments: Vec<Segment> = Vec::new();
+    // load_segment_from_asm_source_code(&mut segments);
+
+    // hex
+    let mut segments: Vec<Segment> = Vec::new();
+    load_segment_from_hex_file(&mut segments);
+
+    //
+    // Phase - Program Execution
+    //
+
+    log::info!("*************************************************");
+    log::info!("Phase - Program Execution");
+    log::info!("*************************************************");
+
+    let mut cpu: CPU = CPU::default();
+
+    // main loop that executes the instructions
+    let mut done: bool = false;
+    while !done {
+
+        log::trace!("\n");
+
+        // check for end of code
+        //let temp_pc: i32 = cpu.pc - 0x02;
+        let temp_pc: i32 = cpu.pc;
+        if segments[0].size <= temp_pc as u32 {
+            log::info!("End of Code reached! Application Finished!");
+            done = true;
+
+            continue;
+        }
+
+        // execute the next instruction
+        cpu.execute_instruction(&segments[0]);
+
+        // DEBUG - output the CPU state
+        log::trace!("{}", cpu);
+    }
+
+    log_end();
+
+    Ok(())
+
+}
+
+fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>)
+{
     //
     // Phase - load token into a hashmap
     //
@@ -332,50 +381,40 @@ fn main() -> io::Result<()> {
     let mut asm_encoder: AsmEncoder = AsmEncoder::new();
     asm_encoder.assemble(&mut visitor.records, &mut assembler_segment);
 
+    segments.push(assembler_segment);
+
     if !asm_encoder.encoding_success {
         panic!("Encoding failed!");
     }
+}
 
-    //
-    // Phase - Program Execution
-    //
+fn load_segment_from_hex_file(segments: &mut Vec<Segment>) -> io::Result<()>
+{
+    // load hex file
+    let mut hex_file_path: String = String::new();
+    //hex_file_path.push_str("C:/aaa_se/rust/rust_blt_2/test_resources/output_bank1.hex");
+    //hex_file_path.push_str("C:/aaa_se/rust/rust_blt_2/test_resources/output_bank2.hex") {
+    //hex_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/GccApplication1/GccApplication1.hex");
+    //hex_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/GccApplication2/GccApplication1.hex");
+    //hex_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/arduboy/Ardynia/ardynia.hex");
+    //hex_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/GccApplication2/GccApplication1.hex");
+    hex_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/hex/ExcerciseSheet2.hex");
 
-    log::info!("*************************************************");
-    log::info!("Phase - Program Execution");
-    log::info!("*************************************************");
-
-    let mut cpu: CPU = CPU::default();
-
-    // main loop that executes the instructions
-    let mut done: bool = false;
-    while !done {
-
-        log::trace!("\n");
-
-        // get the current instruction
-        let temp_pc: i32 = cpu.pc - 0x02;
-
-        // check for end of code
-        if assembler_segment.size <= temp_pc as u32 {
-            log::info!("End of Code reached! Application Finished!");
-            // log_end();
-            // return Ok(());
-
-            done = true;
-            continue;
+    // split into segments
+    // each segment has to have a segment_start and a segment_size
+    
+    match parse_hex_file(segments, &hex_file_path) {
+        Ok(_name) => log::info!("File read"),
+        Err(err) => {
+            log::error!("An error occured while retrieving the peername: {:?}", err);
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                "Error at load hex file!",
+            ));
         }
-
-        // execute the next instruction
-        cpu.execute_instruction(&assembler_segment);
-
-        // DEBUG - output the CPU state
-        log::trace!("{}", cpu);
     }
 
-    log_end();
-
     Ok(())
-
 }
 
 fn init_logging() {
@@ -415,34 +454,20 @@ fn log_end() {
 
 #[allow(dead_code, unused)]
 fn dissassemble() -> io::Result<()> {
-    let hex: bool = false;
-    if hex {
-        // load hex file
-        let mut hex_file_path: String = String::new();
-        //hex_file_path.push_str("C:/aaa_se/rust/rust_blt_2/test_resources/output_bank1.hex");
-        //hex_file_path.push_str("C:/aaa_se/rust/rust_blt_2/test_resources/output_bank2.hex") {
-        //hex_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/GccApplication1/GccApplication1.hex");
-        hex_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/GccApplication2/GccApplication1.hex");
-        //hex_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/arduboy/Ardynia/ardynia.hex");
 
-        // split into segments
-        // each segment has to have a segment_start and a segment_size
-        let mut segments: Vec<Segment> = Vec::new();
-        match parse_hex_file(&mut segments, &hex_file_path) {
-            Ok(_name) => log::info!("File read"),
-            Err(err) => {
-                log::error!("An error occured while retrieving the peername: {:?}", err);
-                return Err(std::io::Error::new(
-                    std::io::ErrorKind::Other,
-                    "Error at load hex file!",
-                ));
-            }
-        }
+    //let hex: bool = false;
+    //if hex {
 
-        // // DEBUG dump parsed segments
-        // for seg in segments.iter_mut() {
-        //     log::info!("Segment: {}", seg);
-        // }
+    let mut segments: Vec<Segment> = Vec::new();
+    load_segment_from_hex_file(&mut segments);
+
+    // // DEBUG dump parsed segments
+    // for seg in segments.iter_mut() {
+    //     log::info!("Segment: {}", seg);
+    // }
+
+    const DISSASSEMBLE: bool = false;
+    if DISSASSEMBLE {
 
         // process the first segment only
         let ref segment_0: &Segment = &segments[0];
@@ -465,39 +490,39 @@ fn dissassemble() -> io::Result<()> {
         // disassenble the entire segment
         //
 
-        const DISSASSEMBLE: bool = false;
-        if DISSASSEMBLE {
-            let mut rdr = Cursor::new(&segment_0.data);
-            while index < segment_0.data.len() {
-                let word: u16 = rdr.read_u16::<LittleEndian>().unwrap().into();
-                index += 2;
+        let mut rdr = Cursor::new(&segment_0.data);
+        while index < segment_0.data.len() {
 
-                log::trace!("word: {:#06x} {:b}", word, word);
+            let word: u16 = rdr.read_u16::<LittleEndian>().unwrap().into();
+            index += 2;
 
-                let mut value_storage: HashMap<char, u16> = HashMap::new();
-                let instruction: &InstructionDefinition =
-                    decode_instruction(word, INSTRUCTIONS, &UNKNOWN, &mut value_storage);
+            log::trace!("word: {:#06x} {:b}", word, word);
 
-                log::info!("instruction {:?}", instruction.instruction_type);
-                if instruction.instruction_type == InstructionType::EOR
-                    || instruction.instruction_type == InstructionType::CLR
-                {
-                    log::info!(
-                        "EOR and CLR similar. CLI is implemented by EOR the register with itself!"
-                    );
-                }
+            let mut value_storage: HashMap<char, u16> = HashMap::new();
+            let instruction: &InstructionDefinition =
+                decode_instruction(word, INSTRUCTIONS, &UNKNOWN, &mut value_storage);
 
-                // produce output of the disassembly process
-                match_instruction(
-                    &instruction,
-                    &mut rdr,
-                    &word,
-                    &mut index,
-                    &mut value_storage,
+            log::info!("instruction {:?}", instruction.instruction_type);
+            if instruction.instruction_type == InstructionType::EOR
+                || instruction.instruction_type == InstructionType::CLR
+            {
+                log::info!(
+                    "EOR and CLR similar. CLI is implemented by EOR the register with itself!"
                 );
             }
+
+            // produce output of the disassembly process
+            match_instruction(
+                &instruction,
+                &mut rdr,
+                &word,
+                &mut index,
+                &mut value_storage,
+            );
         }
     }
+
+    // }
 
     Ok(())
 }
