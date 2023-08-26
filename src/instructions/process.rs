@@ -4,6 +4,8 @@ use crate::HashMap;
 
 use super::{instruction_definition::InstructionDefinition, instruction_type::InstructionType};
 
+/// This function is used in the disassembler!
+/// 
 #[allow(dead_code, unused)]
 pub fn match_instruction<R: crate::io::Read>(
     instruction: &InstructionDefinition,
@@ -279,18 +281,68 @@ pub fn match_instruction<R: crate::io::Read>(
         InstructionType::LAT => {
             process_lat(rdr, &word, index, value_storage);
         }
-        /*  70 */
-        InstructionType::LD => {
-            process_ld(rdr, &word, index, value_storage);
+        // /*  70 */
+        // InstructionType::LD => {
+        //     process_ld(rdr, &word, index, value_storage);
+        // }
+        // /*  71 */
+        // InstructionType::LD_LDD_Y => {
+        //     process_ld_ldd_y(rdr, &word, index, value_storage);
+        // }
+        // /*  72 */
+        // InstructionType::LD_LDD_Z => {
+        //     process_ld_ldd_z(rdr, &word, index, value_storage);
+        // }
+
+        /* 118 */
+        InstructionType::LD_LDD_X_1 => {
+            //process_st_std_1(rdr, &word, index, value_storage);
+            panic!("Unknown instruction! LD_LDD_X_1");
         }
-        /*  71 */
-        InstructionType::LD_LDD_Y => {
-            process_ld_ldd_y(rdr, &word, index, value_storage);
+        InstructionType::LD_LDD_X_2 => {
+            //process_st_std_2(rdr, &word, index, value_storage);
+            panic!("Unknown instruction! LD_LDD_X_2");
         }
-        /*  72 */
-        InstructionType::LD_LDD_Z => {
-            process_ld_ldd_z(rdr, &word, index, value_storage);
+        InstructionType::LD_LDD_X_3 => {
+            //process_st_std_3(rdr, &word, index, value_storage);
+            panic!("Unknown instruction! LD_LDD_X_3");
         }
+        /* 119 */
+        InstructionType::LD_LDD_Y_1 => {
+            //process_st_std_y_1(rdr, &word, index, value_storage);
+            panic!("Unknown instruction! LD_LDD_Y_1");
+        }
+        InstructionType::LD_LDD_Y_2 => {
+            //process_st_std_y_2(rdr, &word, index, value_storage);
+            panic!("Unknown instruction! LD_LDD_Y_2");
+        }
+        InstructionType::LD_LDD_Y_3 => {
+            //process_st_std_y_3(rdr, &word, index, value_storage);
+            panic!("Unknown instruction! LD_LDD_Y_3");
+        }
+        InstructionType::LD_LDD_Y_4 => {
+            //process_st_std_y_4(rdr, &word, index, value_storage);
+            panic!("Unknown instruction! LD_LDD_Y_4");
+        }
+        /* 120 */
+        InstructionType::LD_LDD_Z_1 => {
+            //process_st_std_z_1(rdr, &word, index, value_storage);
+            panic!("Unknown instruction! LD_LDD_Z_1");
+        }
+        InstructionType::LD_LDD_Z_2 => {
+            //process_st_std_z_2(rdr, &word, index, value_storage);
+            panic!("Unknown instruction! LD_LDD_Z_2");
+        }
+        InstructionType::LD_LDD_Z_3 => {
+            //process_st_std_z_3(rdr, &word, index, value_storage);
+            panic!("Unknown instruction! LD_LDD_Z_3");
+        }
+        InstructionType::LD_LDD_Z_4 => {
+            //process_st_std_z_4(rdr, &word, index, value_storage);
+            panic!("Unknown instruction! LD_LDD_Z_4");
+        }
+
+
         /*  73 */
         InstructionType::LDI => {
             process_ldi(rdr, &word, index, value_storage);
@@ -491,8 +543,6 @@ pub fn match_instruction<R: crate::io::Read>(
         InstructionType::ST_STD_X_3 => {
             process_st_std_3(rdr, &word, index, value_storage);
         }
-        
-        
         // /* 119 */ InstructionType::ST_STD_Y => { process_st_std_y(rdr, &word, index, value_storage); }, // – Store Indirect From Register to Data Space using Index Y..............175
         InstructionType::ST_STD_Y_1 => {
             process_st_std_y_1(rdr, &word, index, value_storage);

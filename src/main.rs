@@ -174,7 +174,9 @@ fn main() -> io::Result<()> {
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/out.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/store_to_flash.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/store_to_flash_2.asm");
-    asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/store_load_flash.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/store_load_flash.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/store_load_sram.asm");
+    asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/odd_even_test.asm");
 
     // ld, st, call, ret, push, pop, mov, movw, and, inc, dec, andi, add, adc, adiw, ldi, lsr, 
     // lsl, brne, brbc, breq, brsh, brge, brlt, rol, ror, sbi, cbi, sbc, subi
@@ -346,7 +348,7 @@ fn main() -> io::Result<()> {
     let mut done: bool = false;
     while !done {
 
-        println!("\n");
+        log::trace!("\n");
 
         // get the current instruction
         let temp_pc: i32 = cpu.pc - 0x02;
@@ -365,7 +367,7 @@ fn main() -> io::Result<()> {
         cpu.execute_instruction(&assembler_segment);
 
         // DEBUG - output the CPU state
-        println!("{}", cpu);
+        log::trace!("{}", cpu);
     }
 
     log_end();
@@ -483,6 +485,7 @@ fn dissassemble() -> io::Result<()> {
                     );
                 }
 
+                // produce output of the disassembly process
                 match_instruction(
                     &instruction,
                     &mut rdr,

@@ -47,7 +47,7 @@ pub struct NewAssemblerVisitor {
     pub label: String,
 }
 
-impl NewAssemblerVisitor {
+impl<'i> NewAssemblerVisitor {
 
     pub fn ascend_ident(&mut self) {
         if !self.debug_output {
@@ -70,7 +70,140 @@ impl NewAssemblerVisitor {
     pub fn reset_self(&mut self) {
         self.record.clear();
     }
+
+    // cr: ["st", "X", "+", "r17"]
+    fn process_st(&mut self, ctx: &InstructionContext<'i>, 
+        visit_children_result: &<NewAssemblerVisitor as ParseTreeVisitorCompat>::Return,
+        asm_record: &mut AsmRecord)
+    {
+        let mut idx: usize = 1usize;
+
+        let val_1: &String = &visit_children_result[1];
+        let val_2: &String = &visit_children_result[2];
+
+        // can touples and matching be used here somehow?
+
+        let mut base_upper_case_as_string: String = String::default();
+        if val_1.eq("-")
+        {
+            base_upper_case_as_string.push_str("-");
+            base_upper_case_as_string.push_str(val_2);
+            idx += 2usize;
+        }
+        else if val_2.eq("+")
+        {
+            base_upper_case_as_string.push_str(val_1);
+            base_upper_case_as_string.push_str("+");
+            idx += 2usize;
+        }
+        else 
+        {
+            base_upper_case_as_string.push_str(val_1);
+            idx += 1usize;
+        }
+
+        if base_upper_case_as_string == "X" {
+            asm_record.instruction_type = InstructionType::ST_STD_X_1;
+        } else if base_upper_case_as_string == "X+" {
+            asm_record.instruction_type = InstructionType::ST_STD_X_2;
+        } else if base_upper_case_as_string == "-X" {
+            asm_record.instruction_type = InstructionType::ST_STD_X_3;
+        } else if base_upper_case_as_string == "Y" {
+            asm_record.instruction_type = InstructionType::ST_STD_Y_1;
+        } else if base_upper_case_as_string == "Y+" {
+            asm_record.instruction_type = InstructionType::ST_STD_Y_2;
+        } else if base_upper_case_as_string == "-Y" {
+            asm_record.instruction_type = InstructionType::ST_STD_Y_3;
+        } else if base_upper_case_as_string.starts_with("Y+") {
+            asm_record.instruction_type = InstructionType::ST_STD_Y_4;
+        } else if base_upper_case_as_string == "Z" {
+            asm_record.instruction_type = InstructionType::ST_STD_Z_1;
+        } else if base_upper_case_as_string == "Z+" {
+            asm_record.instruction_type = InstructionType::ST_STD_Z_2;
+        } else if base_upper_case_as_string == "-Z" {
+            asm_record.instruction_type = InstructionType::ST_STD_Z_3;
+        } else if base_upper_case_as_string.starts_with("Z+") {
+            asm_record.instruction_type = InstructionType::ST_STD_Z_4;
+        } else {
+            panic!("Unknown option \"{}\"", base_upper_case_as_string);
+        }
+
+        let param_2: &String = &visit_children_result[idx];
+        let param_2_as_number: u16;
+        if is_register_name(param_2) {
+            param_2_as_number = register_name_to_u16(param_2);
+            asm_record.reg_1 = param_2_as_number;
+        } else {
+            param_2_as_number = number_literal_to_u16(&param_2);
+            asm_record.data = param_2_as_number;
+        }
+        idx += 1usize;
+    }
+
+    // cr: ["ld", "r0", "X"]
+    fn process_ld(&mut self, ctx: &InstructionContext<'i>, 
+        visit_children_result: &<NewAssemblerVisitor as ParseTreeVisitorCompat>::Return,
+        asm_record: &mut AsmRecord)
+    {
+        let mut idx: usize = 1usize;
+
+        let val_1: &String = &visit_children_result[2];
+        let mut val_2: String = String::default();
+        if (visit_children_result.len() > 3)
+        {
+            val_2 = visit_children_result[3].clone();
+        }
+
+        // can touples and matching be used here somehow?
+
+        let mut base_upper_case_as_string: String = String::default();
+        if val_1.eq("-")
+        {
+            base_upper_case_as_string.push_str("-");
+            base_upper_case_as_string.push_str(&val_2);
+            idx += 2usize;
+        }
+        else if val_2.eq("+")
+        {
+            base_upper_case_as_string.push_str(val_1);
+            base_upper_case_as_string.push_str("+");
+            idx += 2usize;
+        }
+        else 
+        {
+            base_upper_case_as_string.push_str(val_1);
+            idx += 1usize;
+        }
+
+        if base_upper_case_as_string == "X" {
+            asm_record.instruction_type = InstructionType::LD_LDD_X_1;
+        } else if base_upper_case_as_string == "X+" {
+            asm_record.instruction_type = InstructionType::LD_LDD_X_2;
+        } else if base_upper_case_as_string == "-X" {
+            asm_record.instruction_type = InstructionType::LD_LDD_X_3;
+        } else if base_upper_case_as_string == "Y" {
+            asm_record.instruction_type = InstructionType::LD_LDD_Y_1;
+        } else if base_upper_case_as_string == "Y+" {
+            asm_record.instruction_type = InstructionType::LD_LDD_Y_2;
+        } else if base_upper_case_as_string == "-Y" {
+            asm_record.instruction_type = InstructionType::LD_LDD_Y_3;
+        } else if base_upper_case_as_string.starts_with("Y+") {
+            asm_record.instruction_type = InstructionType::LD_LDD_Y_4;
+        } else if base_upper_case_as_string == "Z" {
+            asm_record.instruction_type = InstructionType::LD_LDD_Z_1;
+        } else if base_upper_case_as_string == "Z+" {
+            asm_record.instruction_type = InstructionType::LD_LDD_Z_2;
+        } else if base_upper_case_as_string == "-Z" {
+            asm_record.instruction_type = InstructionType::LD_LDD_Z_3;
+        } else if base_upper_case_as_string.starts_with("Z+") {
+            asm_record.instruction_type = InstructionType::LD_LDD_Z_4;
+        } else {
+            panic!("Unknown option \"{}\"", base_upper_case_as_string);
+        }
+    }
 }
+
+
 
 impl<'i> ParseTreeVisitorCompat<'i> for NewAssemblerVisitor {
     type Node = assemblerParserContextType;
@@ -136,15 +269,10 @@ impl<'i> assemblerVisitorCompat<'i> for NewAssemblerVisitor {
 
         println!("cr: {:?}", children_result);
 
-        // let records_len: usize = self.records.len();
-        // if records_len > 0usize
-        // {
-            if children_result.len() == 2usize && children_result[1].eq(":")
-            {
-                //self.records[records_len - 1usize].label = children_result[0usize].clone();
-                self.label = children_result[0usize].clone();
-            }
-        //}
+        if children_result.len() == 2usize && children_result[1].eq(":")
+        {
+            self.label = children_result[0usize].clone();
+        }
 
         children_result
     }
@@ -163,70 +291,11 @@ impl<'i> assemblerVisitorCompat<'i> for NewAssemblerVisitor {
 
         if mnemonic.to_uppercase().eq("ST")
         {
-            // cr: ["st", "X", "+", "r17"]
-
-            let mut idx: usize = 1usize;
-
-            let val_1: &String = &visit_children_result[1];
-            let val_2: &String = &visit_children_result[2];
-
-            // can touples and matching be used here somehow?
-
-            let mut base_upper_case_as_string: String = String::default();
-            if val_1.eq("-")
-            {
-                base_upper_case_as_string.push_str("-");
-                base_upper_case_as_string.push_str(val_2);
-                idx += 2usize;
-            }
-            else if val_2.eq("+")
-            {
-                base_upper_case_as_string.push_str(val_1);
-                base_upper_case_as_string.push_str("+");
-                idx += 2usize;
-            }
-            else 
-            {
-                base_upper_case_as_string.push_str(val_1);
-                idx += 1usize;
-            }
-
-            if base_upper_case_as_string == "X" {
-                asm_record.instruction_type = InstructionType::ST_STD_X_1;
-            } else if base_upper_case_as_string == "X+" {
-                asm_record.instruction_type = InstructionType::ST_STD_X_2;
-            } else if base_upper_case_as_string == "-X" {
-                asm_record.instruction_type = InstructionType::ST_STD_X_3;
-            } else if base_upper_case_as_string == "Y" {
-                asm_record.instruction_type = InstructionType::ST_STD_Y_1;
-            } else if base_upper_case_as_string == "Y+" {
-                asm_record.instruction_type = InstructionType::ST_STD_Y_2;
-            } else if base_upper_case_as_string == "-Y" {
-                asm_record.instruction_type = InstructionType::ST_STD_Y_3;
-            } else if base_upper_case_as_string.starts_with("Y+") {
-                asm_record.instruction_type = InstructionType::ST_STD_Y_4;
-            } else if base_upper_case_as_string == "Z" {
-                asm_record.instruction_type = InstructionType::ST_STD_Z_1;
-            } else if base_upper_case_as_string == "Z+" {
-                asm_record.instruction_type = InstructionType::ST_STD_Z_2;
-            } else if base_upper_case_as_string == "-Z" {
-                asm_record.instruction_type = InstructionType::ST_STD_Z_3;
-            } else if base_upper_case_as_string.starts_with("Z+") {
-                asm_record.instruction_type = InstructionType::ST_STD_Z_4;
-            } else {
-                panic!("Unknown option \"{}\"", base_upper_case_as_string);
-            }
-
-            let param_2: &String = &visit_children_result[idx];
-            let param_2_as_number: u16;
-            if is_register_name(param_2) {
-                param_2_as_number = register_name_to_u16(param_2);
-                asm_record.reg_1 = param_2_as_number;
-            } else {
-                param_2_as_number = number_literal_to_u16(&param_2);
-                asm_record.data = param_2_as_number;
-            }
-            idx += 1usize;
+            self.process_st(ctx, &visit_children_result, &mut asm_record);
+        }
+        else if mnemonic.to_uppercase().eq("LD")
+        {
+            self.process_ld(ctx, &visit_children_result, &mut asm_record);
         }
         else 
         {

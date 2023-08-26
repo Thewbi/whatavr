@@ -73,9 +73,24 @@ use super::{instruction_definition::InstructionDefinition, instruction_type::Ins
     /* 67 => InstructionType::LAC */            const LAC:          InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::LAC),         instruction_type: InstructionType::LAC,         bit_pattern: "1001 001r rrrr 0110" };
     /* 68 => InstructionType::LAS */            const LAS:          InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::LAS),         instruction_type: InstructionType::LAS,         bit_pattern: "1001 001r rrrr 0101" };
     /* 69 => InstructionType::LAT */            const LAT:          InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::LAT),         instruction_type: InstructionType::LAT,         bit_pattern: "1001 001r rrrr 0111" };
+    
     // /* 70 => InstructionType::LD */             const LD:           InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::LD),          instruction_type: InstructionType::LD,          bit_pattern: "" };
+    const LD_LDD_X_1:     InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::LD_LDD_X_1),    instruction_type: InstructionType::LD_LDD_X_1,    bit_pattern: "1001 000d dddd 1100" };
+    const LD_LDD_X_2:     InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::LD_LDD_X_2),    instruction_type: InstructionType::LD_LDD_X_2,    bit_pattern: "1001 000d dddd 1101" };
+    const LD_LDD_X_3:     InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::LD_LDD_X_3),    instruction_type: InstructionType::LD_LDD_X_3,    bit_pattern: "1001 000d dddd 1110" };
+    
     // /* 71 => InstructionType::LD_LDD_Y */       const LD_LDD_Y:     InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::LD_LDD_Y),    instruction_type: InstructionType::LD_LDD_Y,    bit_pattern: "" };
+    const LD_LDD_Y_1:     InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::LD_LDD_Y_1),    instruction_type: InstructionType::LD_LDD_Y_1,    bit_pattern: "1000 000d dddd 1000" };
+    const LD_LDD_Y_2:     InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::LD_LDD_Y_2),    instruction_type: InstructionType::LD_LDD_Y_2,    bit_pattern: "1001 000d dddd 1001" };
+    const LD_LDD_Y_3:     InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::LD_LDD_Y_3),    instruction_type: InstructionType::LD_LDD_Y_3,    bit_pattern: "1001 000d dddd 1010" };
+    const LD_LDD_Y_4:     InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::LD_LDD_Y_4),    instruction_type: InstructionType::LD_LDD_Y_4,    bit_pattern: "10q0 qq0d dddd 1qqq" };
+    
     // /* 72 => InstructionType::LD_LDD_Z */       const LD_LDD_Z:     InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::LD_LDD_Z),    instruction_type: InstructionType::LD_LDD_Z,    bit_pattern: "" };
+    const LD_LDD_Z_1:     InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::LD_LDD_Z_1),    instruction_type: InstructionType::LD_LDD_Z_1,    bit_pattern: "1000 000d dddd 0000" };
+    const LD_LDD_Z_2:     InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::LD_LDD_Z_2),    instruction_type: InstructionType::LD_LDD_Z_2,    bit_pattern: "1001 000d dddd 0001" };
+    const LD_LDD_Z_3:     InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::LD_LDD_Z_3),    instruction_type: InstructionType::LD_LDD_Z_3,    bit_pattern: "1001 000d dddd 0010" };
+    const LD_LDD_Z_4:     InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::LD_LDD_Z_4),    instruction_type: InstructionType::LD_LDD_Z_4,    bit_pattern: "10q0 qq0d dddd 0qqq" };
+   
     /* 73 => InstructionType::LDI */            const LDI:          InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::LDI),         instruction_type: InstructionType::LDI,         bit_pattern: "1110 KKKK dddd KKKK" };
     /* 74 => InstructionType::LDS */            const LDS:          InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::LDS),         instruction_type: InstructionType::LDS,         bit_pattern: "1001 000d dddd 0000" };
     /* 75 => InstructionType::LDS_16bit */      const LDS_16BIT:    InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::LDS_16bit),   instruction_type: InstructionType::LDS_16bit,   bit_pattern: "1010 0kkk dddd kkkk" };
@@ -238,9 +253,24 @@ use super::{instruction_definition::InstructionDefinition, instruction_type::Ins
         LAC,
         LAS,
         LAT,
-        // LD, // TODO
-        // LD_LDD_Y, // TODO
-        // LD_LDD_Z, // TODO
+
+        // LD_LDD_X,
+        LD_LDD_X_1,
+        LD_LDD_X_2,
+        LD_LDD_X_3,
+
+        // LD_LDD_Y,
+        LD_LDD_Y_1,
+        LD_LDD_Y_2,
+        LD_LDD_Y_3,
+        LD_LDD_Y_4,
+
+        // LD_LDD_Z,
+        LD_LDD_Z_1,
+        LD_LDD_Z_2,
+        LD_LDD_Z_3,
+        LD_LDD_Z_4,
+
         LDI,
         LDS,
         LDS_16BIT,

@@ -200,13 +200,21 @@ impl AsmEncoder {
             InstructionType::ADD => {
                 Self::encode_add(&self, segment, asm_record.reg_1, asm_record.reg_2);
             }
+            /*   9 */
+            InstructionType::ANDI => {
+                Self::encode_andi(&self, segment, asm_record.reg_1, asm_record.reg_2);
+            }
             /*  17 */
             InstructionType::BREAK => {
                 Self::encode_break(&self, segment);
             }
+            /*  18 */
+            InstructionType::BREQ => {
+                Self::encode_breq(&self, segment, &asm_record.idx, &asm_record.target_label);
+            }
             /*  27 */
             InstructionType::BRNE => {
-                Self::encode_brne(&self, segment, &asm_record.target_label);
+                Self::encode_brne(&self, segment, &asm_record.idx, &asm_record.target_label);
             }
             /*  36 */
             InstructionType::CALL => {
@@ -240,6 +248,23 @@ impl AsmEncoder {
             InstructionType::JMP => {
                 Self::encode_jmp(self, segment, &asm_record.idx, &asm_record.target_label);
             }
+
+
+            /*  70 */
+            InstructionType::LD_LDD_X_1 => {
+                Self::encode_ld_ldd_x_1(&self, segment, asm_record.reg_1);
+            }
+            InstructionType::LD_LDD_X_2 => {
+                Self::encode_ld_ldd_x_2(&self, segment, asm_record.reg_1);
+            }
+
+            /*  71 */
+            InstructionType::LD_LDD_Y_2 => {
+                Self::encode_ld_ldd_y_2(&self, segment, asm_record.reg_1);
+            }
+
+
+
             /*  73 */
             InstructionType::LDI => {
                 Self::encode_ldi(&self, segment, asm_record.reg_1, asm_record.data);
@@ -328,6 +353,17 @@ impl AsmEncoder {
                 Self::encode_st_std_x_3(&self, segment, asm_record.reg_1);
             }
 
+            /* 119 */
+            InstructionType::ST_STD_Y_1 => {
+                Self::encode_st_std_y_1(&self, segment, asm_record.reg_1);
+            }
+            InstructionType::ST_STD_Y_2 => {
+                Self::encode_st_std_y_2(&self, segment, asm_record.reg_1);
+            }
+            InstructionType::ST_STD_Y_3 => {
+                Self::encode_st_std_y_3(&self, segment, asm_record.reg_1);
+            }
+
             /* 120 */
             InstructionType::ST_STD_Z_1 => {
                 Self::encode_st_std_z_1(&self, segment, asm_record.reg_1);
@@ -399,6 +435,30 @@ impl AsmEncoder {
         segment.size += 1u32;
     }
 
+    /// 9. ANDI – Logical AND with Immediate
+    /// Performs the logical AND between the contents of register Rd and a constant, and places the result in the
+    /// destination register Rd. (Rd ← Rd • K)
+    /// 0111 KKKK dddd KKKK
+    fn encode_andi(&self, segment: &mut Segment, register_d: u16, imm_value_k: u16) {
+
+        //let register_d_offset: u16 = register_d;
+        //let register_r_offset: u16 = register_r;
+
+        //let r_mask: u16 = ((register_r_offset >> 4u16) << 9u16) | (register_r_offset & 0x0Fu16);
+
+        log::info!("andi d{:#02x} imm{:#02x}", register_d, imm_value_k);
+
+        let result: u16 = 0x7000u16 | ((imm_value_k & 0b11110000) << 8u16) | (register_d << 4u16) | ((imm_value_k & 0b00001111) << 0u16);
+
+        log::trace!("ENC ANDI: {:#02x}", (result >> 0u16) as u8);
+        segment.data.push((result >> 0u16) as u8);
+        segment.size += 1u32;
+
+        log::trace!("ENC ANDI: {:#02x}", (result >> 8u16) as u8);
+        segment.data.push((result >> 8u16) as u8);
+        segment.size += 1u32;
+    }
+
     /// 17. BREAK 
     /// The BREAK instruction is used by the On-chip Debug system, and is normally not used in the application
     /// software. When the BREAK instruction is executed, the AVR CPU is set in the Stopped Mode. This gives
@@ -420,17 +480,44 @@ impl AsmEncoder {
         segment.size += 1u32;
     }
 
-    /// 27. BRNE – Branch if Not Equal
+    /// 18. BREQ – Branch if Equal
     /// 1111 01kk kkkk k001
-    fn encode_brne(&self, segment: &mut Segment, label: &String) {
+    fn encode_breq(&self, segment: &mut Segment, idx: &usize, label: &String) {
 
-        let mut offset_k: u16 = self.labels[label] as u16;
+        //let offset_k: u16 = self.labels[label] as u16;
 
         // why do I need this? is this correct?
-        offset_k = offset_k * 2;
+        //offset_k = offset_k * 2;
+
+        let label_address: i32 = self.labels[label] as i32;
+        let mut offset_k: i32 = label_address - (*idx as i32);
         
         // do I need to use some kind of little endian encoding?
-        let result: u16 = 0xF401u16 | (offset_k << 3u16);
+        let result: u16 = 0xF001u16 | ((offset_k as u16) << 3u16);
+
+        log::trace!("ENC BREQ: {:#02x}", (result >> 0u16) as u8);
+        segment.data.push((result >> 0u16) as u8);
+        segment.size += 1u32;
+
+        log::trace!("ENC BREQ: {:#02x}", (result >> 8u16) as u8);
+        segment.data.push((result >> 8u16) as u8);
+        segment.size += 1u32;
+    }
+
+    /// 27. BRNE – Branch if Not Equal
+    /// 1111 01kk kkkk k001
+    fn encode_brne(&self, segment: &mut Segment, idx: &usize, label: &String) {
+
+        //let mut offset_k: u16 = self.labels[label] as u16;
+
+        // why do I need this? is this correct?
+        //offset_k = offset_k * 2;
+
+        let label_address: i32 = self.labels[label] as i32;
+        let mut offset_k: i32 = label_address - (*idx as i32);
+        
+        // do I need to use some kind of little endian encoding?
+        let result: u16 = 0xF401u16 | ((offset_k as u16) << 3u16);
 
         log::trace!("ENC BRNE: {:#02x}", (result >> 0u16) as u8);
         segment.data.push((result >> 0u16) as u8);
@@ -672,6 +759,68 @@ impl AsmEncoder {
         segment.size += 1u32;
 
         //log::info!("result: {:#026b}", result);
+    }
+
+    fn encode_ld_ldd_x_1(&self, segment: &mut Segment, register_d: u16)
+    {
+        if register_d > 31 {
+            panic!("Invalid register for encode_ld_ldd_x_1! Only registers [r0, r31] are allowed")
+        }
+
+        let result: u16 = 0x900Cu16 | (register_d << 4u16);
+
+        log::trace!("result: {:#32b}", result);
+
+        log::trace!("ENC ld_ldd_x_1: {:#02x}", (result >> 0u16) as u8);
+        segment.data.push((result >> 0u16) as u8);
+        segment.size += 1u32;
+
+        log::trace!("ENC ld_ldd_x_1: {:#02x}", (result >> 8u16) as u8);
+        segment.data.push((result >> 8u16) as u8);
+        segment.size += 1u32;
+
+        log::trace!("result: {:#026b}", result);
+    }
+    fn encode_ld_ldd_x_2(&self, segment: &mut Segment, register_d: u16)
+    {
+        if register_d > 31 {
+            panic!("Invalid register for encode_ld_ldd_x_2! Only registers [r0, r31] are allowed")
+        }
+
+        let result: u16 = 0x900Du16 | (register_d << 4u16);
+
+        log::trace!("result: {:#32b}", result);
+
+        log::trace!("ENC ld_ldd_x_2: {:#02x}", (result >> 0u16) as u8);
+        segment.data.push((result >> 0u16) as u8);
+        segment.size += 1u32;
+
+        log::trace!("ENC ld_ldd_x_2: {:#02x}", (result >> 8u16) as u8);
+        segment.data.push((result >> 8u16) as u8);
+        segment.size += 1u32;
+
+        log::trace!("result: {:#026b}", result);
+    }
+
+    fn encode_ld_ldd_y_2(&self, segment: &mut Segment, register_d: u16)
+    {
+        if register_d > 31 {
+            panic!("Invalid register for encode_ld_ldd_y_2! Only registers [r0, r31] are allowed")
+        }
+
+        let result: u16 = 0x9009u16 | (register_d << 4u16);
+
+        log::trace!("result: {:#32b}", result);
+
+        log::trace!("ENC ld_ldd_y_2: {:#02x}", (result >> 0u16) as u8);
+        segment.data.push((result >> 0u16) as u8);
+        segment.size += 1u32;
+
+        log::trace!("ENC ld_ldd_y_2: {:#02x}", (result >> 8u16) as u8);
+        segment.data.push((result >> 8u16) as u8);
+        segment.size += 1u32;
+
+        log::trace!("result: {:#026b}", result);
     }
 
     /// 73. LDI – Load Immediate
@@ -1115,6 +1264,75 @@ impl AsmEncoder {
         segment.size += 1u32;
 
         log::trace!("ENC st_std_x_3: {:#02x}", (result >> 8u16) as u8);
+        segment.data.push((result >> 8u16) as u8);
+        segment.size += 1u32;
+
+        log::trace!("result: {:#026b}", result);
+    }
+
+    /// 119. ST (STD) – Store Indirect From Register to Data Space using Index Y
+    /// Stores one byte indirect with or without displacement from a register to data space.
+    /// ST Y, Rr
+    /// 1000 001r rrrr 1000
+    fn encode_st_std_y_1(&self, segment: &mut Segment, register_r: u16) {
+        
+        if register_r > 31 {
+            panic!("Invalid register for encode_st_std_y_1! Only registers [r0, r31] are allowed")
+        }
+
+        let result: u16 = 0x8208u16 | (register_r << 4u16);
+
+        log::trace!("result: {:#32b}", result);
+
+        log::trace!("ENC st_std_y_1: {:#02x}", (result >> 0u16) as u8);
+        segment.data.push((result >> 0u16) as u8);
+        segment.size += 1u32;
+
+        log::trace!("ENC st_std_y_1: {:#02x}", (result >> 8u16) as u8);
+        segment.data.push((result >> 8u16) as u8);
+        segment.size += 1u32;
+
+        log::trace!("result: {:#026b}", result);
+    }
+    /// ST X+, Rr
+    /// 1001 001r rrrr 1101
+    fn encode_st_std_y_2(&self, segment: &mut Segment, register_r: u16) {
+        
+        if register_r > 31 {
+            panic!("Invalid register for encode_st_std_y_2! Only registers [r0, r31] are allowed")
+        }
+
+        let result: u16 = 0x9209u16 | (register_r << 4u16);
+
+        log::trace!("result: {:#32b}", result);
+
+        log::trace!("ENC st_std_y_2: {:#02x}", (result >> 0u16) as u8);
+        segment.data.push((result >> 0u16) as u8);
+        segment.size += 1u32;
+
+        log::trace!("ENC st_std_y_2: {:#02x}", (result >> 8u16) as u8);
+        segment.data.push((result >> 8u16) as u8);
+        segment.size += 1u32;
+
+        log::trace!("result: {:#026b}", result);
+    }
+    /// ST -X, Rr
+    /// 1001 001r rrrr 1110
+    fn encode_st_std_y_3(&self, segment: &mut Segment, register_r: u16) {
+        
+        if register_r > 31 {
+            panic!("Invalid register for encode_st_std_y_3! Only registers [r0, r31] are allowed")
+        }
+
+        let result: u16 = 0x920Au16 | (register_r << 4u16);
+
+        log::trace!("result: {:#32b}", result);
+
+        log::trace!("ENC st_std_y_3: {:#02x}", (result >> 0u16) as u8);
+        segment.data.push((result >> 0u16) as u8);
+        segment.size += 1u32;
+
+        log::trace!("ENC st_std_y_3: {:#02x}", (result >> 8u16) as u8);
         segment.data.push((result >> 8u16) as u8);
         segment.size += 1u32;
 

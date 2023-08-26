@@ -78,10 +78,23 @@ pub enum InstructionType {
 
     /* 67 */ LAC,
     /* 68 */ LAS,
-    /* 69 */ LAT, 
-    /* 70 */ LD,
-    /* 71 */ LD_LDD_Y,
-    /* 72 */ LD_LDD_Z,
+    /* 69 */ LAT,
+
+    /* 70 */ 
+    LD_LDD_X_1,
+    LD_LDD_X_2,
+    LD_LDD_X_3,
+    /* 71 */ 
+    LD_LDD_Y_1,
+    LD_LDD_Y_2,
+    LD_LDD_Y_3,
+    LD_LDD_Y_4,
+    /* 72 */ 
+    LD_LDD_Z_1,
+    LD_LDD_Z_2,
+    LD_LDD_Z_3,
+    LD_LDD_Z_4,
+
     /* 73 */ LDI,
     /* 74 */ LDS,
     /* 75 */ LDS_16bit, // (16-bit) – Load Direct from Data Space......................................................... 117
@@ -233,10 +246,22 @@ impl InstructionType {
             66 => InstructionType::JMP,
             67 => InstructionType::LAC,
             68 => InstructionType::LAS,
-            69 => InstructionType::LAT, 
-            70 => InstructionType::LD,
-            71 => InstructionType::LD_LDD_Y,
-            72 => InstructionType::LD_LDD_Z,
+            69 => InstructionType::LAT,
+
+            70 => InstructionType::LD_LDD_X_1,
+            // 118 => InstructionType::LD_STD_X_2,
+            // 118 => InstructionType::LD_STD_X_3,
+            
+            71 => InstructionType::LD_LDD_Y_1, 
+            // 119 => InstructionType::LD_STD_Y_2,
+            // 119 => InstructionType::LD_STD_Y_3,
+            // 119 => InstructionType::LD_STD_Y_4,
+            
+            72 => InstructionType::LD_LDD_Z_1, 
+            // 120 => InstructionType::LD_STD_Z_2,
+            // 120 => InstructionType::LD_STD_Z_3,
+            // 120 => InstructionType::LD_STD_Z_4,
+
             73 => InstructionType::LDI,
             74 => InstructionType::LDS,
             75 => InstructionType::LDS_16bit, // (16-bit) – Load Direct from Data Space......................................................... 117
@@ -390,9 +415,21 @@ impl InstructionType {
             "LAC" => InstructionType::LAC,
             "LAS" => InstructionType::LAS,
             "LAT" => InstructionType::LAT, 
-            "LD" => InstructionType::LD,
-            "LD_LDD_Y" => InstructionType::LD_LDD_Y,
-            "LD_LDD_Z" => InstructionType::LD_LDD_Z,
+
+            "LD_LDD_X_1" => InstructionType::LD_LDD_X_1,
+            "LD_LDD_X_2" => InstructionType::LD_LDD_X_2,
+            "LD_LDD_X_3" => InstructionType::LD_LDD_X_3,
+
+            "LD_LDD_Y_1" => InstructionType::LD_LDD_Y_1, 
+            "LD_LDD_Y_2" => InstructionType::LD_LDD_Y_2, 
+            "LD_LDD_Y_3" => InstructionType::LD_LDD_Y_3, 
+            "LD_LDD_Y_4" => InstructionType::LD_LDD_Y_4, 
+            
+            "LD_LDD_Z_1" => InstructionType::LD_LDD_Z_1, 
+            "LD_LDD_Z_2" => InstructionType::LD_LDD_Z_2, 
+            "LD_LDD_Z_3" => InstructionType::LD_LDD_Z_3, 
+            "LD_LDD_Z_4" => InstructionType::LD_LDD_Z_4,
+
             "LDI" => InstructionType::LDI,
             "LDS" => InstructionType::LDS,
             "LDS_16bit" => InstructionType::LDS_16bit, // (16-bit) – Load Direct from Data Space......................................................... 117
@@ -438,17 +475,21 @@ impl InstructionType {
             "SLEEP" => InstructionType::SLEEP, //................................................................................................................. 168
             "SPM" => InstructionType::SPM, // – Store Program Memory............................................................................169
             "SPM_2" => InstructionType::SPM_2, // SPM #2 – Store Program Memory.......................................................................171
+            
             "ST_STD_X_1" => InstructionType::ST_STD_X_1,
             "ST_STD_X_2" => InstructionType::ST_STD_X_2,
             "ST_STD_X_3" => InstructionType::ST_STD_X_3,
+
             "ST_STD_Y_1" => InstructionType::ST_STD_Y_1, 
             "ST_STD_Y_2" => InstructionType::ST_STD_Y_2, 
             "ST_STD_Y_3" => InstructionType::ST_STD_Y_3, 
             "ST_STD_Y_4" => InstructionType::ST_STD_Y_4, 
+
             "ST_STD_Z_1" => InstructionType::ST_STD_Z_1, 
             "ST_STD_Z_2" => InstructionType::ST_STD_Z_2, 
             "ST_STD_Z_3" => InstructionType::ST_STD_Z_3, 
             "ST_STD_Z_4" => InstructionType::ST_STD_Z_4, 
+            
             "STS" => InstructionType::STS, // STS – Store Direct to Data Space.......................................................................179
             "STS_16bit" => InstructionType::STS_16bit, // STS (16-bit) – Store Direct to Data Space.......................................................... 180
             "SUB" => InstructionType::SUB, // – Subtract Without Carry.............................................................................181
@@ -551,9 +592,21 @@ impl InstructionType {
             InstructionType::LAC => String::from("LAC"),
             InstructionType::LAS => String::from("LAS"),
             InstructionType::LAT => String::from("LAT"), 
-            InstructionType::LD => String::from("LD"),
-            InstructionType::LD_LDD_Y => String::from("LD_LDD_Y"),
-            InstructionType::LD_LDD_Z => String::from("LD_LDD_Z"),
+
+            InstructionType::LD_LDD_X_1 => String::from("LD_LDD_X_1"),
+            InstructionType::LD_LDD_X_2 => String::from("LD_LDD_X_2"),
+            InstructionType::LD_LDD_X_3 => String::from("LD_LDD_X_3"),
+
+            InstructionType::LD_LDD_Y_1 => String::from("LD_LDD_Y_1"), 
+            InstructionType::LD_LDD_Y_2 => String::from("LD_LDD_Y_2"), 
+            InstructionType::LD_LDD_Y_3 => String::from("LD_LDD_Y_3"), 
+            InstructionType::LD_LDD_Y_4 => String::from("LD_LDD_Y_4"), 
+
+            InstructionType::LD_LDD_Z_1 => String::from("LD_LDD_Z_1"),
+            InstructionType::LD_LDD_Z_2 => String::from("LD_LDD_Z_2"),
+            InstructionType::LD_LDD_Z_3 => String::from("LD_LDD_Z_3"),
+            InstructionType::LD_LDD_Z_4 => String::from("LD_LDD_Z_4"),
+
             InstructionType::LDI => String::from("LDI"),
             InstructionType::LDS => String::from("LDS"),
             InstructionType::LDS_16bit => String::from("LDS_16bit"), // (16-bit) – Load Direct from Data Space......................................................... 117
@@ -599,17 +652,21 @@ impl InstructionType {
             InstructionType::SLEEP => String::from("SLEEP"), //................................................................................................................. 168
             InstructionType::SPM => String::from("SPM"), // – Store Program Memory............................................................................169
             InstructionType::SPM_2 => String::from("SPM_2"), // SPM #2 – Store Program Memory.......................................................................171
+            
             InstructionType::ST_STD_X_1 => String::from("ST_STD_X_1"),
             InstructionType::ST_STD_X_2 => String::from("ST_STD_X_2"),
             InstructionType::ST_STD_X_3 => String::from("ST_STD_X_3"),
+
             InstructionType::ST_STD_Y_1 => String::from("ST_STD_Y_1"), 
             InstructionType::ST_STD_Y_2 => String::from("ST_STD_Y_2"), 
             InstructionType::ST_STD_Y_3 => String::from("ST_STD_Y_3"), 
             InstructionType::ST_STD_Y_4 => String::from("ST_STD_Y_4"), 
-            InstructionType::ST_STD_Z_1 => String::from("ST_STD_Z_1"), 
-            InstructionType::ST_STD_Z_2 => String::from("ST_STD_Z_2"), 
-            InstructionType::ST_STD_Z_3 => String::from("ST_STD_Z_3"), 
-            InstructionType::ST_STD_Z_4 => String::from("ST_STD_Z_4"), 
+
+            InstructionType::ST_STD_Z_1 => String::from("ST_STD_Z_1"),
+            InstructionType::ST_STD_Z_2 => String::from("ST_STD_Z_2"),
+            InstructionType::ST_STD_Z_3 => String::from("ST_STD_Z_3"),
+            InstructionType::ST_STD_Z_4 => String::from("ST_STD_Z_4"),
+
             InstructionType::STS => String::from("STS"), // STS – Store Direct to Data Space.......................................................................179
             InstructionType::STS_16bit => String::from("STS_16bit"), // STS (16-bit) – Store Direct to Data Space.......................................................... 180
             InstructionType::SUB => String::from("SUB"), // – Subtract Without Carry.............................................................................181
@@ -699,9 +756,20 @@ impl InstructionType {
             /*  67 */ InstructionType::LAC => 2usize,
             /*  68 */ InstructionType::LAS => 2usize,
             /*  69 */ InstructionType::LAT => 2usize, 
-            /*  70 */ InstructionType::LD => 2usize,
-            /*  71 */ InstructionType::LD_LDD_Y => 2usize,
-            /*  72 */ InstructionType::LD_LDD_Z => 2usize,
+            /*  70 */ 
+            InstructionType::LD_LDD_X_1 => 2usize,
+            InstructionType::LD_LDD_X_2 => 2usize,
+            InstructionType::LD_LDD_X_3 => 2usize,
+            /*  71*/ 
+            InstructionType::LD_LDD_Y_1 => 2usize, 
+            InstructionType::LD_LDD_Y_2 => 2usize, 
+            InstructionType::LD_LDD_Y_3 => 2usize, 
+            InstructionType::LD_LDD_Y_4 => 2usize, 
+            /*  72 */ 
+            InstructionType::LD_LDD_Z_1 => 2usize, 
+            InstructionType::LD_LDD_Z_2 => 2usize, 
+            InstructionType::LD_LDD_Z_3 => 2usize, 
+            InstructionType::LD_LDD_Z_4 => 2usize,
             /*  73 */ InstructionType::LDI => 2usize,
             /*  74 */ InstructionType::LDS => 2usize,
             /*  75 */ InstructionType::LDS_16bit => 2usize, //  (16-bit) – Load Direct from Data Space......................................................... 117
@@ -747,14 +815,17 @@ impl InstructionType {
             /*  115 */ InstructionType::SLEEP => 2usize, // ................................................................................................................. 168
             /*  116 */ InstructionType::SPM => 2usize, //  – Store Program Memory............................................................................169
             /*  117 */ InstructionType::SPM_2 => 2usize, //  SPM #2 – Store Program Memory.......................................................................171
-            /*  118 */ InstructionType::ST_STD_X_1 => 2usize,
+            /*  118 */ 
+            InstructionType::ST_STD_X_1 => 2usize,
             InstructionType::ST_STD_X_2 => 2usize,
             InstructionType::ST_STD_X_3 => 2usize,
-            /*  119 */ InstructionType::ST_STD_Y_1 => 2usize, 
+            /*  119 */ 
+            InstructionType::ST_STD_Y_1 => 2usize, 
             InstructionType::ST_STD_Y_2 => 2usize, 
             InstructionType::ST_STD_Y_3 => 2usize, 
             InstructionType::ST_STD_Y_4 => 2usize, 
-            /*  120 */ InstructionType::ST_STD_Z_1 => 2usize, 
+            /*  120 */ 
+            InstructionType::ST_STD_Z_1 => 2usize, 
             InstructionType::ST_STD_Z_2 => 2usize, 
             InstructionType::ST_STD_Z_3 => 2usize, 
             InstructionType::ST_STD_Z_4 => 2usize, 
@@ -856,9 +927,20 @@ impl InstructionType {
             /*  67 */ InstructionType::LAC => 2usize,
             /*  68 */ InstructionType::LAS => 2usize,
             /*  69 */ InstructionType::LAT => 2usize, 
-            /*  70 */ InstructionType::LD => 2usize,
-            /*  71 */ InstructionType::LD_LDD_Y => 2usize,
-            /*  72 */ InstructionType::LD_LDD_Z => 2usize,
+            /*  70 */ 
+            InstructionType::LD_LDD_X_1 => 2usize,
+            InstructionType::LD_LDD_X_2 => 2usize,
+            InstructionType::LD_LDD_X_3 => 2usize,
+            /*  71 */ 
+            InstructionType::LD_LDD_Y_1 => 2usize, 
+            InstructionType::LD_LDD_Y_2 => 2usize, 
+            InstructionType::LD_LDD_Y_3 => 2usize, 
+            InstructionType::LD_LDD_Y_4 => 2usize, 
+            /*  72 */ 
+            InstructionType::LD_LDD_Z_1 => 2usize, 
+            InstructionType::LD_LDD_Z_2 => 2usize,
+            InstructionType::LD_LDD_Z_3 => 2usize,
+            InstructionType::LD_LDD_Z_4 => 2usize,
             /*  73 */ InstructionType::LDI => 2usize,
             /*  74 */ InstructionType::LDS => 4usize,
             /*  75 */ InstructionType::LDS_16bit => 2usize, //  (16-bit) – Load Direct from Data Space......................................................... 117
@@ -910,14 +992,17 @@ impl InstructionType {
             /*  115 */ InstructionType::SLEEP => 2usize, // ................................................................................................................. 168
             /*  116 */ InstructionType::SPM => 2usize, //  – Store Program Memory............................................................................169
             /*  117 */ InstructionType::SPM_2 => 2usize, //  SPM #2 – Store Program Memory.......................................................................171
-            /*  118 */ InstructionType::ST_STD_X_1 => 2usize,
+            /*  118 */ 
+            InstructionType::ST_STD_X_1 => 2usize,
             InstructionType::ST_STD_X_2 => 2usize,
             InstructionType::ST_STD_X_3 => 2usize,
-            /*  119 */ InstructionType::ST_STD_Y_1 => 2usize, 
+            /*  119 */ 
+            InstructionType::ST_STD_Y_1 => 2usize, 
             InstructionType::ST_STD_Y_2 => 2usize, 
             InstructionType::ST_STD_Y_3 => 2usize, 
             InstructionType::ST_STD_Y_4 => 2usize, 
-            /*  120 */ InstructionType::ST_STD_Z_1 => 2usize, 
+            /*  120 */ 
+            InstructionType::ST_STD_Z_1 => 2usize, 
             InstructionType::ST_STD_Z_2 => 2usize,
             InstructionType::ST_STD_Z_3 => 2usize,
             InstructionType::ST_STD_Z_4 => 2usize,
