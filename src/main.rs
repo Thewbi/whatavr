@@ -79,13 +79,13 @@ fn main() -> io::Result<()> {
     init_logging();
     log_start();
 
-    // // asm source code
-    // let mut segments: Vec<Segment> = Vec::new();
-    // load_segment_from_asm_source_code(&mut segments);
-
-    // hex
+    // asm source code
     let mut segments: Vec<Segment> = Vec::new();
-    load_segment_from_hex_file(&mut segments);
+    load_segment_from_asm_source_code(&mut segments);
+
+    // // hex
+    // let mut segments: Vec<Segment> = Vec::new();
+    // load_segment_from_hex_file(&mut segments);
 
     //
     // Phase - Program Execution
@@ -99,6 +99,7 @@ fn main() -> io::Result<()> {
 
     // main loop that executes the instructions
     let mut done: bool = false;
+    //let mut done: bool = true;
     while !done {
 
         log::trace!("\n");
@@ -200,7 +201,7 @@ fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>)
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/asm_4.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/call_and_return.asm"); // regression test
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/call_test.asm");
-    asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/call_test_2.asm");
+    asm_file_path.push_str("test_resources/sample_files/asm/call_test_2.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/def_assembler_directive.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/expression.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/inc.asm");
@@ -407,7 +408,7 @@ fn load_segment_from_hex_file(segments: &mut Vec<Segment>) -> io::Result<()>
 
     // split into segments
     // each segment has to have a segment_start and a segment_size
-    
+
     match parse_hex_file(segments, &hex_file_path) {
         Ok(_name) => log::info!("File read"),
         Err(err) => {

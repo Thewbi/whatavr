@@ -72,7 +72,7 @@ impl<'i> NewAssemblerVisitor {
     }
 
     // cr: ["st", "X", "+", "r17"]
-    fn process_st(&mut self, ctx: &InstructionContext<'i>, 
+    fn process_st(&mut self, ctx: &InstructionContext<'i>,
         visit_children_result: &<NewAssemblerVisitor as ParseTreeVisitorCompat>::Return,
         asm_record: &mut AsmRecord)
     {
@@ -96,7 +96,7 @@ impl<'i> NewAssemblerVisitor {
             base_upper_case_as_string.push_str("+");
             idx += 2usize;
         }
-        else 
+        else
         {
             base_upper_case_as_string.push_str(val_1);
             idx += 1usize;
@@ -141,7 +141,7 @@ impl<'i> NewAssemblerVisitor {
     }
 
     // cr: ["ld", "r0", "X"]
-    fn process_ld(&mut self, ctx: &InstructionContext<'i>, 
+    fn process_ld(&mut self, ctx: &InstructionContext<'i>,
         visit_children_result: &<NewAssemblerVisitor as ParseTreeVisitorCompat>::Return,
         asm_record: &mut AsmRecord)
     {
@@ -169,7 +169,7 @@ impl<'i> NewAssemblerVisitor {
             base_upper_case_as_string.push_str("+");
             idx += 2usize;
         }
-        else 
+        else
         {
             base_upper_case_as_string.push_str(val_1);
             idx += 1usize;
@@ -221,16 +221,16 @@ impl<'i> NewAssemblerVisitor {
             // The DEF directive allows the registers to be referred to through symbols. A defined symbol can be used
             // in the rest of the program to refer to the register it is assigned to. A register can have several symbolic
             // names attached to it. A symbol can be redefined later in the program.
-            
+
             let mut map = HASHMAP.lock().unwrap();
             map.insert(assembler_directive[2].to_string(), assembler_directive[4].to_string());
-            
+
         } else if "equ".eq(&asm_directive) {
 
             // Set a symbol equal to an expression.
             // The EQU directive assigns a value to a label. This label can then be used in later expressions. A label
             // assigned to a value by the EQU directive is a constant and can not be changed or redefined.
-            
+
             let mut map = HASHMAP.lock().unwrap();
             map.insert(assembler_directive[2].to_string(), assembler_directive[4].to_string());
 
@@ -243,11 +243,12 @@ impl<'i> NewAssemblerVisitor {
             let mut asm_file_path: String = String::new();
             // .inc files are resolved from the system include folder
             // .asm files are included from the current folder
-            if unwrapped_name.ends_with(".inc") {
-                asm_file_path.push_str("C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/avrasm/inc/");
-            } else {
-                asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/");
-            }
+            // if unwrapped_name.ends_with(".inc") {
+            //     asm_file_path.push_str("C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/avrasm/inc/");
+            // } else {
+            //     asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/");
+            // }
+            asm_file_path.push_str("/Users/bischowg/dev/rust/whatavr/test_resources/sample_files/asm/");
             asm_file_path.push_str(unwrapped_name);
 
             log::info!("Including \"{}\"", &asm_file_path.clone());
@@ -282,9 +283,9 @@ impl<'i> NewAssemblerVisitor {
                 label: String::default(),
             };
             visitor.record.clear();
-            
+
             let visitor_result = visitor.visit(&*root);
-        
+
             log::trace!("{:?}", visitor_result);
 
             // insert all parsed AsmRecords into the parent
@@ -396,7 +397,7 @@ impl<'i> assemblerVisitorCompat<'i> for NewAssemblerVisitor {
         {
             self.process_ld(ctx, &visit_children_result, &mut asm_record);
         }
-        else 
+        else
         {
             asm_record.instruction_type = InstructionType::from_string(mnemonic.as_str());
 
@@ -405,36 +406,36 @@ impl<'i> assemblerVisitorCompat<'i> for NewAssemblerVisitor {
                 let param_1: &String = &visit_children_result[1];
                 let param_1_as_number: u16;
 
-                if is_register_name(param_1) 
+                if is_register_name(param_1)
                 {
                     param_1_as_number = register_name_to_u16(param_1);
                     asm_record.reg_1 = param_1_as_number;
-                } 
-                else if is_number_literal_u16(param_1) 
+                }
+                else if is_number_literal_u16(param_1)
                 {
                     param_1_as_number = number_literal_to_u16(&param_1);
                     asm_record.reg_1 = param_1_as_number;
                 }
-                else 
+                else
                 {
                     let param_as_string = param_1.to_string();
 
                     // try to resolve constants
                     let map = HASHMAP.lock().unwrap();
-                    if map.contains_key(&param_as_string) 
+                    if map.contains_key(&param_as_string)
                     {
                         let constant_value = map.get(&param_as_string).unwrap();
 
                         if is_number_literal_u16(constant_value)
                         {
                             asm_record.reg_1 = number_literal_to_u16(constant_value);
-                        } 
+                        }
                         else if is_register_name(constant_value)
                         {
                             asm_record.reg_1 = register_name_to_u16(constant_value);
                         }
                     }
-                    else 
+                    else
                     {
                         asm_record.target_label = param_as_string;
                     }
@@ -446,36 +447,36 @@ impl<'i> assemblerVisitorCompat<'i> for NewAssemblerVisitor {
                 let param_2: &String = &visit_children_result[2];
                 let param_2_as_number: u16;
 
-                if is_register_name(param_2) 
+                if is_register_name(param_2)
                 {
                     param_2_as_number = register_name_to_u16(param_2);
                     asm_record.reg_2 = param_2_as_number;
-                } 
-                else if is_number_literal_u16(param_2) 
+                }
+                else if is_number_literal_u16(param_2)
                 {
                     param_2_as_number = number_literal_to_u16(&param_2);
                     asm_record.data = param_2_as_number;
                 }
-                else 
+                else
                 {
                     let param_as_string = param_2.to_string();
 
                     // try to resolve constants
                     let map = HASHMAP.lock().unwrap();
-                    if map.contains_key(&param_as_string) 
+                    if map.contains_key(&param_as_string)
                     {
                         let constant_value = map.get(&param_as_string).unwrap();
 
                         if is_number_literal_u16(constant_value)
                         {
                             asm_record.reg_2 = number_literal_to_u16(constant_value);
-                        } 
+                        }
                         else if is_register_name(constant_value)
                         {
                             asm_record.reg_2 = register_name_to_u16(constant_value);
                         }
                     }
-                    else 
+                    else
                     {
                         asm_record.target_label = param_as_string;
                     }
@@ -532,7 +533,7 @@ impl<'i> assemblerVisitorCompat<'i> for NewAssemblerVisitor {
         let assembler_directive = ".".eq(&visit_children_result[0]);
         if assembler_directive {
             self.parse_assembler_directive(&visit_children_result);
-            
+
             self.reset_self();
         }
 
@@ -559,7 +560,7 @@ impl<'i> assemblerVisitorCompat<'i> for NewAssemblerVisitor {
             //self.last_terminal = high_ramend.to_string();
             return vec![high_ramend.to_string().clone()];
         }
-        
+
         visit_children_result
     }
 

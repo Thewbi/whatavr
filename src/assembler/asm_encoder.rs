@@ -125,7 +125,8 @@ macro_rules! LOW_LOW_I32 {
 }
 
 pub fn create_label(labels: &mut HashMap<String, usize>, label: String, idx: usize) {
-    labels.insert(label, idx);
+    labels.insert(label.clone(), idx);
+    println!("Label: {} -> idx: {:#04X}", label, idx);
 }
 
 // 1. enter all commands into a list
@@ -154,7 +155,7 @@ impl AsmEncoder {
     }
 
     pub fn assemble(&mut self, asm_records: &mut Vec<AsmRecord>, segment: &mut Segment) {
-        
+
         //
         // phase 1 - scan for labels
         //
@@ -240,7 +241,7 @@ impl AsmEncoder {
             InstructionType::IN => {
                 Self::encode_in(&self, segment, asm_record.reg_1, asm_record.data);
             }
-            /*  65 */ 
+            /*  65 */
             InstructionType::INC => {
                 Self::encode_inc(&self, segment, asm_record.reg_1);
             }
@@ -281,7 +282,7 @@ impl AsmEncoder {
             InstructionType::MOV => {
                 Self::encode_mov(&self, segment, asm_record.reg_1, asm_record.reg_2);
             }
-            /*  85 */ 
+            /*  85 */
             InstructionType::NOP => {
                 Self::encode_nop(&self, segment);
             }
@@ -461,7 +462,7 @@ impl AsmEncoder {
         segment.size += 1u32;
     }
 
-    /// 17. BREAK 
+    /// 17. BREAK
     /// The BREAK instruction is used by the On-chip Debug system, and is normally not used in the application
     /// software. When the BREAK instruction is executed, the AVR CPU is set in the Stopped Mode. This gives
     /// the On-chip Debugger access to internal resources.
@@ -493,7 +494,7 @@ impl AsmEncoder {
 
         let label_address: i32 = self.labels[label] as i32;
         let mut offset_k: i32 = label_address - (*idx as i32);
-        
+
         // do I need to use some kind of little endian encoding?
         let result: u16 = 0xF001u16 | ((offset_k as u16) << 3u16);
 
@@ -517,7 +518,7 @@ impl AsmEncoder {
 
         let label_address: i32 = self.labels[label] as i32;
         let mut offset_k: i32 = label_address - (*idx as i32);
-        
+
         // do I need to use some kind of little endian encoding?
         let result: u16 = 0xF401u16 | ((offset_k as u16) << 3u16);
 
@@ -540,22 +541,27 @@ impl AsmEncoder {
         }
 
         let label_address: i32 = self.labels[label] as i32;
-        let mut offset_k: i32 = label_address - (*idx as i32);
 
-        log::trace!("offset_k: {:#06x}", offset_k);
-        log::trace!("offset_k: {:#06x}", offset_k as u32);
+        // relative
+        //let mut offset_k: i32 = label_address - (*idx as i32);
+
+        // absolute
+        let mut offset_k: i32 = label_address / 2i32;
+
+        log::info!("offset_k (in words): {:#06x}", offset_k);
+        log::info!("offset_k (in words): {:#06x}", offset_k as u32);
 
         offset_k &= 0b00000000001111111111111111111111i32;
 
-        log::trace!("offset_k: {:#06x}", offset_k);
-        log::trace!("offset_k: {:#06x}", offset_k as u32);
+        log::info!("offset_k (in words): {:#06x}", offset_k);
+        log::info!("offset_k (in words): {:#06x}", offset_k as u32);
 
         let result: u32 = (0b1001010u32 << 25)
             | ((offset_k as u32 >> 17) << 20)
             | (0b111u32 << 17)
             | (offset_k as u32 & 0b11111111111111111u32);
 
-        log::trace!("result: {:#32b}", result);
+        log::info!("result (in words): {:#32b}", result);
 
         log::trace!("ENC CALL: {:#02x}", (result >> 16u16) as u8);
         segment.data.push((result >> 16u16) as u8);
@@ -720,7 +726,7 @@ impl AsmEncoder {
 
             offset_k = number_literal_to_u16(label_or_immediate) as i32;
 
-        } 
+        }
         // else {
 
         //     log::error!("Encoding JMP instruction but there is no immediate and label \"{}\" is not defined!", label_or_immediate);
@@ -729,13 +735,16 @@ impl AsmEncoder {
 
         // }
 
-        log::trace!("offset_k: {:#06x}", offset_k);
-        log::trace!("offset_k: {:#06x}", offset_k as u32);
+        // convert from bytes to words
+        offset_k /= 2i32;
+
+        log::trace!("offset_k (in words): {:#06x}", offset_k);
+        log::trace!("offset_k (in words): {:#06x}", offset_k as u32);
 
         offset_k &= 0b00000000001111111111111111111111i32;
 
-        log::trace!("offset_k: {:#06x}", offset_k);
-        log::trace!("offset_k: {:#06x}", offset_k as u32);
+        log::trace!("offset_k (in words): {:#06x}", offset_k);
+        log::trace!("offset_k (in words): {:#06x}", offset_k as u32);
 
         let result: u32 = (0b1001010u32 << 25)
             | ((offset_k as u32 >> 17) << 20)
@@ -1068,6 +1077,9 @@ impl AsmEncoder {
 
         offset_k &= 0b0000111111111111i16;
 
+        // convert from bytes to words
+        offset_k /= 2i16;
+
         log::info!("offset_k: {:#06x} {}", offset_k, offset_k);
 
         let result: i16 = (0b1101 << 12) | offset_k;
@@ -1127,6 +1139,9 @@ impl AsmEncoder {
         offset_k &= 0b0000111111111111i16;
         log::trace!("offset_k: {:#06x} {}", offset_k, offset_k);
 
+        // convert from bytes to words
+        offset_k /= 2i16;
+
         let result: i16 = (0b1100 << 12) | offset_k;
         log::trace!("result: {:#32b}", result);
 
@@ -1140,7 +1155,7 @@ impl AsmEncoder {
 
         log::trace!("result: {:#026b}", result);
     }
-    
+
     /// 99. SBI – Set Bit in I/O Register
     /// 1001 1010 AAAA Abbb
     #[allow(dead_code)]
@@ -1208,7 +1223,7 @@ impl AsmEncoder {
     /// ST X, Rr
     /// 1001 001r rrrr 1100
     fn encode_st_std_x_1(&self, segment: &mut Segment, register_r: u16) {
-        
+
         if register_r > 31 {
             panic!("Invalid register for encode_st_std_x_1! Only registers [r0, r31] are allowed")
         }
@@ -1230,7 +1245,7 @@ impl AsmEncoder {
     /// ST X+, Rr
     /// 1001 001r rrrr 1101
     fn encode_st_std_x_2(&self, segment: &mut Segment, register_r: u16) {
-        
+
         if register_r > 31 {
             panic!("Invalid register for encode_st_std_x_2! Only registers [r0, r31] are allowed")
         }
@@ -1252,7 +1267,7 @@ impl AsmEncoder {
     /// ST -X, Rr
     /// 1001 001r rrrr 1110
     fn encode_st_std_x_3(&self, segment: &mut Segment, register_r: u16) {
-        
+
         if register_r > 31 {
             panic!("Invalid register for encode_st_std_x_3! Only registers [r0, r31] are allowed")
         }
@@ -1277,7 +1292,7 @@ impl AsmEncoder {
     /// ST Y, Rr
     /// 1000 001r rrrr 1000
     fn encode_st_std_y_1(&self, segment: &mut Segment, register_r: u16) {
-        
+
         if register_r > 31 {
             panic!("Invalid register for encode_st_std_y_1! Only registers [r0, r31] are allowed")
         }
@@ -1299,7 +1314,7 @@ impl AsmEncoder {
     /// ST X+, Rr
     /// 1001 001r rrrr 1101
     fn encode_st_std_y_2(&self, segment: &mut Segment, register_r: u16) {
-        
+
         if register_r > 31 {
             panic!("Invalid register for encode_st_std_y_2! Only registers [r0, r31] are allowed")
         }
@@ -1321,7 +1336,7 @@ impl AsmEncoder {
     /// ST -X, Rr
     /// 1001 001r rrrr 1110
     fn encode_st_std_y_3(&self, segment: &mut Segment, register_r: u16) {
-        
+
         if register_r > 31 {
             panic!("Invalid register for encode_st_std_y_3! Only registers [r0, r31] are allowed")
         }
@@ -1346,7 +1361,7 @@ impl AsmEncoder {
     /// ST Z, Rr
     /// 1000 001r rrrr 0000
     fn encode_st_std_z_1(&self, segment: &mut Segment, register_r: u16) {
-        
+
         if register_r > 31 {
             panic!("Invalid register for encode_st_std_z_1! Only registers [r0, r31] are allowed")
         }
@@ -1368,7 +1383,7 @@ impl AsmEncoder {
     /// ST Z+, Rr
     /// 1001 001r rrrr 0001
     fn encode_st_std_z_2(&self, segment: &mut Segment, register_r: u16) {
-        
+
         if register_r > 31 {
             panic!("Invalid register for encode_st_std_z_2! Only registers [r0, r31] are allowed")
         }
@@ -1390,7 +1405,7 @@ impl AsmEncoder {
     /// ST -Z, Rr
     /// 1001 001r rrrr 0010
     fn encode_st_std_z_3(&self, segment: &mut Segment, register_r: u16) {
-        
+
         if register_r > 31 {
             panic!("Invalid register for encode_st_std_z_3! Only registers [r0, r31] are allowed")
         }

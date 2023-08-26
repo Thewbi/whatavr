@@ -105,7 +105,7 @@ pub struct CPU {
     pub t: bool,
 
     // Global Interrupt Enable/Disable Flag
-    pub i: bool,    
+    pub i: bool,
 
     // pc always points to the instruction after the current instruction so it does not start at 0x00 but at 0x02
     pub pc: i32,
@@ -122,7 +122,7 @@ pub struct CPU {
 
 impl Default for CPU {
     fn default() -> Self {
-        Self { 
+        Self {
             c: false,
             z: false,
             n: false,
@@ -131,10 +131,11 @@ impl Default for CPU {
             h: false,
             t: false,
             i: false,
-            pc: 0x02i32,
+            //pc: 0x02i32,
+            pc: 0x00i32,
             register_file: [0; 32usize],
             sram: [0; RAMEND as usize],
-            sfr: [0; 255usize] 
+            sfr: [0; 255usize]
         }
     }
 }
@@ -154,7 +155,7 @@ impl CPU {
 
     #[allow(dead_code, unused)]
     pub fn new(pc: i32, register_file: [u8; 32usize], sram: [u8; RAMEND as usize], sfr: [u8; 255usize]) -> Self {
-        Self { 
+        Self {
             c: false,
             z: false,
             n: false,
@@ -196,7 +197,7 @@ impl CPU {
     }
 
     fn spl(&mut self) -> &mut u8 {
-        
+
         // let map = HASHMAP.lock().unwrap();
         // let value_as_string = map.get("SPL").unwrap();
 
@@ -212,7 +213,7 @@ impl CPU {
     }
 
     fn get_sph(&self) -> u8 {
-        
+
         // let map = HASHMAP.lock().unwrap();
         // let value_as_string = map.get("SPH").unwrap();
 
@@ -225,7 +226,7 @@ impl CPU {
     }
 
     fn get_spl(&self) -> u8 {
-        
+
         // let map = HASHMAP.lock().unwrap();
         // let value_as_string = map.get("SPL").unwrap();
 
@@ -346,7 +347,7 @@ impl CPU {
         //log::info!("READ: {:#02x}", word_lo as u8);
 
         let k_lo: u16 = ((word_hi << 8u8) + word_lo).into();
-        
+
         k_lo
 
     }
@@ -377,7 +378,7 @@ impl CPU {
         //let k_hi: u32 = self.value_storage[&'k'].into();
 
         let k_lo: u32 = self.read_next_two_byte(segment) as u32;
-        
+
         // assemble the parameter k
         let k_val: i16 = ((k_hi << 16u8) + k_lo) as i16;
 
@@ -460,7 +461,7 @@ impl CPU {
 
                 cpu.pc += 2i32;
             }
-            
+
             /*   6 */
             InstructionType::ADD => {
                 log::trace!("[ADD]");
@@ -625,12 +626,14 @@ impl CPU {
                 log::trace!("call {:#04x} {:#04x}", sph_temp, spl_temp);
 
                 log::info!("call {:#06x}", k_val_i32 as u16);
-                
+
                 log::trace!("stack pointer: {} {}", cpu.stack_info_high(), cpu.stack_info_low());
 
                 // jump to address
                 //cpu.pc += k_val_i32;
                 cpu.pc = k_val_i32 * 2;
+
+                log::info!("call cpu.pc: {:#06x}", cpu.pc);
             }
 
             // /*  41 */
@@ -757,7 +760,7 @@ impl CPU {
             /*  70 */
             InstructionType::LD_LDD_X_1 => {
                 log::info!("[LD_LDD_X_1]");
-                
+
                 // retrieved the encoded value for the d register
                 let d_val: u16 = value_storage[&'d'];
                 log::trace!("d: {d_val:#b} {d_val:#x} {d_val}");
@@ -782,7 +785,7 @@ impl CPU {
             }
             InstructionType::LD_LDD_X_2 => {
                 log::info!("[LD_LDD_X_2]");
-                
+
                 // retrieved the encoded value for the d register
                 let d_val: u16 = value_storage[&'d'];
                 log::info!("d: {d_val:#b} {d_val:#x} {d_val}");
@@ -998,6 +1001,10 @@ impl CPU {
 
                 log::info!("rjmp: {offset:04x}");
 
+                if 0x00 == offset {
+                  panic!("endless loop detected!");
+                }
+
                 cpu.pc += offset;
             }
 
@@ -1032,7 +1039,7 @@ impl CPU {
 
                 // read from special function registers
                 let mut register_value:u8 = cpu.read_from_i_o_space(address);
-                
+
                 register_value |= 1 << bit;
 
                 // output the value stored in register r_val into memory to the address a_val
@@ -1332,6 +1339,6 @@ impl CPU {
                 panic!("Unknown instruction: {:?}", instruction.instruction_type);
             }
         }
-        
+
     }
 }
