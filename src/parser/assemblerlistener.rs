@@ -85,6 +85,16 @@ fn enter_expression(&mut self, _ctx: &ExpressionContext<'input>) { }
  */
 fn exit_expression(&mut self, _ctx: &ExpressionContext<'input>) { }
 /**
+ * Enter a parse tree produced by {@link assemblerParser#numeric}.
+ * @param ctx the parse tree
+ */
+fn enter_numeric(&mut self, _ctx: &NumericContext<'input>) { }
+/**
+ * Exit a parse tree produced by {@link assemblerParser#numeric}.
+ * @param ctx the parse tree
+ */
+fn exit_numeric(&mut self, _ctx: &NumericContext<'input>) { }
+/**
  * Enter a parse tree produced by {@link assemblerParser#asm_instrinsic_instruction}.
  * @param ctx the parse tree
  */

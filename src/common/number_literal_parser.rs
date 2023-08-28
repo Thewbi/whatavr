@@ -18,7 +18,7 @@ pub fn is_number_literal_u16(data: &String) -> bool {
         let without_prefix = data.trim_start_matches("$");
         return u16::from_str_radix(without_prefix, 16).is_ok();
     }
-    else if data.starts_with("0")
+    else if data.starts_with("0") && 1 != data.len()
     {
         // parse octal
         let without_prefix = data.trim_start_matches("0");
@@ -36,7 +36,12 @@ mod tests {
     use super::*;
 
     #[test]
-    fn is_number_literal_u16_test() {
+    fn is_number_literal_u16_test_zero() {
+        assert!(is_number_literal_u16(&"0".to_string()));
+    }
+
+    #[test]
+    fn is_number_literal_u16_test_one() {
         assert!(is_number_literal_u16(&"1".to_string()));
     }
 
@@ -93,7 +98,7 @@ pub fn number_literal_to_u16(data: &String) -> u16 {
         let without_prefix = data.trim_start_matches("$");
         return u16::from_str_radix(without_prefix, 16).unwrap();
     }
-    else if data.starts_with("0")
+    else if data.starts_with("0") && 1 != data.len()
     {
         // parse octal
         let without_prefix = data.trim_start_matches("0");

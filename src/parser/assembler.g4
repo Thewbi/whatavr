@@ -45,6 +45,8 @@ expression :
     |
     expression EQUALS expression
     |
+    DOT ( PLUS | MINUS ) numeric
+    |
     BINARY_NUMBER
     |
     HEX_NUMBER
@@ -57,6 +59,15 @@ expression :
     |
     macro_placeholder
     ;
+
+numeric :
+    BINARY_NUMBER
+    |
+    HEX_NUMBER
+    | 
+    NUMBER
+    ;
+
 
 asm_instrinsic_instruction :
     DOT (

@@ -6,7 +6,6 @@ use std::fmt;
 
 /// This struct is the model for a line in a assembler source code file
 #[derive(Debug, Clone)]
-#[derive(Default)]
 pub struct AsmRecord {
 
     pub label: String,
@@ -19,6 +18,7 @@ pub struct AsmRecord {
     pub data: u16,
 
     pub target_label: String,
+    pub target_address: i16,
 
     pub io_dest: IoDestination,
 
@@ -35,6 +35,7 @@ impl AsmRecord {
         reg_2: u16,
         data: u16,
         target_label: String,
+        target_address: i16,
         io_dest: IoDestination,
     ) -> AsmRecord {
         AsmRecord {
@@ -44,6 +45,7 @@ impl AsmRecord {
             reg_2: reg_2,
             data: data,
             target_label: target_label,
+            target_address: target_address,
             io_dest: io_dest,
             idx: 0usize,
         }
@@ -56,6 +58,7 @@ impl AsmRecord {
         self.reg_2 = 0xFF;
         self.data = u16::default();
         self.target_label = String::default();
+        self.target_address = 0i16;
         self.io_dest = IoDestination::UNKNOWN;
         self.idx = usize::default();
     }
@@ -66,14 +69,30 @@ impl AsmRecord {
     
 }
 
+impl Default for AsmRecord {
+    fn default() -> Self {
+        Self {
+            label: String::default(),
+            instruction_type: InstructionType::UNKNOWN,
+            reg_1: 0xFF,
+            reg_2: 0xFF,
+            data: u16::default(),
+            target_label: String::default(),
+            target_address : 0i16,
+            io_dest: IoDestination::UNKNOWN,
+            idx: usize::default(),
+        }
+    }
+}
+
 impl fmt::Display for AsmRecord {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "(label:{}, itype:{}, reg_1:{} {:#04x}, reg_2:{} {:#04x}, data:{} {:#04x}, target_label:{})", 
+        write!(f, "(label:{}, itype:{}, reg_1:{} {:#04x}, reg_2:{} {:#04x}, data:{} {:#04x}, target_label:{}, target_address:{})", 
             self.label, 
             self.instruction_type.to_string(),
             self.reg_1, self.reg_1,
             self.reg_2, self.reg_2,
             self.data, self.data,
-            self.target_label)
+            self.target_label, self.target_address)
     }
 }

@@ -57,6 +57,12 @@ pub trait assemblerVisitor<'input>: ParseTreeVisitor<'input,assemblerParserConte
 	fn visit_expression(&mut self, ctx: &ExpressionContext<'input>) { self.visit_children(ctx) }
 
 	/**
+	 * Visit a parse tree produced by {@link assemblerParser#numeric}.
+	 * @param ctx the parse tree
+	 */
+	fn visit_numeric(&mut self, ctx: &NumericContext<'input>) { self.visit_children(ctx) }
+
+	/**
 	 * Visit a parse tree produced by {@link assemblerParser#asm_instrinsic_instruction}.
 	 * @param ctx the parse tree
 	 */
@@ -252,6 +258,14 @@ pub trait assemblerVisitorCompat<'input>:ParseTreeVisitorCompat<'input, Node= as
 	 * @param ctx the parse tree
 	 */
 		fn visit_expression(&mut self, ctx: &ExpressionContext<'input>) -> Self::Return {
+			self.visit_children(ctx)
+		}
+
+	/**
+	 * Visit a parse tree produced by {@link assemblerParser#numeric}.
+	 * @param ctx the parse tree
+	 */
+		fn visit_numeric(&mut self, ctx: &NumericContext<'input>) -> Self::Return {
 			self.visit_children(ctx)
 		}
 
@@ -474,6 +488,11 @@ where
 
 	fn visit_expression(&mut self, ctx: &ExpressionContext<'input>){
 		let result = <Self as assemblerVisitorCompat>::visit_expression(self, ctx);
+        *<Self as ParseTreeVisitorCompat>::temp_result(self) = result;
+	}
+
+	fn visit_numeric(&mut self, ctx: &NumericContext<'input>){
+		let result = <Self as assemblerVisitorCompat>::visit_numeric(self, ctx);
         *<Self as ParseTreeVisitorCompat>::temp_result(self) = result;
 	}
 

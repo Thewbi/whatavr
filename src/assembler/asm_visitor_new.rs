@@ -9,7 +9,6 @@ use std::fs;
 use std::rc::Rc;
 
 use crate::assembler::asm_record::AsmRecord;
-use crate::assembler::io_destination::IoDestination;
 use crate::common::common_constants::RAMEND;
 use crate::common::number_literal_parser::is_number_literal_u16;
 use crate::common::number_literal_parser::number_literal_to_u16;
@@ -20,9 +19,7 @@ use crate::parser;
 use crate::parser::assemblerparser::assemblerParserContextType;
 use crate::parser::assemblerparser::Asm_fileContextAll;
 use crate::parser::assemblerparser::InstructionContext;
-use crate::parser::assemblerparser::MnemonicContextExt;
 use crate::parser::assemblerparser::ParamContext;
-use crate::parser::assemblerparser::Preprocessor_directiveContext;
 use crate::parser::assemblervisitor::assemblerVisitorCompat;
 use crate::HASHMAP;
 use crate::HIGH;
@@ -303,6 +300,8 @@ impl<'i> NewAssemblerVisitor {
 
         }
     }
+
+    
 }
 
 impl<'i> ParseTreeVisitorCompat<'i> for NewAssemblerVisitor {
@@ -396,6 +395,12 @@ impl<'i> assemblerVisitorCompat<'i> for NewAssemblerVisitor {
         else if mnemonic.to_uppercase().eq("LD")
         {
             self.process_ld(ctx, &visit_children_result, &mut asm_record);
+        }
+        else if (mnemonic.to_uppercase().eq("CALL") || mnemonic.to_uppercase().eq("JMP")) && is_number_literal_u16(&visit_children_result[1])
+        {
+            println!("{:?}", visit_children_result);
+            asm_record.target_address = number_literal_to_u16(&visit_children_result[1]) as i16;
+            asm_record.instruction_type = InstructionType::from_string(mnemonic.as_str());
         }
         else
         {
@@ -559,6 +564,74 @@ impl<'i> assemblerVisitorCompat<'i> for NewAssemblerVisitor {
             let high_ramend: u16 = HIGH!(RAMEND);
             //self.last_terminal = high_ramend.to_string();
             return vec![high_ramend.to_string().clone()];
+        }
+
+        visit_children_result
+    }
+
+    fn visit_expression(&mut self, ctx: &parser::assemblerparser::ExpressionContext<'i>) -> Self::Return {
+        self.descend_ident("visit_expression");
+        let mut visit_children_result = self.visit_children(ctx);
+        self.ascend_ident();
+
+        if visit_children_result.len() == 1usize {
+
+            // if the value is a number, return it
+            let parse_result = visit_children_result[0].parse::<u16>();
+            if parse_result.is_ok() {
+                return visit_children_result;
+            }
+        }
+
+        if visit_children_result.len() == 3usize {
+
+            if "<<".eq(&visit_children_result[1]) {
+
+                // lhs << rhs
+                let lhs_as_string = &visit_children_result[0];
+                let op_as_string = &visit_children_result[1];
+                let rhs_as_string = &visit_children_result[2];
+
+                if !self.debug_output {
+                    println!("lhs: {} op: {} rhs: {}", lhs_as_string, op_as_string, rhs_as_string);
+                }
+
+                let mut lhs: i16 = 0i16;
+                let lhs_parse_result = lhs_as_string.parse::<i16>();
+                if lhs_parse_result.is_ok() {
+                    lhs = lhs_parse_result.unwrap();
+                }
+
+                let mut rhs: i16 = 0i16;
+                let rhs_parse_result = rhs_as_string.parse::<i16>();
+                if rhs_parse_result.is_ok() {
+                    rhs = rhs_parse_result.unwrap();
+                }
+
+                let result: i16 = lhs << rhs;
+
+                return vec![result.to_string()];
+            }
+            else if "(".eq(&visit_children_result[0]) && ")".eq(&visit_children_result[2])
+            {
+                visit_children_result.remove(2);
+                visit_children_result.remove(0);
+
+                return visit_children_result;
+            }
+            else if ".".eq(&visit_children_result[0])
+            {
+                let sign: &str = visit_children_result[1].as_str();
+                let mut offset: i16 = number_literal_to_u16(&visit_children_result[2]) as i16;
+                if sign == "-" 
+                {
+                    offset *= -1i16;
+                }
+
+                println!("sign: {}, offset: {}", sign, offset);
+
+                return vec![offset.to_string()];
+            }
         }
 
         visit_children_result

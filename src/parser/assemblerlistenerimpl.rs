@@ -74,7 +74,19 @@ impl<'input> assemblerListener<'input> for assemblerListenerImpl {
         // the very last line contained a label definition
         // force a NOP operation and place the label onto that NOP operation
         if self.label != "" {
-            let asm_record: AsmRecord = AsmRecord::new(self.label.clone(), InstructionType::NOP, 0xFF, 0xFF, 0, String::from(""), IoDestination::UNKNOWN);
+
+            // let asm_record: AsmRecord = AsmRecord::new(self.label.clone(), 
+            //     InstructionType::NOP, 
+            // 0xFF,
+            //     0xFF,
+            //     0, 
+            //     String::from(""), 
+            //     0x00i16, 
+            //     IoDestination::UNKNOWN);
+            
+            let mut asm_record: AsmRecord = AsmRecord::default();
+            asm_record.instruction_type = InstructionType::NOP;
+
             self.asm_records.push(asm_record);
         }
 
@@ -153,7 +165,17 @@ impl<'input> assemblerListener<'input> for assemblerListenerImpl {
         //     return;
         // } 
 
-        let mut asm_record: AsmRecord = AsmRecord::new(String::from(""), InstructionType::UNKNOWN, 0xFF, 0xFF, 0, String::from(""), IoDestination::UNKNOWN);
+        // let mut asm_record: AsmRecord = AsmRecord::new(
+        //     String::from(""), 
+        //     InstructionType::UNKNOWN, 
+        //     0xFF, 
+        //     0xFF, 
+        //     0, 
+        //     String::from(""), 
+        //     0i16,
+        //     IoDestination::UNKNOWN);
+
+        let mut asm_record: AsmRecord = AsmRecord::default();
 
         asm_record.instruction_type = InstructionType::from_string(self.mnemonic.as_str());
 

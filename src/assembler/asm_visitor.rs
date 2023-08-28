@@ -262,6 +262,7 @@ impl<'i> assemblerVisitorCompat<'i> for DefaultAssemblerVisitor {
                 0xFF, 
                 0, 
                 String::from(""), 
+                0x00i16,
                 IoDestination::UNKNOWN);
 
             // store the record into the result
@@ -405,6 +406,7 @@ impl<'i> assemblerVisitorCompat<'i> for DefaultAssemblerVisitor {
                 self.record.reg_2, 
                 self.record.data, 
                 self.target_label.clone(), 
+                0x00i16,
                 self.record.io_dest);
             self.records.push(rec);
 
@@ -437,6 +439,7 @@ impl<'i> assemblerVisitorCompat<'i> for DefaultAssemblerVisitor {
                 self.record.reg_2, 
                 self.record.data, 
                 self.target_label.clone(), 
+                0x00i16,
                 self.record.io_dest);
             self.records.push(rec);
 
@@ -485,7 +488,8 @@ impl<'i> assemblerVisitorCompat<'i> for DefaultAssemblerVisitor {
                 self.record.reg_1, 
                 self.record.reg_2, 
                 self.record.data, 
-                self.target_label.clone(), 
+                self.target_label.clone(),
+                0x00i16,
                 self.record.io_dest);
             self.records.push(rec);
 
@@ -498,7 +502,8 @@ impl<'i> assemblerVisitorCompat<'i> for DefaultAssemblerVisitor {
                 self.record.reg_1, 
                 self.record.reg_2, 
                 self.record.data, 
-                self.target_label.clone(), 
+                self.target_label.clone(),
+                0x00i16,
                 self.record.io_dest);
                 
             self.records.push(rec);

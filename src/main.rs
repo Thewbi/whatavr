@@ -27,6 +27,7 @@ use crate::assembler::asm_encoder::AsmEncoder;
 use crate::assembler::asm_record::AsmRecord;
 use crate::assembler::asm_visitor::DefaultAssemblerVisitor;
 use crate::assembler::asm_visitor_new::NewAssemblerVisitor;
+use crate::common::listing_parser::is_code_offset_c_listing;
 use crate::cpu::cpu::CPU;
 use crate::ihex_mgmt::ihex_mgmt::parse_hex_file;
 use crate::ihex_mgmt::ihex_mgmt::Segment;
@@ -62,6 +63,8 @@ lazy_static! {
 // cargo run --bin build_parser
 // the generated files are placed into src/parser
 //
+// antlr lab
+//
 // cargo build
 // cargo run
 // cargo run --bin build_parser
@@ -79,13 +82,16 @@ fn main() -> io::Result<()> {
     init_logging();
     log_start();
 
-    // asm source code
     let mut segments: Vec<Segment> = Vec::new();
-    load_segment_from_asm_source_code(&mut segments);
+
+    // // asm source code
+    // load_segment_from_asm_source_code(&mut segments);
 
     // // hex
-    // let mut segments: Vec<Segment> = Vec::new();
     // load_segment_from_hex_file(&mut segments);
+
+    // listing (lss) file
+    load_segment_from_listing_file(&mut segments);
 
     //
     // Phase - Program Execution
@@ -127,153 +133,82 @@ fn main() -> io::Result<()> {
 
 }
 
-fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>)
+fn load_segment_from_listing_file(segments: &mut Vec<Segment>) -> io::Result<()>
 {
-    //
-    // Phase - load token into a hashmap
-    //
+    let mut lss_file_path: String = String::new();
+    lss_file_path.push_str("test_resources/sample_files/lss/ADC_C.lss");
 
-    log::info!("**********************************************");
-    log::info!("Phase - load token into a hashmap");
-    log::info!("**********************************************");
+    let srcdir = PathBuf::from(&lss_file_path);
+    println!("absolute path: {:?}", fs::canonicalize(&srcdir));
 
-    let mut token_storage: HashMap<isize, String> = HashMap::new();
-    let mut token_value_storage: HashMap<String, isize> = HashMap::new();
+    let data = fs::read_to_string(&lss_file_path).expect("Unable to read file");
+    log::trace!("\n{}", data);
 
-    let mut token_file_path: String = String::new();
-    //token_file_path.push_str("C:/aaa_se/rust/whatavr/src/parser/assembler.tokens");
-    token_file_path.push_str("src/parser/assembler.tokens");
+    let input_stream: InputStream<&str> = InputStream::new(data.as_str());
 
     // open the file in read-only mode (ignoring errors).
-    let file = File::open(token_file_path).unwrap();
+    let file = File::open(lss_file_path).unwrap();
     let reader = BufReader::new(file);
+
+    let mut string_buffer = String::new();
 
     // read the file line by line using the lines() iterator from std::io::BufRead.
     for (index, line) in reader.lines().enumerate() {
 
-        // ignore errors.
+        // ignore errors
         let line = line.unwrap();
 
-        // DEBUG show the line and its number.
-        log::trace!("{}. {}", index + 1, line);
-
-        // https://stackoverflow.com/questions/26643688/how-do-i-split-a-string-in-rust
-        let collection: Vec<&str> = line.split('=').collect::<Vec<_>>();
-
-        let token:&str = collection[0];
-        let token_idx:i16 = collection[1].parse::<i16>().unwrap();
-        let token_idx_as_usize:isize = token_idx.into();
-
-        // at the end of the token file, the individual characters are repeated but
-        // the purpose of the token map is to just contain the token labels/names and not
-        // the individual characters so break on the first duplicate
-        if token_storage.contains_key(&token_idx_as_usize) {
-            break;
+        if !is_code_offset_c_listing(&line) {
+            continue;
         }
-        token_storage.insert(token_idx_as_usize, token.to_string());
 
-        if token_value_storage.contains_key(&token.to_string()) {
-            break;
-        }
-        token_value_storage.insert(token.to_string(), token_idx_as_usize);
+        // DEBUG show the line and its number
+        //log::info!("{}. {}", index + 1, line);
+
+        let colon_split = line.split(":");
+        let colon_collection: Vec<&str> = colon_split.collect::<Vec<_>>();
+
+        //log::info!("{:?}", parts);
+
+        // for part in parts {
+        //     log::info!("{:?}", part);
+        // }
+
+        log::trace!("{:?}", &colon_collection[1]);
+
+        let tab_split = colon_collection[1].split("\t");
+
+        log::trace!("{:?}", &tab_split);
+
+        let tab_collection: Vec<&str> = tab_split.collect::<Vec<_>>();
+
+        log::info!("{:?}", &tab_collection);
+
+        let start = 2;
+        let end = tab_collection.len();
+        //let source_code_row = tab_collection.slice(start, end).join(" ");
+        let source_code_row = tab_collection[start .. end].join(" ");
+
+        log::info!("scr: {}", source_code_row);
+
+        string_buffer.push_str(&source_code_row);
+        string_buffer.push_str("\n");
+
+        log::info!("done");
+
     }
 
-    //
-    // Phase - read the .asm file
-    //
+    log::info!("{}", string_buffer);
 
-    log::info!("**********************************************");
-    log::info!("Phase - Phase - read the .asm file");
-    log::info!("**********************************************");
+    let input_stream: InputStream<&str> = InputStream::new(string_buffer.as_str());
 
-    //
-    // read the .asm file which will be the input to the assembler
-    //
-    // check files here: http://lab.antlr.org/
-    // (erase the entire content in the lexer tab, paste the grammar into the parser tab,
-    // use 'asm_file' as a start symbol)
-    //
+    parse(segments, input_stream);
 
-    let mut asm_file_path: String = String::new();
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/asm_1.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/asm_2.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/asm_3.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/asm_4.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/call_and_return.asm"); // regression test
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/call_test.asm");
-    asm_file_path.push_str("test_resources/sample_files/asm/call_test_2.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/def_assembler_directive.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/expression.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/inc.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/intrinsic.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/jmp_instruction.asm"); // problem
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/jmp.asm"); // good for regression test (will increment r17 until overflow)
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/preprocessor.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/push_pop.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/scratchpad.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/scratchpad_2.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/setup_stack.asm"); // regression test
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/timer_polling_example.asm");
-    //asm_file_path.push_str("C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/avrasm/inc/m328Pdef.inc");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/hwnp_excercise_1.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/st_std_test.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/pin_change_interrupt_demo.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/pin_change_interrupt_demo.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/rjh_coding_avr-asm-add-16.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/include_test.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/timer1.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/twos_complement_overflow.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/sts.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/timebase.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/out.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/store_to_flash.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/store_to_flash_2.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/store_load_flash.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/store_load_sram.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/odd_even_test.asm");
+    Ok(())
+}
 
-    // ld, st, call, ret, push, pop, mov, movw, and, inc, dec, andi, add, adc, adiw, ldi, lsr,
-    // lsl, brne, brbc, breq, brsh, brge, brlt, rol, ror, sbi, cbi, sbc, subi
-
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/ld.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/st.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/call.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/ret.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/push.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/pop.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/mov.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/movw.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/and.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/inc.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/dec.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/andi.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/add.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/adc.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/adiw.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/ldi.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/lsr.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/lsl.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/brne.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/brbc.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/breq.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/brsh.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/brge.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/brlt.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/rol.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/ror.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/sbi.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/cbi.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/sbc.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/subi.asm");
-
-    let srcdir = PathBuf::from(&asm_file_path);
-    println!("absolute path: {:?}", fs::canonicalize(&srcdir));
-
-    let data = fs::read_to_string(&asm_file_path).expect("Unable to read file");
-    log::info!("\n{}", data);
-
-    let input_stream: InputStream<&str> = InputStream::new(data.as_str());
-
+fn parse(segments: &mut Vec<Segment>, input_stream: InputStream<&str>)
+{
     //
     // Phase - AST Creation (Grammar Lexing and Parsing)
     //
@@ -392,6 +327,157 @@ fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>)
     if !asm_encoder.encoding_success {
         panic!("Encoding failed!");
     }
+}
+
+fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>)
+{
+    //
+    // Phase - load token into a hashmap
+    //
+
+    log::info!("**********************************************");
+    log::info!("Phase - load token into a hashmap");
+    log::info!("**********************************************");
+
+    let mut token_storage: HashMap<isize, String> = HashMap::new();
+    let mut token_value_storage: HashMap<String, isize> = HashMap::new();
+
+    let mut token_file_path: String = String::new();
+    //token_file_path.push_str("C:/aaa_se/rust/whatavr/src/parser/assembler.tokens");
+    token_file_path.push_str("src/parser/assembler.tokens");
+
+    // open the file in read-only mode (ignoring errors).
+    let file = File::open(token_file_path).unwrap();
+    let reader = BufReader::new(file);
+
+    // read the file line by line using the lines() iterator from std::io::BufRead.
+    for (index, line) in reader.lines().enumerate() {
+
+        // ignore errors.
+        let line = line.unwrap();
+
+        // DEBUG show the line and its number.
+        log::trace!("{}. {}", index + 1, line);
+
+        // https://stackoverflow.com/questions/26643688/how-do-i-split-a-string-in-rust
+        let collection: Vec<&str> = line.split('=').collect::<Vec<_>>();
+
+        let token:&str = collection[0];
+        let token_idx:i16 = collection[1].parse::<i16>().unwrap();
+        let token_idx_as_usize:isize = token_idx.into();
+
+        // at the end of the token file, the individual characters are repeated but
+        // the purpose of the token map is to just contain the token labels/names and not
+        // the individual characters so break on the first duplicate
+        if token_storage.contains_key(&token_idx_as_usize) {
+            break;
+        }
+        token_storage.insert(token_idx_as_usize, token.to_string());
+
+        if token_value_storage.contains_key(&token.to_string()) {
+            break;
+        }
+        token_value_storage.insert(token.to_string(), token_idx_as_usize);
+    }
+
+    //
+    // Phase - read the .asm file
+    //
+
+    log::info!("**********************************************");
+    log::info!("Phase - Phase - read the .asm file");
+    log::info!("**********************************************");
+
+    //
+    // read the .asm file which will be the input to the assembler
+    //
+    // check files here: http://lab.antlr.org/
+    // (erase the entire content in the lexer tab, paste the grammar into the parser tab,
+    // use 'asm_file' as a start symbol)
+    //
+
+    let mut asm_file_path: String = String::new();
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/asm_1.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/asm_2.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/asm_3.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/asm_4.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/call_and_return.asm"); // regression test
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/call_test.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/call_test_2.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/def_assembler_directive.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/expression.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/inc.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/intrinsic.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/jmp_instruction.asm"); // problem
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/jmp.asm"); // good for regression test (will increment r17 until overflow)
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/preprocessor.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/push_pop.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/scratchpad.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/scratchpad_2.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/setup_stack.asm"); // regression test
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/timer_polling_example.asm");
+    //asm_file_path.push_str("C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/avrasm/inc/m328Pdef.inc");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/hwnp_excercise_1.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/st_std_test.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/pin_change_interrupt_demo.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/pin_change_interrupt_demo.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/rjh_coding_avr-asm-add-16.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/include_test.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/timer1.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/twos_complement_overflow.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/sts.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/timebase.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/out.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/store_to_flash.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/store_to_flash_2.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/store_load_flash.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/store_load_sram.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/odd_even_test.asm");
+
+    // ld, st, call, ret, push, pop, mov, movw, and, inc, dec, andi, add, adc, adiw, ldi, lsr,
+    // lsl, brne, brbc, breq, brsh, brge, brlt, rol, ror, sbi, cbi, sbc, subi
+
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/andi.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/add.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/adc.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/adiw.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/and.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/brbc.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/brne.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/breq.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/brsh.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/brge.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/brlt.asm");
+    asm_file_path.push_str("test_resources/sample_files/asm/call.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/cbi.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/dec.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/inc.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/ld.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/ldi.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/lsr.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/lsl.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/mov.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/movw.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/push.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/pop.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/ret.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/rol.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/ror.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/sbi.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/sbc.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/subi.asm");
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/st.asm");
+
+    let srcdir = PathBuf::from(&asm_file_path);
+    println!("absolute path: {:?}", fs::canonicalize(&srcdir));
+
+    let data = fs::read_to_string(&asm_file_path).expect("Unable to read file");
+    log::info!("\n{}", data);
+
+    let input_stream: InputStream<&str> = InputStream::new(data.as_str());
+
+    parse(segments, input_stream);
+
 }
 
 fn load_segment_from_hex_file(segments: &mut Vec<Segment>) -> io::Result<()>

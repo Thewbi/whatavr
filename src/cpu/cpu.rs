@@ -625,12 +625,9 @@ impl CPU {
                 log::trace!("call - stack pointer: {:#04x} {:#04x}", sph_temp, spl_temp);
                 log::trace!("call {:#04x} {:#04x}", sph_temp, spl_temp);
 
-                log::info!("call {:#06x}", k_val_i32 as u16);
-
                 log::trace!("stack pointer: {} {}", cpu.stack_info_high(), cpu.stack_info_low());
 
                 // jump to address
-                //cpu.pc += k_val_i32;
                 cpu.pc = k_val_i32 * 2;
 
                 log::info!("call cpu.pc: {:#06x}", cpu.pc);
@@ -986,7 +983,7 @@ impl CPU {
                 }
                 log::trace!("k: {:04x} {:016b} {}", k as i16, k as i16, k as i16);
 
-                let twos_complement_1: i16 = (k as i16);
+                let twos_complement_1: i16 = k as i16;
                 //println!("{}", twos_complement_1);
 
                 let twos_complement: u16 = (k as i16 * -1i16) as u16;

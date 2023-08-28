@@ -219,7 +219,7 @@ impl AsmEncoder {
             }
             /*  36 */
             InstructionType::CALL => {
-                Self::encode_call(&self, segment, &asm_record.idx, &asm_record.target_label);
+                Self::encode_call(&self, segment, &asm_record.idx, &asm_record.target_label, asm_record.target_address);
             }
             /*  37 */
             InstructionType::CBI => {
@@ -247,7 +247,7 @@ impl AsmEncoder {
             }
             /*  66 */
             InstructionType::JMP => {
-                Self::encode_jmp(self, segment, &asm_record.idx, &asm_record.target_label);
+                Self::encode_jmp(self, segment, &asm_record.idx, &asm_record.target_label, asm_record.target_address);
             }
 
 
@@ -534,19 +534,24 @@ impl AsmEncoder {
     /// 36. CALL – Long Call to a Subroutine
     /// 1001 010k kkkk 111k
     /// kkkk kkkk kkkk kkkk
-    fn encode_call(&self, segment: &mut Segment, idx: &usize, label: &String) {
+    fn encode_call(&self, segment: &mut Segment, idx: &usize, label: &String, address: i16) {
 
-        if label.is_empty() {
-            panic!("No label found for call instruction!");
+        if 0x00 == address && label.is_empty() {
+            panic!("No label or address found for call instruction!");
         }
 
-        let label_address: i32 = self.labels[label] as i32;
-
-        // relative
-        //let mut offset_k: i32 = label_address - (*idx as i32);
-
-        // absolute
-        let mut offset_k: i32 = label_address / 2i32;
+        let target_address: i32;
+        if !label.is_empty()
+        {
+            target_address = self.labels[label] as i32;
+        }
+        else
+        {
+            target_address = address as i32;
+        }
+        
+        // convert from bytes to words
+        let mut offset_k: i32 = target_address / 2i32;
 
         log::info!("offset_k (in words): {:#06x}", offset_k);
         log::info!("offset_k (in words): {:#06x}", offset_k as u32);
@@ -707,36 +712,53 @@ impl AsmEncoder {
     /// 66. JMP – Jump
     /// 1001 010k kkkk 110k
     /// kkkk kkkk kkkk kkkk
-    fn encode_jmp(&mut self, segment: &mut Segment, idx: &usize, label_or_immediate: &String) {
+    //fn encode_jmp(&mut self, segment: &mut Segment, idx: &usize, label_or_immediate: &String) {
+    fn encode_jmp(&mut self, segment: &mut Segment, idx: &usize, label: &String, address: i16) {
 
-        if label_or_immediate.is_empty() {
-            log::error!("Encoding JMP instruction but the label/immediate is missing!");
-            self.encoding_success = false;
-            return
-        }
-
-        let mut offset_k: i32;
-
-        if self.labels.contains_key(label_or_immediate) {
-
-            let label_address: i32 = self.labels[label_or_immediate] as i32;
-            offset_k = label_address - (*idx as i32);
-
-        } else {
-
-            offset_k = number_literal_to_u16(label_or_immediate) as i32;
-
-        }
-        // else {
-
-        //     log::error!("Encoding JMP instruction but there is no immediate and label \"{}\" is not defined!", label_or_immediate);
-        //     self.encoding_success = false;
-        //     return
-
+        // if 0x00 == address && label.is_empty() {
+        //     panic!("No label or address found for call instruction!");
         // }
 
+        // if label_or_immediate.is_empty() {
+        //     log::error!("Encoding JMP instruction but the label/immediate is missing!");
+        //     self.encoding_success = false;
+        //     return
+        // }
+
+        // let mut offset_k: i32;
+
+        // if self.labels.contains_key(label_or_immediate) {
+
+        //     let label_address: i32 = self.labels[label_or_immediate] as i32;
+        //     offset_k = label_address - (*idx as i32);
+
+        // } else {
+
+        //     offset_k = number_literal_to_u16(label_or_immediate) as i32;
+
+        // }
+        // // else {
+
+        // //     log::error!("Encoding JMP instruction but there is no immediate and label \"{}\" is not defined!", label_or_immediate);
+        // //     self.encoding_success = false;
+        // //     return
+
+        // // }
+        // // convert from bytes to words
+        // offset_k /= 2i32;
+
+        let target_address: i32;
+        if !label.is_empty()
+        {
+            target_address = self.labels[label] as i32;
+        }
+        else
+        {
+            target_address = address as i32;
+        }
+
         // convert from bytes to words
-        offset_k /= 2i32;
+        let mut offset_k: i32 = target_address / 2i32;
 
         log::trace!("offset_k (in words): {:#06x}", offset_k);
         log::trace!("offset_k (in words): {:#06x}", offset_k as u32);
