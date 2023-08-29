@@ -830,7 +830,7 @@ pub type InstructionContext<'input> = BaseParserRuleContext<'input,InstructionCo
 
 #[derive(Clone)]
 pub struct InstructionContextExt<'input>{
-ph:PhantomData<&'input str>
+pub(crate) ph:PhantomData<&'input str>
 }
 
 impl<'input> assemblerParserContext<'input> for InstructionContext<'input>{}
@@ -861,7 +861,7 @@ impl<'input> CustomRuleContext<'input> for InstructionContextExt<'input>{
 antlr_rust::tid!{InstructionContextExt<'a>}
 
 impl<'input> InstructionContextExt<'input>{
-	fn new(parent: Option<Rc<dyn assemblerParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<InstructionContextAll<'input>> {
+	pub fn new(parent: Option<Rc<dyn assemblerParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<InstructionContextAll<'input>> {
 		Rc::new(
 			BaseParserRuleContext::new_parser_ctx(parent, invoking_state,InstructionContextExt{
 				ph:PhantomData

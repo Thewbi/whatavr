@@ -84,14 +84,14 @@ fn main() -> io::Result<()> {
 
     let mut segments: Vec<Segment> = Vec::new();
 
-    // // asm source code
-    // load_segment_from_asm_source_code(&mut segments);
+    // asm source code
+    load_segment_from_asm_source_code(&mut segments);
 
     // // hex
     // load_segment_from_hex_file(&mut segments);
 
-    // listing (lss) file
-    load_segment_from_listing_file(&mut segments);
+    // // listing (lss) file
+    // load_segment_from_listing_file(&mut segments);
 
     //
     // Phase - Program Execution
@@ -289,17 +289,18 @@ fn parse(segments: &mut Vec<Segment>, input_stream: InputStream<&str>)
     // visitor.record.clear();
 
     // new visitor
-    let mut visitor = NewAssemblerVisitor {
-        records: Vec::new(),
-        record: AsmRecord::default(),
+    // let mut visitor: NewAssemblerVisitor = NewAssemblerVisitor {
+    //     records: Vec::new(),
+    //     record: AsmRecord::default(),
 
-        ident: 0u16,
-        debug_output: true,
+    //     ident: 0u16,
+    //     debug_output: true,
 
-        return_val: Vec::new(),
+    //     return_val: Vec::new(),
 
-        label: String::default(),
-    };
+    //     label: String::default(),
+    // };
+    let mut visitor: NewAssemblerVisitor = NewAssemblerVisitor::default();
     visitor.record.clear();
 
     let visitor_result = visitor.visit(&*root);
@@ -448,11 +449,12 @@ fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>)
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/brsh.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/brge.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/brlt.asm");
-    asm_file_path.push_str("test_resources/sample_files/asm/call.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/call.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/cbi.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/dec.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/inc.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/ld.asm");
+    asm_file_path.push_str("test_resources/sample_files/asm/ld_z.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/ldi.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/lsr.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/lsl.asm");

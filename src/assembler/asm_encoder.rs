@@ -264,6 +264,10 @@ impl AsmEncoder {
                 Self::encode_ld_ldd_y_2(&self, segment, asm_record.reg_1);
             }
 
+            /*  72 */
+            InstructionType::LD_LDD_Z_1 => {
+                Self::encode_ld_ldd_z_1(&self, segment, asm_record.reg_1);
+            }
 
 
             /*  73 */
@@ -850,6 +854,28 @@ impl AsmEncoder {
         segment.size += 1u32;
 
         log::trace!("ENC ld_ldd_y_2: {:#02x}", (result >> 8u16) as u8);
+        segment.data.push((result >> 8u16) as u8);
+        segment.size += 1u32;
+
+        log::trace!("result: {:#026b}", result);
+    }
+
+    /// 72. LD (LDD) – Load Indirect From Data Space to Register using Index Z
+    fn encode_ld_ldd_z_1(&self, segment: &mut Segment, register_d: u16)
+    {
+        if register_d > 31 {
+            panic!("Invalid register for encode_ld_ldd_z_1! Only registers [r0, r31] are allowed")
+        }
+
+        let result: u16 = 0x8000u16 | (register_d << 4u16);
+
+        log::trace!("result: {:#32b}", result);
+
+        log::trace!("ENC ld_ldd_z_1: {:#02x}", (result >> 0u16) as u8);
+        segment.data.push((result >> 0u16) as u8);
+        segment.size += 1u32;
+
+        log::trace!("ENC ld_ldd_z_1: {:#02x}", (result >> 8u16) as u8);
         segment.data.push((result >> 8u16) as u8);
         segment.size += 1u32;
 

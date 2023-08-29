@@ -24,9 +24,6 @@ use crate::parser::assemblervisitor::assemblerVisitorCompat;
 use crate::HASHMAP;
 use crate::HIGH;
 use antlr_rust::tree::ParseTree;
-use antlr_rust::tree::Tree;
-
-use regex::Regex;
 
 pub struct NewAssemblerVisitor {
     // result
@@ -42,6 +39,22 @@ pub struct NewAssemblerVisitor {
 
     // label
     pub label: String,
+}
+
+impl Default for NewAssemblerVisitor {
+    fn default() -> Self {
+        Self {
+            records: Vec::new(),
+            record: AsmRecord::default(),
+
+            ident: 0u16,
+            debug_output: true,
+
+            return_val: Vec::new(),
+
+            label: String::default(),
+        }
+    }
 }
 
 impl<'i> NewAssemblerVisitor {
@@ -138,11 +151,22 @@ impl<'i> NewAssemblerVisitor {
     }
 
     // cr: ["ld", "r0", "X"]
-    fn process_ld(&mut self, ctx: &InstructionContext<'i>,
+    // cr: ["ld", "r25", "Z"]
+    fn process_ld(&mut self, _ctx: &InstructionContext<'i>,
         visit_children_result: &<NewAssemblerVisitor as ParseTreeVisitorCompat>::Return,
         asm_record: &mut AsmRecord)
     {
         let mut idx: usize = 1usize;
+
+        let param_1: &String = &visit_children_result[idx];
+        let param_1_as_number: u16;
+        if is_register_name(param_1) {
+            param_1_as_number = register_name_to_u16(param_1);
+            asm_record.reg_1 = param_1_as_number;
+        } else {
+            param_1_as_number = number_literal_to_u16(&param_1);
+            asm_record.data = param_1_as_number;
+        }
 
         let val_1: &String = &visit_children_result[2];
         let mut val_2: String = String::default();
@@ -635,6 +659,70 @@ impl<'i> assemblerVisitorCompat<'i> for NewAssemblerVisitor {
         }
 
         visit_children_result
+    }
+
+}
+
+
+
+#[cfg(test)]
+mod tests {
+
+    use antlr_rust::rule_context::BaseRuleContext;
+    use antlr_rust::rule_context::CustomRuleContext;
+    use antlr_rust::rule_context::EmptyCustomRuleContext;
+    use antlr_rust::rule_context::EmptyContextType;
+    use antlr_rust::rule_context::RuleContext;
+    use std::marker::PhantomData;
+
+    use crate::parser::assemblerparser::InstructionContextExt;
+
+    use super::*;
+
+    #[test]
+    fn process_ld_test() {
+
+        let mut new_assembler_visitor: NewAssemblerVisitor = NewAssemblerVisitor::default();
+
+        // let ctx: BaseParserRuleContext<'i, parser::assemblerparser::InstructionContextExt<'i>> = 
+        //     BaseParserRuleContext<'i, parser::assemblerparser::InstructionContextExt<'i>> {
+                
+        //     };
+
+        let parent_ctx = None; // Option<Rc<<Ctx::Ctx as ParserNodeType<'input>>::Type>>::empty();
+        let invoking_state: isize = 0isize;
+        // let ext: EmptyContextType<'_, _> = EmptyContextType {
+
+        // };
+        //let ext: Rc<InstructionContextExt<'_>> = InstructionContextExt::new(_parentctx.clone(), recog.base.get_state());
+
+        let invoking_state: isize = 0isize;
+        // let ext: BaseRuleContext<'_, _> = BaseRuleContext::new_parser_ctx(
+        //     parent_ctx,
+        //     invoking_state,
+        //     parent_ctx,
+        // );
+
+        let instr_ctx: InstructionContextExt<'_> = InstructionContextExt{
+            ph:PhantomData
+        };
+
+        // let ext: BaseParserRuleContext<'_, InstructionContextExt<'_>> = BaseParserRuleContext::new_parser_ctx(parent_ctx, invoking_state,InstructionContextExt{
+        //     ph:PhantomData
+        // });
+
+        let ctx: InstructionContext = InstructionContext::new_parser_ctx(parent_ctx, invoking_state, instr_ctx);
+        let mut asm_record: AsmRecord = AsmRecord::default();
+        //let visit_children_result = vec!["a".to_string(), "b".into(), "c".into()];
+        let visit_children_result = vec!["ld".to_string(), "r25".to_string(), "Z".to_string()];
+
+        new_assembler_visitor.process_ld(&ctx, &visit_children_result, &mut asm_record);
+
+        //assert!(!is_code_offset_c_listing(&"1".to_string()));
+
+        assert_eq!(InstructionType::LD_LDD_Z_1, asm_record.instruction_type);
+        assert_eq!(25, asm_record.reg_1);
+
     }
 
 }
