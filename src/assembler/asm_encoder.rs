@@ -201,6 +201,10 @@ impl AsmEncoder {
             InstructionType::ADD => {
                 Self::encode_add(&self, segment, asm_record.reg_1, asm_record.reg_2);
             }
+            /*   8 */
+            InstructionType::AND => {
+                Self::encode_and(&self, segment, asm_record.reg_1, asm_record.reg_2);
+            }
             /*   9 */
             InstructionType::ANDI => {
                 Self::encode_andi(&self, segment, asm_record.reg_1, asm_record.reg_2);
@@ -211,7 +215,7 @@ impl AsmEncoder {
             }
             /*  18 */
             InstructionType::BREQ => {
-                Self::encode_breq(&self, segment, &asm_record.idx, &asm_record.target_label);
+                Self::encode_breq(&self, segment, &asm_record.idx, &asm_record.target_label, asm_record.target_address);
             }
             /*  27 */
             InstructionType::BRNE => {
@@ -224,6 +228,10 @@ impl AsmEncoder {
             /*  37 */
             InstructionType::CBI => {
                 Self::encode_cbi(&self, segment, asm_record.reg_1, asm_record.reg_2);
+            }
+            /*  41 */
+            InstructionType::CLI => {
+                Self::encode_cli(&self, segment);
             }
             /*  43 */
             InstructionType::CLR => {
@@ -328,7 +336,7 @@ impl AsmEncoder {
             }
             /*  94 */
             InstructionType::RJMP => {
-                Self::encode_rjmp(&self, segment, &asm_record.idx, &asm_record.target_label);
+                Self::encode_rjmp(&self, segment, &asm_record.idx, &asm_record.target_label, asm_record.target_address);
             }
             /*  99 */
             InstructionType::SBI => {
@@ -442,6 +450,29 @@ impl AsmEncoder {
         segment.size += 1u32;
     }
 
+    /// 8. AND – Logical AND
+    /// (Rd ← Rd • Rr)
+    /// 0010 00rd dddd rrrr
+    fn encode_and(&self, segment: &mut Segment, register_d: u16, register_r: u16) {
+
+        // let register_d_offset: u16 = register_d;
+        // let register_r_offset: u16 = register_r;
+
+        let r_mask: u16 = ((register_r >> 4u16) << 9u16) | (register_r & 0x0Fu16);
+
+        let result: u16 = 0x2000u16 | (r_mask | register_d << 4u16);
+
+        log::trace!("and d{} r{}", register_d, register_r);
+
+        log::trace!("ENC AND: {:#02x}", (result >> 0u16) as u8);
+        segment.data.push((result >> 0u16) as u8);
+        segment.size += 1u32;
+
+        log::trace!("ENC AND: {:#02x}", (result >> 8u16) as u8);
+        segment.data.push((result >> 8u16) as u8);
+        segment.size += 1u32;
+    }
+
     /// 9. ANDI – Logical AND with Immediate
     /// Performs the logical AND between the contents of register Rd and a constant, and places the result in the
     /// destination register Rd. (Rd ← Rd • K)
@@ -488,25 +519,63 @@ impl AsmEncoder {
     }
 
     /// 18. BREQ – Branch if Equal
-    /// 1111 01kk kkkk k001
-    fn encode_breq(&self, segment: &mut Segment, idx: &usize, label: &String) {
+    /// 1111 00kk kkkk k001
+    /// 1111 00kk kkkk ksss // BRBS (more general instruction that entails BREQ)
+    fn encode_breq(&self, segment: &mut Segment, idx: &usize, label: &String, address: i16) {
 
-        //let offset_k: u16 = self.labels[label] as u16;
+        // asdf
+        // let offset_k: i32;
+        // if !label.is_empty()
+        // {
+        //     let target_address: i32 = self.labels[label] as i32;
 
-        // why do I need this? is this correct?
-        //offset_k = offset_k * 2;
+        //     // convert from bytes to words
+        //     offset_k = target_address / 2i32;
+        // }
+        // else
+        // {
+        //     // the relative notation is given in bytes not words
+        //     // so do not divide by 2 to convert from byte to wor
+        //     offset_k = address as i32;
+        // }
 
-        let label_address: i32 = self.labels[label] as i32;
-        let mut offset_k: i32 = label_address - (*idx as i32);
+        // // only seven bits of offset
+        // let k: u32 = offset_k as u32 & 0x7f;
 
-        // do I need to use some kind of little endian encoding?
-        let result: u16 = 0xF001u16 | ((offset_k as u16) << 3u16);
+        let target_address: i16;
+        if !label.is_empty()
+        {
+            target_address = self.labels[label] as i16;
+        }
+        else
+        {
+            target_address = address as i16;
+        }
 
-        log::trace!("ENC BREQ: {:#02x}", (result >> 0u16) as u8);
+        // convert from bytes to words
+        let offset_k: i16 = target_address / 2i16;
+        
+        log::trace!("offset_k (in words): {:#06x}", offset_k);
+        log::trace!("offset_k (in words): {:#06x}", offset_k as u32);
+
+        //offset_k &= 0b0000 0000 0011 1111 1111 1111 1111 1111i32;
+
+        // ff cf == 1111 1111 1100 1111
+        // cf ff  == 1100 1111 1111 1111 
+
+        // 1100 kkkk kkkk kkkk
+
+        let result: u16 = 0xF001u16 | (((offset_k << 3) as u16) & 0b1111111000);
+        log::info!("result: {:#34b}", result);
+        log::info!("result: {:#06x}", result);
+
+        //let result: u16 = 0xF001u16 | ((k as u16) << 3u16);
+
+        log::info!("ENC BREQ: {:#02x}", (result >> 0u16) as u8);
         segment.data.push((result >> 0u16) as u8);
         segment.size += 1u32;
 
-        log::trace!("ENC BREQ: {:#02x}", (result >> 8u16) as u8);
+        log::info!("ENC BREQ: {:#02x}", (result >> 8u16) as u8);
         segment.data.push((result >> 8u16) as u8);
         segment.size += 1u32;
     }
@@ -615,6 +684,21 @@ impl AsmEncoder {
         segment.size += 1u32;
     }
 
+    /// 41. CLI – Clear Global Interrupt Flag
+    /// Clears the Global Interrupt Flag (I) in SREG (Status Register).
+    fn encode_cli(&self, segment: &mut Segment) {
+
+        let result: u16 = 0x94F8u16;
+
+        log::trace!("ENC CLI: {:#02x}", (result >> 0u16) as u8);
+        segment.data.push((result >> 0u16) as u8);
+        segment.size += 1u32;
+
+        log::trace!("ENC CLI: {:#02x}", (result >> 8u16) as u8);
+        segment.data.push((result >> 8u16) as u8);
+        segment.size += 1u32;
+    }
+
     /// 43. CLR – Clear
     /// Clears a register. This instruction performs an Exclusive OR between a register and itself. This will clear
     /// all bits in the register
@@ -649,7 +733,8 @@ impl AsmEncoder {
     }
 
     /// 58. EOR – Exclusive OR
-    /// 0010 01rd dddd rrrr
+    /// 0010 01rd dddd rrrr -- EOR - Exclusive OR
+    /// 0010 01dd dddd dddd -- CLR – Clear Register
     fn encode_eor(&self, segment: &mut Segment, register_d: u16, register_r: u16) {
 
         if register_d > 31 {
@@ -779,19 +864,19 @@ impl AsmEncoder {
 
         log::trace!("result: {:#32b}", result);
 
-        log::trace!("ENC JMP: {:#02x}", (result >> 16u16) as u8);
+        log::info!("ENC JMP: {:#02x}", (result >> 16u16) as u8);
         segment.data.push((result >> 16u16) as u8);
         segment.size += 1u32;
 
-        log::trace!("ENC JMP: {:#02x}", (result >> 24u16) as u8);
+        log::info!("ENC JMP: {:#02x}", (result >> 24u16) as u8);
         segment.data.push((result >> 24u16) as u8);
         segment.size += 1u32;
 
-        log::trace!("ENC JMP: {:#02x}", (result >> 0u16) as u8);
+        log::info!("ENC JMP: {:#02x}", (result >> 0u16) as u8);
         segment.data.push((result >> 0u16) as u8);
         segment.size += 1u32;
 
-        log::trace!("ENC JMP: {:#02x}", (result >> 8u16) as u8);
+        log::info!("ENC JMP: {:#02x}", (result >> 8u16) as u8);
         segment.data.push((result >> 8u16) as u8);
         segment.size += 1u32;
 
@@ -1176,32 +1261,59 @@ impl AsmEncoder {
     /// 94. RJMP – Relative Jump
     /// 1100 kkkk kkkk kkkk
     #[allow(dead_code)]
-    fn encode_rjmp(&self, segment: &mut Segment, idx: &usize, label: &String) {
+    fn encode_rjmp(&self, segment: &mut Segment, idx: &usize, label: &String, address: i16) {
 
-        let label_address: i16 = self.labels[label] as i16;
-        log::trace!("label_address: {:#06x}", label_address);
+        // let label_address: i16 = self.labels[label] as i16;
+        // log::trace!("label_address: {:#06x}", label_address);
 
-        let mut offset_k: i16 = label_address - (*idx as i16);
-        log::trace!("offset_k: {:#06x} {}", offset_k, offset_k);
+        // let mut offset_k: i16 = label_address - (*idx as i16);
+        // log::trace!("offset_k: {:#06x} {}", offset_k, offset_k);
 
-        offset_k &= 0b0000111111111111i16;
-        log::trace!("offset_k: {:#06x} {}", offset_k, offset_k);
+        // offset_k &= 0b0000111111111111i16;
+        // log::trace!("offset_k: {:#06x} {}", offset_k, offset_k);
+
+        // // convert from bytes to words
+        // offset_k /= 2i16;
+
+        let target_address: i16;
+        if !label.is_empty()
+        {
+            target_address = self.labels[label] as i16;
+        }
+        else
+        {
+            target_address = address as i16;
+        }
 
         // convert from bytes to words
-        offset_k /= 2i16;
+        //let offset_k: i16 = target_address / 2i16;
 
-        let result: i16 = (0b1100 << 12) | offset_k;
-        log::trace!("result: {:#32b}", result);
+        let offset_k: i16 = target_address;
+        
+        log::trace!("offset_k (in words): {:#06x}", offset_k);
+        log::trace!("offset_k (in words): {:#06x}", offset_k as u32);
 
-        log::trace!("ENC RJMP: {:#02x}", (result >> 0u16) as u8);
+        //offset_k &= 0b0000 0000 0011 1111 1111 1111 1111 1111i32;
+
+        // ff cf == 1111 1111 1100 1111
+        // cf ff  == 1100 1111 1111 1111 
+
+        // 1100 kkkk kkkk kkkk
+
+        let result: u16 = 0xC000u16 | ((offset_k as u16) & 0b111111111111);
+        //let result: u16 = 0xC000u16;
+        log::info!("result: {:#34b}", result);
+        //log::info!("result: {:#026b}", result);
+
+        log::info!("ENC RJMP: {:#02x}", (result >> 0u16) as u8);
         segment.data.push((result >> 0u16) as u8);
         segment.size += 1u32;
 
-        log::trace!("ENC RJMP: {:#02x}", (result >> 8u16) as u8);
+        log::info!("ENC RJMP: {:#02x}", (result >> 8u16) as u8);
         segment.data.push((result >> 8u16) as u8);
         segment.size += 1u32;
 
-        log::trace!("result: {:#026b}", result);
+        
     }
 
     /// 99. SBI – Set Bit in I/O Register

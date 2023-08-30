@@ -24,8 +24,6 @@ use std::fs;
 use std::rc::Rc;
 
 use crate::assembler::asm_encoder::AsmEncoder;
-use crate::assembler::asm_record::AsmRecord;
-use crate::assembler::asm_visitor::DefaultAssemblerVisitor;
 use crate::assembler::asm_visitor_new::NewAssemblerVisitor;
 use crate::common::listing_parser::is_code_offset_c_listing;
 use crate::cpu::cpu::CPU;
@@ -73,7 +71,7 @@ lazy_static! {
 // cargo fmt
 fn main() -> io::Result<()> {
 
-    log::info!("whatavr starting ...");
+    log::info!("whatavr starting ...\n");
 
     //
     // logging setup
@@ -97,24 +95,22 @@ fn main() -> io::Result<()> {
     // Phase - Program Execution
     //
 
-    log::info!("*************************************************");
-    log::info!("Phase - Program Execution");
-    log::info!("*************************************************");
+    log::info!("*************************************************\n");
+    log::info!("Phase - Program Execution\n");
+    log::info!("*************************************************\n");
 
     let mut cpu: CPU = CPU::default();
 
     // main loop that executes the instructions
     let mut done: bool = false;
-    //let mut done: bool = true;
     while !done {
 
         log::trace!("\n");
 
         // check for end of code
-        //let temp_pc: i32 = cpu.pc - 0x02;
         let temp_pc: i32 = cpu.pc;
         if segments[0].size <= temp_pc as u32 {
-            log::info!("End of Code reached! Application Finished!");
+            log::info!("End of Code reached! Application Finished!\n");
             done = true;
 
             continue;
@@ -124,7 +120,7 @@ fn main() -> io::Result<()> {
         cpu.execute_instruction(&segments[0]);
 
         // DEBUG - output the CPU state
-        log::trace!("{}", cpu);
+        log::trace!("{}\n", cpu);
     }
 
     log_end();
@@ -142,7 +138,7 @@ fn load_segment_from_listing_file(segments: &mut Vec<Segment>) -> io::Result<()>
     println!("absolute path: {:?}", fs::canonicalize(&srcdir));
 
     let data = fs::read_to_string(&lss_file_path).expect("Unable to read file");
-    log::trace!("\n{}", data);
+    log::trace!("\n{}\n", data);
 
     let input_stream: InputStream<&str> = InputStream::new(data.as_str());
 
@@ -168,33 +164,32 @@ fn load_segment_from_listing_file(segments: &mut Vec<Segment>) -> io::Result<()>
         let colon_split = line.split(":");
         let colon_collection: Vec<&str> = colon_split.collect::<Vec<_>>();
 
-        //log::info!("{:?}", parts);
+        //log::info!("{:?}\n", parts);
 
         // for part in parts {
-        //     log::info!("{:?}", part);
+        //     log::info!("{:?}\n", part);
         // }
 
-        log::trace!("{:?}", &colon_collection[1]);
+        log::trace!("{:?}\n", &colon_collection[1]);
 
         let tab_split = colon_collection[1].split("\t");
 
-        log::trace!("{:?}", &tab_split);
+        log::trace!("{:?}\n", &tab_split);
 
         let tab_collection: Vec<&str> = tab_split.collect::<Vec<_>>();
 
-        log::info!("{:?}", &tab_collection);
+        log::info!("{:?}\n", &tab_collection);
 
         let start = 2;
         let end = tab_collection.len();
-        //let source_code_row = tab_collection.slice(start, end).join(" ");
         let source_code_row = tab_collection[start .. end].join(" ");
 
-        log::info!("scr: {}", source_code_row);
+        log::info!("scr: {}\n", source_code_row);
 
         string_buffer.push_str(&source_code_row);
         string_buffer.push_str("\n");
 
-        log::info!("done");
+        log::info!("done\n");
 
     }
 
@@ -213,9 +208,9 @@ fn parse(segments: &mut Vec<Segment>, input_stream: InputStream<&str>)
     // Phase - AST Creation (Grammar Lexing and Parsing)
     //
 
-    log::info!("*************************************************");
-    log::info!("Phase - AST Creation (Grammar Lexing and Parsing)");
-    log::info!("*************************************************");
+    log::info!("*************************************************\n");
+    log::info!("Phase - AST Creation (Grammar Lexing and Parsing)\n");
+    log::info!("*************************************************\n");
 
     let token_factory: antlr_rust::token_factory::ArenaFactory<'_, antlr_rust::token_factory::CommonTokenFactory, antlr_rust::token::GenericToken<_>> = ArenaCommonFactory::default();
     let mut _lexer: parser::assemblerlexer::assemblerLexer<'_, InputStream<&str>> = parser::assemblerlexer::assemblerLexer::new_with_token_factory(
@@ -262,9 +257,9 @@ fn parse(segments: &mut Vec<Segment>, input_stream: InputStream<&str>)
     // Phase - AST Visiting
     //
 
-    log::info!("*************************************************");
-    log::info!("Phase - AST Visiting");
-    log::info!("*************************************************");
+    log::info!("*************************************************\n");
+    log::info!("Phase - AST Visiting\n");
+    log::info!("*************************************************\n");
 
     // // the visitor traverses the AST (Abstract Syntax Tree) and creates
     // // AsmRecords. It will insert these ARMRecords into the records parameter
@@ -304,15 +299,15 @@ fn parse(segments: &mut Vec<Segment>, input_stream: InputStream<&str>)
     visitor.record.clear();
 
     let visitor_result = visitor.visit(&*root);
-    log::trace!("{:?}", visitor_result);
+    log::trace!("{:?}\n", visitor_result);
 
     //
     // Phase - Encoding
     //
 
-    log::info!("*************************************************");
-    log::info!("Phase - Encoding");
-    log::info!("*************************************************");
+    log::info!("*************************************************\n");
+    log::info!("Phase - Encoding\n");
+    log::info!("*************************************************\n");
 
     // the ihex segment which is filled with source code bytes by the assembler
     let mut assembler_segment: Segment = Segment::new();
@@ -336,9 +331,9 @@ fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>)
     // Phase - load token into a hashmap
     //
 
-    log::info!("**********************************************");
-    log::info!("Phase - load token into a hashmap");
-    log::info!("**********************************************");
+    log::info!("**********************************************\n");
+    log::info!("Phase - load token into a hashmap\n");
+    log::info!("**********************************************\n");
 
     let mut token_storage: HashMap<isize, String> = HashMap::new();
     let mut token_value_storage: HashMap<String, isize> = HashMap::new();
@@ -358,7 +353,7 @@ fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>)
         let line = line.unwrap();
 
         // DEBUG show the line and its number.
-        log::trace!("{}. {}", index + 1, line);
+        log::trace!("{}. {}\n", index + 1, line);
 
         // https://stackoverflow.com/questions/26643688/how-do-i-split-a-string-in-rust
         let collection: Vec<&str> = line.split('=').collect::<Vec<_>>();
@@ -385,9 +380,9 @@ fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>)
     // Phase - read the .asm file
     //
 
-    log::info!("**********************************************");
-    log::info!("Phase - Phase - read the .asm file");
-    log::info!("**********************************************");
+    log::info!("**********************************************\n");
+    log::info!("Phase - Phase - read the .asm file\n");
+    log::info!("**********************************************\n");
 
     //
     // read the .asm file which will be the input to the assembler
@@ -402,7 +397,7 @@ fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>)
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/asm_2.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/asm_3.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/asm_4.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/call_and_return.asm"); // regression test
+    asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/call_and_return.asm"); // regression test
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/call_test.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/call_test_2.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/def_assembler_directive.asm");
@@ -454,7 +449,7 @@ fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>)
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/dec.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/inc.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/ld.asm");
-    asm_file_path.push_str("test_resources/sample_files/asm/ld_z.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/ld_z.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/ldi.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/lsr.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/lsl.asm");
@@ -463,6 +458,7 @@ fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>)
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/push.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/pop.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/ret.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/rjmp.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/rol.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/ror.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/sbi.asm");
@@ -500,7 +496,7 @@ fn load_segment_from_hex_file(segments: &mut Vec<Segment>) -> io::Result<()>
     match parse_hex_file(segments, &hex_file_path) {
         Ok(_name) => log::info!("File read"),
         Err(err) => {
-            log::error!("An error occured while retrieving the peername: {:?}", err);
+            log::error!("An error occured while retrieving the peername: {:?}\n", err);
             return Err(std::io::Error::new(
                 std::io::ErrorKind::Other,
                 "Error at load hex file!",
@@ -517,7 +513,8 @@ fn init_logging() {
         .filter_level(LevelFilter::Debug)
         // https://stackoverflow.com/questions/61810740/log-source-file-and-line-numbers
         .format(|buf, record| {
-            writeln!(
+            //writeln!(
+            write!(
                 buf,
                 "{}:{} {} [{}] - {}",
                 record.file().unwrap_or("unknown"),
@@ -565,7 +562,7 @@ fn dissassemble() -> io::Result<()> {
 
         // process the first segment only
         let ref segment_0: &Segment = &segments[0];
-        log::info!("Segment: {}", segment_0);
+        log::info!("Segment: {}\n", segment_0);
 
         let mut index: usize = 0;
 
@@ -590,18 +587,18 @@ fn dissassemble() -> io::Result<()> {
                 let word: u16 = rdr.read_u16::<LittleEndian>().unwrap().into();
                 index += 2;
 
-                log::trace!("word: {:#06x} {:b}", word, word);
+                log::trace!("word: {:#06x} {:b}\n", word, word);
 
                 let mut value_storage: HashMap<char, u16> = HashMap::new();
                 let instruction: &InstructionDefinition =
                     decode_instruction(word, INSTRUCTIONS, &UNKNOWN, &mut value_storage);
 
-                log::info!("instruction {:?}", instruction.instruction_type);
+                log::info!("instruction {:?}\n", instruction.instruction_type);
                 if instruction.instruction_type == InstructionType::EOR
                     || instruction.instruction_type == InstructionType::CLR
                 {
                     log::info!(
-                        "EOR and CLR similar. CLI is implemented by EOR the register with itself!"
+                        "EOR and CLR similar. CLI is implemented by EOR the register with itself!\n"
                     );
                 }
 

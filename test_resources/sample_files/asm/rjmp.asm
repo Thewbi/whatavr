@@ -1,2 +1,2 @@
 rjmp .-2
-rjmp .+10
+;rjmp .+10

@@ -2383,7 +2383,7 @@ impl<'input> CustomRuleContext<'input> for Asm_intrinsic_usageContextExt<'input>
 antlr_rust::tid!{Asm_intrinsic_usageContextExt<'a>}
 
 impl<'input> Asm_intrinsic_usageContextExt<'input>{
-	fn new(parent: Option<Rc<dyn assemblerParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Asm_intrinsic_usageContextAll<'input>> {
+	pub fn new(parent: Option<Rc<dyn assemblerParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Asm_intrinsic_usageContextAll<'input>> {
 		Rc::new(
 			BaseParserRuleContext::new_parser_ctx(parent, invoking_state,Asm_intrinsic_usageContextExt{
 				ph:PhantomData

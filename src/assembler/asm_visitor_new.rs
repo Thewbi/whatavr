@@ -10,7 +10,9 @@ use std::rc::Rc;
 
 use crate::assembler::asm_record::AsmRecord;
 use crate::common::common_constants::RAMEND;
+use crate::common::number_literal_parser::is_number_literal_i16;
 use crate::common::number_literal_parser::is_number_literal_u16;
+use crate::common::number_literal_parser::number_literal_to_i16;
 use crate::common::number_literal_parser::number_literal_to_u16;
 use crate::common::register_parser::is_register_name;
 use crate::common::register_parser::register_name_to_u16;
@@ -223,7 +225,7 @@ impl<'i> NewAssemblerVisitor {
         }
     }
 
-    pub fn parse_assembler_directive(&mut self, assembler_directive: &Vec<String>) {
+    fn parse_assembler_directive(&mut self, assembler_directive: &Vec<String>) {
         log::trace!("parse_assembler_directive");
 
         let asm_directive = assembler_directive[1].to_lowercase();
@@ -269,7 +271,8 @@ impl<'i> NewAssemblerVisitor {
             // } else {
             //     asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/");
             // }
-            asm_file_path.push_str("/Users/bischowg/dev/rust/whatavr/test_resources/sample_files/asm/");
+            //asm_file_path.push_str("/Users/bischowg/dev/rust/whatavr/test_resources/sample_files/asm/");
+            asm_file_path.push_str("test_resources/sample_files/asm/");
             asm_file_path.push_str(unwrapped_name);
 
             log::info!("Including \"{}\"", &asm_file_path.clone());
@@ -292,7 +295,7 @@ impl<'i> NewAssemblerVisitor {
             let root: Rc<Asm_fileContextAll> = result.unwrap();
 
             // new visitor
-            let mut visitor = NewAssemblerVisitor {
+            let mut visitor: NewAssemblerVisitor = NewAssemblerVisitor {
                 records: Vec::new(),
                 record: AsmRecord::default(),
 
@@ -325,7 +328,23 @@ impl<'i> NewAssemblerVisitor {
         }
     }
 
-    
+    fn process_asm_intrinsic_usage(&mut self, visit_children_result: Vec<String>) -> Vec<String>
+    {
+        println!("cr: {:?}", visit_children_result);
+
+        let joined = visit_children_result.join("");
+
+        if "LOW(RAMEND)" == joined {
+            let low_ramend: u16 = crate::LOW!(RAMEND);
+            return vec![low_ramend.to_string().clone()];
+        }
+        if "HIGH(RAMEND)" == joined {
+            let high_ramend: u16 = HIGH!(RAMEND);
+            return vec![high_ramend.to_string().clone()];
+        }
+
+        visit_children_result
+    }
 }
 
 impl<'i> ParseTreeVisitorCompat<'i> for NewAssemblerVisitor {
@@ -420,10 +439,15 @@ impl<'i> assemblerVisitorCompat<'i> for NewAssemblerVisitor {
         {
             self.process_ld(ctx, &visit_children_result, &mut asm_record);
         }
-        else if (mnemonic.to_uppercase().eq("CALL") || mnemonic.to_uppercase().eq("JMP")) && is_number_literal_u16(&visit_children_result[1])
+        else if (
+                mnemonic.to_uppercase().eq("BREQ") ||
+                mnemonic.to_uppercase().eq("CALL") || 
+                mnemonic.to_uppercase().eq("RJMP") ||
+                mnemonic.to_uppercase().eq("JMP") 
+            ) && is_number_literal_i16(&visit_children_result[1])
         {
             println!("{:?}", visit_children_result);
-            asm_record.target_address = number_literal_to_u16(&visit_children_result[1]) as i16;
+            asm_record.target_address = number_literal_to_i16(&visit_children_result[1]) as i16;
             asm_record.instruction_type = InstructionType::from_string(mnemonic.as_str());
         }
         else
@@ -574,23 +598,7 @@ impl<'i> assemblerVisitorCompat<'i> for NewAssemblerVisitor {
         let visit_children_result = self.visit_children(ctx);
         self.ascend_ident();
 
-        println!("cr: {:?}", visit_children_result);
-
-        let joined = visit_children_result.join("");
-
-        // self.intrinsic_usage = self.last_terminal.clone();
-        if "LOW(RAMEND)" == joined {
-            let low_ramend: u16 = crate::LOW!(RAMEND);
-            //self.last_terminal = low_ramend.to_string();
-            return vec![low_ramend.to_string().clone()];
-        }
-        if "HIGH(RAMEND)" == joined {
-            let high_ramend: u16 = HIGH!(RAMEND);
-            //self.last_terminal = high_ramend.to_string();
-            return vec![high_ramend.to_string().clone()];
-        }
-
-        visit_children_result
+        self.process_asm_intrinsic_usage(visit_children_result)
     }
 
     fn visit_expression(&mut self, ctx: &parser::assemblerparser::ExpressionContext<'i>) -> Self::Return {
@@ -647,7 +655,7 @@ impl<'i> assemblerVisitorCompat<'i> for NewAssemblerVisitor {
             {
                 let sign: &str = visit_children_result[1].as_str();
                 let mut offset: i16 = number_literal_to_u16(&visit_children_result[2]) as i16;
-                if sign == "-" 
+                if sign == "-"
                 {
                     offset *= -1i16;
                 }
@@ -668,61 +676,70 @@ impl<'i> assemblerVisitorCompat<'i> for NewAssemblerVisitor {
 #[cfg(test)]
 mod tests {
 
-    use antlr_rust::rule_context::BaseRuleContext;
-    use antlr_rust::rule_context::CustomRuleContext;
-    use antlr_rust::rule_context::EmptyCustomRuleContext;
-    use antlr_rust::rule_context::EmptyContextType;
-    use antlr_rust::rule_context::RuleContext;
     use std::marker::PhantomData;
 
-    use crate::parser::assemblerparser::InstructionContextExt;
+    use crate::parser::assemblerparser::{InstructionContextExt, Asm_intrinsic_usageContext, Asm_intrinsic_usageContextExt};
 
     use super::*;
 
     #[test]
-    fn process_ld_test() {
+    fn process_ld_ld_ldd_z_1_test() {
+
+        // Arrange
 
         let mut new_assembler_visitor: NewAssemblerVisitor = NewAssemblerVisitor::default();
-
-        // let ctx: BaseParserRuleContext<'i, parser::assemblerparser::InstructionContextExt<'i>> = 
-        //     BaseParserRuleContext<'i, parser::assemblerparser::InstructionContextExt<'i>> {
-                
-        //     };
-
-        let parent_ctx = None; // Option<Rc<<Ctx::Ctx as ParserNodeType<'input>>::Type>>::empty();
+        let parent_ctx = None;
         let invoking_state: isize = 0isize;
-        // let ext: EmptyContextType<'_, _> = EmptyContextType {
-
-        // };
-        //let ext: Rc<InstructionContextExt<'_>> = InstructionContextExt::new(_parentctx.clone(), recog.base.get_state());
-
-        let invoking_state: isize = 0isize;
-        // let ext: BaseRuleContext<'_, _> = BaseRuleContext::new_parser_ctx(
-        //     parent_ctx,
-        //     invoking_state,
-        //     parent_ctx,
-        // );
-
         let instr_ctx: InstructionContextExt<'_> = InstructionContextExt{
             ph:PhantomData
         };
-
-        // let ext: BaseParserRuleContext<'_, InstructionContextExt<'_>> = BaseParserRuleContext::new_parser_ctx(parent_ctx, invoking_state,InstructionContextExt{
-        //     ph:PhantomData
-        // });
-
         let ctx: InstructionContext = InstructionContext::new_parser_ctx(parent_ctx, invoking_state, instr_ctx);
         let mut asm_record: AsmRecord = AsmRecord::default();
-        //let visit_children_result = vec!["a".to_string(), "b".into(), "c".into()];
         let visit_children_result = vec!["ld".to_string(), "r25".to_string(), "Z".to_string()];
+
+        // Act
 
         new_assembler_visitor.process_ld(&ctx, &visit_children_result, &mut asm_record);
 
-        //assert!(!is_code_offset_c_listing(&"1".to_string()));
+        // Assert
 
         assert_eq!(InstructionType::LD_LDD_Z_1, asm_record.instruction_type);
         assert_eq!(25, asm_record.reg_1);
 
+    }
+
+    #[test]
+    fn visit_asm_intrinsic_usage_low_ramend_test() {
+
+        // Arrange
+
+        let mut new_assembler_visitor: NewAssemblerVisitor = NewAssemblerVisitor::default();
+        let visit_children_result = vec!["LOW".to_string(), "(".to_string(), "RAMEND".to_string(), ")".to_string()];
+
+        // Act
+
+        let result = new_assembler_visitor.process_asm_intrinsic_usage(visit_children_result);
+
+        // Assert
+
+        assert_eq!("255", result[0]);
+    }
+
+    #[test]
+    fn visit_asm_intrinsic_usage_high_ramend_test() {
+
+        // Arrange
+
+        let mut new_assembler_visitor: NewAssemblerVisitor = NewAssemblerVisitor::default();
+        let visit_children_result = vec!["HIGH".to_string(), "(".to_string(), "RAMEND".to_string(), ")".to_string()];
+
+        // Act
+
+        let result = new_assembler_visitor.process_asm_intrinsic_usage(visit_children_result);
+
+        // Assert
+
+        assert_eq!("8", result[0]);
     }
 
 }

@@ -675,13 +675,6 @@ impl InstructionType {
             InstructionType::TST => String::from("TST"), // – Test for Zero or Minus...............................................................................186
             InstructionType::WDR => String::from("WDR"), // – Watchdog Reset......................................................................................187
             InstructionType::XCH => String::from("XCH"),
-            // STD Y (B) = 119. 
-            // STD Y (C) = 119.
-            // STD Y (D) = 119.
-            // STD Z (A) = 120.
-            // STD Z (B) = 120.
-            // STD Z (C) = 120.
-            // STD Z (D) = 120.
             
             _ => String::from("UNKNOWN"),
         }
@@ -837,14 +830,6 @@ impl InstructionType {
             /*  126 */ InstructionType::TST => 2usize, //  – Test for Zero or Minus...............................................................................186
             /*  127 */ InstructionType::WDR => 2usize, //  – Watchdog Reset......................................................................................187
             /*  128 */ InstructionType::XCH => 2usize,
-
-            // // STD Y (B) = 119. 
-            // // STD Y (C) = 119.
-            // // STD Y (D) = 119.
-            // // STD Z (A) = 120.
-            // // STD Z (B) = 120.
-            // // STD Z (C) = 120.
-            // // STD Z (D) = 120.
             
             _ => 0,
         }
@@ -1017,14 +1002,6 @@ impl InstructionType {
             /*  127 */ InstructionType::WDR => 2usize, //  – Watchdog Reset......................................................................................187
             
             /*  128 */ InstructionType::XCH => 2usize,
-
-            // // STD Y (B) = 119. 
-            // // STD Y (C) = 119.
-            // // STD Y (D) = 119.
-            // // STD Z (A) = 120.
-            // // STD Z (B) = 120.
-            // // STD Z (C) = 120.
-            // // STD Z (D) = 120.
             
             _ => 0,
         }

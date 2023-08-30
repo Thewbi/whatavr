@@ -36,6 +36,8 @@ ldi r16, 3
 push r16
 pop r0
 
+end: jmp end
+
 addReg: add r17, r16
 add r17, r16
 add r17, r16

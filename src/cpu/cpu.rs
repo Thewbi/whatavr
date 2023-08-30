@@ -4,6 +4,7 @@ use crate::HASHMAP;
 use crate::HIGH_U16;
 use crate::LOW_U16;
 use crate::common::common_constants::RAMEND;
+use crate::common::number_literal_parser::number_literal_to_u16;
 use crate::ihex_mgmt::ihex_mgmt::Segment;
 use crate::instructions::instructions::INSTRUCTIONS;
 use crate::instructions::instructions::UNKNOWN;
@@ -316,14 +317,14 @@ impl CPU {
     // as opposed to I/O space which is terminology for the memory mapped special function registers
     fn store_to_data_space(&mut self, address: usize, value: u8) {
         //todo!("Store value {} to address {} in data space!", value, address);
-        log::info!("Store value {} {:#04X} to address {} {:#04X} in data space!", value, value, address, address);
-        log::trace!("");
+        log::trace!("\tStore value {} {:#04X} to address {} {:#04X} in data space!\n", value, value, address, address);
+        log::trace!("\n");
     }
 
     fn load_from_data_space(&mut self, address: usize, value: u8) {
         //todo!("Store value {} to address {} in data space!", value, address);
-        log::info!("Loaded value {} {:#04X} at address {} {:#04X} from data space!", value, value, address, address);
-        log::trace!("");
+        log::trace!("\tLoaded value {} {:#04X} at address {} {:#04X} from data space!\n", value, value, address, address);
+        log::trace!("\n");
     }
 
     fn store_to_i_o_space(&mut self, address: usize, value: u8) {
@@ -346,9 +347,9 @@ impl CPU {
         let word_lo: u16 = segment.data[temp_pc as usize] as u16;
         //log::info!("READ: {:#02x}", word_lo as u8);
 
-        let k_lo: u16 = ((word_hi << 8u8) + word_lo).into();
+        let result: u16 = ((word_hi << 8u8) + word_lo).into();
 
-        k_lo
+        result
 
     }
 
@@ -392,12 +393,18 @@ impl CPU {
     pub fn execute_instruction(&mut self, segment: &Segment) {
 
         // get the current instruction
-        //let temp_pc: i32 = self.pc - 0x02;
         let temp_pc: i32 = self.pc;
+
+        //log::info!("pc: {:#04x} | ", temp_pc);
+        //let mut os: String = "pc: ".to_string();
+        let mut os: String = format!("\tpc: {:#04x} | ", temp_pc);
+        //os.push_str(&temp_pc.to_string());
+        //os.push_str(&format!("pc: {} | ", temp_pc));
+        // os.push_str(&" | ".to_string());
 
         // check for end of code
         if segment.size <= temp_pc as u32 {
-            log::info!("End of Code reached! Application Finished!");
+            log::info!("End of Code reached! Application Finished!\n");
             return;
         }
 
@@ -407,7 +414,8 @@ impl CPU {
         let word: u16 = (word_hi << 8u8) + word_lo;
 
         // this will print the word that contains the encoded instruction that is executed next
-        //println!("hex: {:04x}", word);
+        log::trace!("hex: {:04x}\n", word);
+        log::trace!("bin: {:#018b}\n", word);
 
         // decode the current instruction
         let mut value_storage: HashMap<char, u16> = HashMap::new();
@@ -417,14 +425,14 @@ impl CPU {
         let mut cpu: &mut CPU = self;
 
         // DEBUG
-        log::trace!("Executing instruction: {:?}", instruction.instruction_type);
+        log::trace!("Executing instruction: {:?}\n", instruction.instruction_type);
 
         // execute the instruction
         match instruction.instruction_type {
 
             /*   5 */
             InstructionType::ADC => {
-                log::trace!("[ADC]");
+                log::trace!("[ADC]\n");
 
                 let d_value: usize = value_storage[&'d'] as usize;
                 let r_value: usize = value_storage[&'r'] as usize;
@@ -452,19 +460,16 @@ impl CPU {
                 }
 
                 // DEBUG
-                log::trace!(
-                    "[ADC] result value: {}",
-                    cpu.register_file[d_value]
-                );
+                log::trace!("[ADC] result value: {}\n", cpu.register_file[d_value]);
 
-                log::info!("adc r{}, d{} - carry: {}", r_value, d_value, cpu.c);
+                log::info!("adc r{}, d{} - carry: {}\n", r_value, d_value, cpu.c);
 
                 cpu.pc += 2i32;
             }
 
             /*   6 */
             InstructionType::ADD => {
-                log::trace!("[ADD]");
+                log::trace!("[ADD]\n");
 
                 let d_value: usize = value_storage[&'d'] as usize;
                 let r_value: usize = value_storage[&'r'] as usize;
@@ -489,24 +494,72 @@ impl CPU {
                 }
 
                 log::trace!(
-                    "[ADD] result value: {}",
+                    "[ADD] result value: {}\n",
                     cpu.register_file[d_value]
                 );
 
-                log::info!("add r{}, r{}", d_value, r_value);
+                //log::info!("add r{}, r{}\n", d_value, r_value);
+                os.push_str(&format!("add r{}, r{}", d_value, r_value));
+                log::info!("{}\n", os);
+
+                cpu.pc += 2i32;
+            }
+
+            /*   8 */
+            /// AND – Logical AND
+            /// 0010 00rd dddd rrrr
+            InstructionType::AND => {
+                log::trace!("[AND]\n");
+
+                let d_reg_idx: usize = value_storage[&'d'] as usize;
+                let r_reg_idx: usize = value_storage[&'r'] as usize;
+
+                //log::info!("and d{}, r{}\n", d_reg_idx, r_reg_idx);
+                os.push_str(&format!("and d{}, r{}", d_reg_idx, r_reg_idx));
+                log::info!("{}\n", os);
+
+                let d_reg_val = cpu.register_file[d_reg_idx];
+                let r_reg_val = cpu.register_file[r_reg_idx];
+
+                // // since rust panics when a result does not fit into a variable
+                // // and two u8 can make a u16, store temp result in a u16 variable
+                // let mut temp_result: u16 = cpu.register_file[d_value] as u16;
+                // temp_result &= cpu.register_file[r_value] as u16;
+
+                // // if there is an overflow ...
+                // if temp_result > 255u16 {
+
+                //     // set carry and half carry
+                //     cpu.set_c();
+                //     cpu.set_h();
+
+                //     // store only the lower byte into the register
+                //     cpu.register_file[d_value] = LOW_U16!(temp_result);
+
+                // } else {
+                //     cpu.register_file[d_value] += cpu.register_file[r_value];
+                // }
+
+                cpu.register_file[d_reg_idx] = d_reg_val & r_reg_val;
+
+                log::trace!("[AND] result value: {}\n", cpu.register_file[d_reg_idx]);
 
                 cpu.pc += 2i32;
             }
 
             /*  18 */
             InstructionType::ANDI => {
-                log::info!("[ANDI]");
+                log::trace!("[ANDI]\n");
 
                 let d_value: usize = value_storage[&'d'] as usize;
                 let k_value: u8 = value_storage[&'K'] as u8;
 
                 let register: usize = d_value + 16usize;
-                log::trace!("[ANDI] Using register: r{}", register);
+                log::trace!("[ANDI] Using register: r{}\n", register);
+
+                //log::info!("andi r{}, {}\n", register, k_value);
+                os.push_str(&format!("andi r{}, {}\n", register, k_value));
+                log::info!("{}\n", os);
 
                 let register_value: u8 = cpu.register_file[register];
 
@@ -527,7 +580,7 @@ impl CPU {
 
             /*  13 */
             InstructionType::BRBC => {
-                log::info!("[BRBC]");
+                log::trace!("[BRBC]\n");
 
                 //process_brbc(rdr, &word, index, value_storage);
 
@@ -538,6 +591,10 @@ impl CPU {
 
                 // twos-complement
                 let offset: i8 = (k_val as i8 * -1i8) as i8;
+
+                //log::info!("brbc {}, {}\n", s_val, k_val);
+                os.push_str(&format!("brbc {}, {}", s_val, k_val));
+                log::info!("{}\n", os);
 
                 // todo find a better way to deal with the SREG array of status bits
                 if s_val == 1 {
@@ -557,10 +614,16 @@ impl CPU {
 
             /*  14 */
             InstructionType::BRBS => {
-                log::info!("[BRBS]");
+                log::trace!("[BRBS]\n");
 
                 let k_val: i32 = value_storage[&'k'] as i32;
+                log::trace!("k_val: {}\n", k_val);
                 let s_val: u16 = value_storage[&'s'];
+                log::trace!("s_val: {}\n", s_val);
+
+                //log::info!("brbs {}, {}\n", s_val, k_val);
+                os.push_str(&format!("brbs {}, {}", s_val, k_val));
+                log::info!("{}\n", os);
 
                 let perform_jump: bool;
 
@@ -573,7 +636,7 @@ impl CPU {
                 if perform_jump
                 {
                     // jump (relative to pc branch)
-                    cpu.pc += k_val;
+                    cpu.pc += k_val * 2i32;
                 }
             }
 
@@ -586,7 +649,7 @@ impl CPU {
 
             /*  27 */
             InstructionType::BRNE => {
-                log::info!("[BRNE]");
+                log::info!("[BRNE]\n");
 
                 let offset: i32 = value_storage[&'k'] as i32;
 
@@ -600,7 +663,7 @@ impl CPU {
 
             /* 36 */
             InstructionType::CALL => {
-                log::trace!("[CALL]");
+                log::trace!("[CALL]\n");
 
                 // get the first 16 bit
                 let k_val: u32 = value_storage[&'k'].into();
@@ -617,20 +680,22 @@ impl CPU {
 
                 push_to_stack_i16(&mut cpu, data as i16);
 
-                log::trace!("call - >>> Pushed to stack: {data:#06X}");
+                log::trace!("call - >>> Pushed to stack: {data:#06X}\n");
 
                 let sph_temp: u8 = cpu.get_sph();
                 let spl_temp: u8 = cpu.get_spl();
 
-                log::trace!("call - stack pointer: {:#04x} {:#04x}", sph_temp, spl_temp);
-                log::trace!("call {:#04x} {:#04x}", sph_temp, spl_temp);
+                log::trace!("call - stack pointer: {:#04x} {:#04x}\n", sph_temp, spl_temp);
+                log::trace!("call {:#04x} {:#04x}\n", sph_temp, spl_temp);
 
-                log::trace!("stack pointer: {} {}", cpu.stack_info_high(), cpu.stack_info_low());
+                log::trace!("stack pointer: {} {}\n", cpu.stack_info_high(), cpu.stack_info_low());
 
                 // jump to address
                 cpu.pc = k_val_i32 * 2;
 
-                log::info!("call cpu.pc: {:#06x}", cpu.pc);
+                //log::info!("call cpu.pc: {:#06x}\n", cpu.pc);
+                os.push_str(&format!("call cpu.pc: {:#06x}", cpu.pc));
+                log::info!("{}\n", os);
             }
 
             // /*  41 */
@@ -655,11 +720,16 @@ impl CPU {
             /*  43 */
             // eor	r1, r1 (register with itself, is encoded to the same machine code as clr r1)
             InstructionType::CLR => {
-                log::info!("[CLR]");
+                log::trace!("[CLR]\n");
 
                 let d: u16 = value_storage[&'d'];
 
-                log::trace!("Clearing register d: {:#06x}", d);
+                log::trace!("Clearing register d: {:#06x}\n", d);
+
+                //log::info!("clr {}\n", d);
+                os.push_str(&format!("clr {}", d));
+                log::info!("{}\n", os);
+
                 cpu.register_file[d as usize] = 0x00;
 
                 // updating flags
@@ -673,7 +743,7 @@ impl CPU {
 
             /*  53 */
             InstructionType::DEC => {
-                log::info!("[DEC]");
+                log::info!("[DEC]\n");
 
                 let d: u16 = value_storage[&'d'];
 
@@ -685,30 +755,34 @@ impl CPU {
                     cpu.z = true;
                 }
 
-                log::info!(
-                    "[DEC] Register r{}: value at reg:{:#06x}",
+                log::trace!(
+                    "[DEC] Register r{}: value at reg:{:#06x}\n",
                     d,
                     cpu.register_file[d as usize]
                 );
+
+                //log::info!("dec {}\n", d);
+                os.push_str(&format!("dec {}", d));
+                log::info!("{}\n", os);
 
                 cpu.pc += 2i32;
             }
 
             /*  64 */
             InstructionType::IN => {
-                log::info!("[IN]");
+                log::info!("[IN]\n");
 
                 let register_d: u16 = value_storage[&'d'];
                 let address: u16 = value_storage[&'A'];
 
                 let val: u8 = cpu.sram[address as usize];
 
-                log::info!("[IN] value from read-operation: {:#06x}", val);
+                log::info!("[IN] value from read-operation: {:#06x}\n", val);
 
                 cpu.register_file[register_d as usize] = val as u8;
 
                 log::info!(
-                    "[IN] Register r{}: value at reg:{:#06x}",
+                    "[IN] Register r{}: value at reg:{:#06x}\n",
                     register_d,
                     cpu.register_file[register_d as usize]
                 );
@@ -718,12 +792,12 @@ impl CPU {
 
             /*  65 */
             InstructionType::INC => {
-                log::info!("[INC]");
+                log::info!("[INC]\n");
 
                 let register_d: u16 = value_storage[&'d'];
 
                 log::info!(
-                    "[INC] Before Inc: Register r{}: value at reg:{:#06x}",
+                    "[INC] Before Inc: Register r{}: value at reg:{:#06x}\n",
                     register_d,
                     cpu.register_file[register_d as usize]
                 );
@@ -733,7 +807,7 @@ impl CPU {
                 cpu.register_file[register_d as usize] = val as u8;
 
                 log::info!(
-                    "[INC] Before Inc: Register r{}: value at reg:{:#06x}",
+                    "[INC] Before Inc: Register r{}: value at reg:{:#06x}\n",
                     register_d,
                     cpu.register_file[register_d as usize]
                 );
@@ -742,25 +816,42 @@ impl CPU {
             }
 
             /*  66 */
+            // 1001 010k kkkk 110k
+            // kkkk kkkk kkkk kkkk
             InstructionType::JMP => {
-                log::info!("[JMP]");
+                log::trace!("[JMP]\n");
 
                 // get the first 16 bit
                 let k_hi: u32 = value_storage[&'k'].into();
+                log::trace!("k_hi: {:#4x}\n", k_hi);
+
+                cpu.pc += 2i32;
 
                 // get the next 16 bit
-                let k_val_i32: i32 = cpu.read_next_four_byte(segment, &k_hi);
+                let k_lo: u32 = cpu.read_next_two_byte(segment) as u32;
+                log::trace!("k_lo: {:#4x}", k_lo);
+                //let k_val_i32: i32 = cpu.read_next_four_byte(segment, &k_hi);
 
-                cpu.pc += k_val_i32;
+                let k_val: i32 = ((k_hi << 8u32) + k_lo as u32) as i32;
+
+                log::trace!("k_val: {:#6x}\n", k_val);
+
+                // log::info!("jmp: {:#6x}\n", k_val);
+                os.push_str(&format!("jmp: {:#6x}", k_val));
+                log::info!("{}\n", os);
+
+                //cpu.pc += k_val;
+
+                cpu.pc = k_val * 2i32;
             }
 
             /*  70 */
             InstructionType::LD_LDD_X_1 => {
-                log::info!("[LD_LDD_X_1]");
+                log::info!("[LD_LDD_X_1]\n");
 
                 // retrieved the encoded value for the d register
                 let d_val: u16 = value_storage[&'d'];
-                log::trace!("d: {d_val:#b} {d_val:#x} {d_val}");
+                log::trace!("d: {d_val:#b} {d_val:#x} {d_val}\n");
 
                 // retrieve the current value from the r register
                 let data: u8 = cpu.register_file[d_val as usize];
@@ -781,18 +872,18 @@ impl CPU {
                 cpu.pc += 2i32;
             }
             InstructionType::LD_LDD_X_2 => {
-                log::info!("[LD_LDD_X_2]");
+                log::info!("[LD_LDD_X_2]\n");
 
                 // retrieved the encoded value for the d register
                 let d_val: u16 = value_storage[&'d'];
-                log::info!("d: {d_val:#b} {d_val:#x} {d_val}");
+                log::info!("d: {d_val:#b} {d_val:#x} {d_val}\n");
 
                 // retrieve the current value from the r register
                 let data: u8 = cpu.register_file[d_val as usize];
 
                 // retrieve the data (address) stored inside X
                 let mut value_x: u16 = cpu.get_x();
-                log::info!("X: {value_x:#b} {value_x:#x} {value_x}");
+                log::info!("X: {value_x:#b} {value_x:#x} {value_x}\n");
 
                 // store data into memory (data space) at the address stored in X
                 // (data space != I/O space (for I/O space, use the OUT instruction))
@@ -807,22 +898,57 @@ impl CPU {
                 cpu.pc += 2i32;
             }
 
+            /*  72 */
+            /// 72. LD (LDD) – Load Indirect From Data Space to Register using Index Z
+            InstructionType::LD_LDD_Z_1 => {
+                log::trace!("[LD_LDD_Z_1]\n");
+
+                // retrieved the encoded value for the d register
+                let d_val: u16 = value_storage[&'d'];
+                log::trace!("d: {d_val:#b} {d_val:#x} {d_val}\n");
+
+                //log::info!("ld r{}, Z\n", d_val);
+                os.push_str(&format!("ld r{}, Z", d_val));
+                log::info!("{}\n", os);
+
+                // retrieve the current value from the r register
+                let data: u8 = cpu.register_file[d_val as usize];
+
+                // retrieve the data (address) stored inside Z
+                let value_z: u16 = cpu.get_z();
+
+                // store data into memory (data space) at the address stored in X
+                // (data space != I/O space (for I/O space, use the OUT instruction))
+                cpu.load_from_data_space(value_z as usize, data);
+
+                // // (post) increment X
+                // value_x = value_x + 1;
+
+                // // write back Z
+                // cpu.set_z(value_z);
+
+                cpu.pc += 2i32;
+            }
+
             /*  73 */
             InstructionType::LDI => {
-                log::trace!("[LDI]");
+                log::trace!("[LDI]\n");
 
                 let k_val = value_storage[&'K'];
-                log::trace!("K: {k_val:#b} {k_val:#x}");
+                log::trace!("K: {k_val:#b} {k_val:#x}\n");
                 let d_val = value_storage[&'d'];
-                log::trace!("d: {d_val:#b} {d_val:#x}");
+                log::trace!("d: {d_val:#b} {d_val:#x}\n");
 
                 // "Loads an 8-bit constant directly to register 16 to 31."
                 // To compute the register to use, add the offset 16 to the parsed value
-                let register: u16 = d_val + 16;
+                let register: u16 = d_val + 16u16;
                 //log::info!("[LDI] Using register: r{}", register);
 
-                log::trace!("{temp_pc:#02x}: {word:#06x} ldi r{register:#02}, {k_val:#02x}");
-                log::info!("ldi r{register:#02}, {k_val:#02x}");
+                log::trace!("{temp_pc:#02x}: {word:#06x} ldi r{register:#02}, {k_val:#02x}\n");
+                //log::info!("ldi r{register:#02}, {k_val:#02x}\n");
+
+                os.push_str(&format!("ldi r{register:#02}, {k_val:#02x}"));
+                log::info!("{}\n", os);
 
                 // execute
                 cpu.register_file[register as usize] = k_val as u8;
@@ -832,12 +958,12 @@ impl CPU {
 
             /*  79 */
             InstructionType::MOV => {
-                log::info!("[MOV]");
+                log::info!("[MOV]\n");
 
                 let r_register: u16 = value_storage[&'r'];
-                log::trace!("K: {r_register:#b} {r_register:#x}");
+                log::trace!("K: {r_register:#b} {r_register:#x}\n");
                 let d_register: u16 = value_storage[&'d'];
-                log::trace!("d: {d_register:#b} {d_register:#x}");
+                log::trace!("d: {d_register:#b} {d_register:#x}\n");
 
                 let k_val: u8 = cpu.register_file[r_register as usize];
 
@@ -848,28 +974,61 @@ impl CPU {
 
             /*  85 */
             InstructionType::NOP => {
-                log::trace!("[NOP]");
+                log::trace!("[NOP]\n");
 
-                log::info!("nop");
+                log::info!("nop\n");
+                cpu.pc += 2i32;
+            }
+
+            /*  87 */
+            /// ORI – Logical OR with Immediate
+            /// 0110 KKKK dddd KKKK
+            InstructionType::ORI => {
+                log::trace!("[ORI]\n");
+
+                // Stores data from register Rr in the Register File to I/O Space (Ports, Timers, Configuration Registers, etc.).
+                let k_val: u8 = value_storage[&'K'] as u8;
+                log::trace!("K: {k_val:#b} {k_val:#x} {k_val}\n");
+                let d_val: u16 = value_storage[&'d'];
+                log::trace!("d: {d_val:#b} {d_val:#x} {d_val}\n");
+
+                let register: u16 = d_val + 16;
+
+                // take value out of the register
+                // log::trace!("r_val: {r_val:#b} {r_val:#x} {r_val}");
+                let reg_val: u8 = cpu.register_file[register as usize];
+
+                // DEBUG
+                //log::info!("ori r{:?}, {:?}\n", register, k_val);
+                os.push_str(&format!("ori r{:?}, {:#04X}", register, k_val));
+                log::info!("{}\n", os);
+
+                // // output the value stored in register r_val into memory to the address a_val
+                // cpu.store_to_i_o_space(a_val as usize, val);
+
+                cpu.register_file[register as usize] = reg_val | k_val;
+
                 cpu.pc += 2i32;
             }
 
             /*  88 */
             InstructionType::OUT => {
-                log::trace!("[OUT]");
+                log::trace!("[OUT]\n");
 
                 // Stores data from register Rr in the Register File to I/O Space (Ports, Timers, Configuration Registers, etc.).
                 let a_val: u16 = value_storage[&'A'];
-                log::trace!("A: {a_val:#b} {a_val:#x} {a_val}");
+                log::trace!("A: {a_val:#b} {a_val:#x} {a_val}\n");
                 let r_val = value_storage[&'r'];
-                log::trace!("r: {r_val:#b} {r_val:#x} {r_val}");
+                log::trace!("r: {r_val:#b} {r_val:#x} {r_val}\n");
 
                 // take value out of the register
-                log::trace!("r_val: {r_val:#b} {r_val:#x} {r_val}");
+                log::trace!("r_val: {r_val:#b} {r_val:#x} {r_val}\n");
                 let val: u8 = cpu.register_file[r_val as usize];
 
                 // DEBUG
-                log::info!("out {:?}, {:?}", a_val, val);
+                // log::info!("out {:?}, {:?}\n", a_val, val);
+                os.push_str(&format!("out {:?}, {:?}", a_val, val));
+                log::info!("{}\n", os);
 
                 // output the value stored in register r_val into memory to the address a_val
                 cpu.store_to_i_o_space(a_val as usize, val);
@@ -879,57 +1038,61 @@ impl CPU {
 
             /*  89 */
             InstructionType::POP => {
-                log::trace!("[POP]");
+                log::trace!("[POP]\n");
 
                 let d_val: u16 = value_storage[&'d'];
-                log::trace!("d: {d_val:#b} {d_val:#x} {d_val}");
+                log::trace!("d: {d_val:#b} {d_val:#x} {d_val}\n");
 
                 cpu.pc += 2i32;
 
                 let stack_content: u8 = pop_from_stack_u8(&mut cpu);
 
-                log::info!("pop {d_val:#x}");
+                //log::info!("pop {d_val:#x}\n");
+                os.push_str(&format!("pop {d_val:#x}"));
+                log::info!("{}\n", os);
 
                 cpu.register_file[d_val as usize] = stack_content;
 
-                log::trace!("stack pointer: {} {}", cpu.stack_info_high(), cpu.stack_info_low());
+                log::trace!("stack pointer: {} {}\n", cpu.stack_info_high(), cpu.stack_info_low());
             }
 
             /*  90 */
             InstructionType::PUSH => {
-                log::trace!("[PUSH]");
+                log::trace!("[PUSH]\n");
 
                 let d_val: u16 = value_storage[&'d'];
-                log::trace!("d: {d_val:#b} {d_val:#x} {d_val}");
+                log::trace!("d: {d_val:#b} {d_val:#x} {d_val}\n");
 
                 cpu.pc += 2i32;
 
                 let data: u8 = cpu.register_file[d_val as usize];
                 push_to_stack_u8(&mut cpu, data);
 
-                log::info!("push {data:#x}");
+                //log::info!("push {data:#x}\n");
+                os.push_str(&format!("push {data:#x}"));
+                log::info!("{}\n", os);
 
-                log::trace!("stack pointer: {} {}", cpu.stack_info_high(), cpu.stack_info_low());
+                log::trace!("stack pointer: {} {}\n", cpu.stack_info_high(), cpu.stack_info_low());
             }
 
             /* 91 */
             InstructionType::RCALL => {
-                log::info!("[RCALL]");
+                log::info!("[RCALL]\n");
 
                 // get the first 16 bit
                 let mut k: u16 = value_storage[&'k'] as u16;
 
-                log::info!("k: {:04x} {:016b}", k, k);
+                log::info!("k: {:04x} {:016b}\n", k, k);
 
                 // sign extend (800 decimal = 1000 0000 0000 binary)
                 if k >= 800 {
                     k |= 0xF000;
                 }
-                log::info!("k: {:04x} {:016b} {}", k as i16, k as i16, k as i16);
+                log::info!("k: {:04x} {:016b} {}\n", k as i16, k as i16, k as i16);
 
                 let kk: i16 = k as i16;
 
-                log::info!("kk: {:04x} {:016b} {}", kk, kk, kk);
+                log::info!("kk: {:04x} {:016b} {}\n", kk, kk, kk);
 
                 // push return address onto the stack
                 let mut data: i32 = cpu.pc;
@@ -939,7 +1102,7 @@ impl CPU {
 
                 push_to_stack_i16(&mut cpu, data as i16);
 
-                log::info!("stack pointer: {} {}", cpu.stack_info_high(), cpu.stack_info_low());
+                log::info!("stack pointer: {} {}\n", cpu.stack_info_high(), cpu.stack_info_low());
 
                 // jump to address
                 cpu.pc += kk as i32;
@@ -947,74 +1110,82 @@ impl CPU {
 
             /* 92 */
             InstructionType::RET => {
-                log::trace!("[RET]");
+                log::trace!("[RET]\n");
 
                 let k_lo: u16 = pop_from_stack_u8(&mut cpu) as u16;
                 let k_hi: u16 = pop_from_stack_u8(&mut cpu) as u16;
 
-                log::trace!("ret - <<< stack popped: {:#04x} {:#04x}", k_hi, k_lo);
+                log::trace!("ret - <<< stack popped: {:#04x} {:#04x}\n", k_hi, k_lo);
 
                 let k_val: i16 = ((k_hi << 8i16) + k_lo) as i16;
 
-                log::trace!("ret - <<< stack popped: {k_val:#06X}");
+                log::trace!("ret - <<< stack popped: {k_val:#06X}\n");
 
                 cpu.pc = k_val as i32;
                 //cpu.pc = (k_val * 2i16) as i32;
                 //cpu.pc += 2i32;
                 //cpu.pc += 4i32;
 
-                log::info!("ret");
+                //log::info!("ret\n");
+                os.push_str(&format!("ret"));
+                log::info!("{}\n", os);
 
                 //log::info!("ret - stack pointer: {:#04x} {:#04x}", cpu.sph, cpu.spl);
-                log::trace!("stack pointer: {} {}", cpu.stack_info_high(), cpu.stack_info_low());
+                log::trace!("stack pointer: {} {}\n", cpu.stack_info_high(), cpu.stack_info_low());
             }
 
             /*  94 */
             InstructionType::RJMP => {
-                log::trace!("[RJMP]");
+                log::trace!("[RJMP]\n");
 
                 // get the first 16 bit
                 let mut k: u16 = value_storage[&'k'] as u16;
-                log::trace!("k: {:04x} {:016b}", k, k);
+                log::trace!("k: {:04x} {:016b}\n", k, k);
 
                 // sign extend (800 decimal = 1000 0000 0000 binary)
                 if k >= 800 {
                     k |= 0xF000;
                 }
-                log::trace!("k: {:04x} {:016b} {}", k as i16, k as i16, k as i16);
+                log::trace!("k: {:04x} {:016b} {}\n", k as i16, k as i16, k as i16);
 
                 let twos_complement_1: i16 = k as i16;
-                //println!("{}", twos_complement_1);
+                log::trace!("{}\n", twos_complement_1);
 
                 let twos_complement: u16 = (k as i16 * -1i16) as u16;
-                let resultt: i16 = twos_complement as i16;
+                log::trace!("{}\n", twos_complement);
 
-                //println!("{}", resultt);
+                let resultt: i16 = twos_complement as i16;
+                log::trace!("{}\n", resultt);
 
                 let kk: i32 = k as i32;
-                log::trace!("kk: {:04x} {:016b} {}", kk, kk, kk);
+                log::trace!("kk: {:04x} {:016b} {}\n", kk, kk, kk);
 
-                let offset: i32 = ((twos_complement_1 + 1i16) * 2i16) as i32;
+                //let offset: i32 = ((twos_complement_1 + 1i16) * 2i16) as i32;
+                //let offset: i32 = twos_complement_1 as i32;
+                let offset: i32 = i32::from(twos_complement_1);
 
-                log::info!("rjmp: {offset:04x}");
+                //log::info!("rjmp: {:#04x} {}\n", offset, offset);
+                os.push_str(&format!("rjmp: {:#04x} {}", offset, offset));
+                log::info!("{}\n", os);
 
                 if 0x00 == offset {
-                  panic!("endless loop detected!");
+                  panic!("endless loop detected!\n");
                 }
 
-                cpu.pc += offset;
+                //cpu.pc += (offset * 2i32);
+                cpu.pc += offset * 2i32;
             }
 
             /*  98 */
             InstructionType::SBCI => {
-                log::info!("[SBCI]");
+                log::trace!("[SBCI]\n");
 
                 let k_val: u8 = value_storage[&'K'] as u8;
                 let d_val: u16 = value_storage[&'d'] as u16;
 
                 let register: u16 = d_val + 16;
 
-                println!("k: {}, d: {}", k_val, register);
+                log::info!("sbci k: {}, d: {}\n", k_val, register);
 
                 let data: u8 = cpu.register_file[register as usize];
                 let mut arithmetic_val: u8 = data;
@@ -1029,10 +1200,12 @@ impl CPU {
 
             /*  99 */
             InstructionType::SBI => {
-                log::info!("[SBI]");
+                log::trace!("[SBI]\n");
 
                 let address: usize = value_storage[&'A'] as usize;
                 let bit: u16 = value_storage[&'b'] as u16;
+
+                log::info!("sbi {}, {}\n", address, bit);
 
                 // read from special function registers
                 let mut register_value:u8 = cpu.read_from_i_o_space(address);
@@ -1045,24 +1218,50 @@ impl CPU {
                 cpu.pc += 2i32;
             }
 
+            /* 105 */
+            // 105. SBRS – Skip if Bit in Register is Set
+            // 1111 111r rrrr 0bbb
+            InstructionType::SBRS => {
+
+                log::info!("[SBRS]\n");
+
+                let r_val: u16 = value_storage[&'r'];
+                log::info!("r: {r_val:#b} {r_val:#x} {r_val}\n");
+
+                let b_val: u16 = value_storage[&'b'];
+                log::info!("b: {b_val:#b} {b_val:#x} {b_val}\n");
+
+                log::info!("[SBRS]\n");
+
+                // retrieve the current value from the r register
+                let data: u8 = cpu.register_file[r_val as usize];
+
+                if (data & (1u8 << b_val as u8)) > 0u8
+                {
+                    cpu.pc += 2i32;
+                }
+
+                cpu.pc += 2i32;
+            }
+
             /* 118 */
             // store data into memory (data space) at the address stored in X
             // (data space != I/O space (for I/O space, use the OUT instruction))
             InstructionType::ST_STD_X_1 => {
 
                 // Z: Post incremented
-                log::info!("[ST_STD_X_1]");
+                log::info!("[ST_STD_X_1]\n");
 
                 // retrieved the encoded value for the r register
                 let r_val: u16 = value_storage[&'r'];
-                log::info!("r: {r_val:#b} {r_val:#x} {r_val}");
+                log::info!("r: {r_val:#b} {r_val:#x} {r_val}\n");
 
                 // retrieve the current value from the r register
                 let data: u8 = cpu.register_file[r_val as usize];
 
                 // retrieve the data (address) stored inside X
                 let value_x: u16 = cpu.get_x();
-                log::info!("X: {value_x:#b} {value_x:#x} {value_x}");
+                log::info!("X: {value_x:#b} {value_x:#x} {value_x}\n");
 
                 // store data into memory (data space) at the address stored in X
                 // (data space != I/O space (for I/O space, use the OUT instruction))
@@ -1079,18 +1278,18 @@ impl CPU {
             InstructionType::ST_STD_X_2 => {
 
                 // X: Post incremented
-                log::info!("[ST_STD_X_2]");
+                log::info!("[ST_STD_X_2]\n");
 
                 // retrieved the encoded value for the r register
                 let r_val: u16 = value_storage[&'r'];
-                log::info!("r: {r_val:#b} {r_val:#x} {r_val}");
+                log::info!("r: {r_val:#b} {r_val:#x} {r_val}\n");
 
                 // retrieve the current value from the r register
                 let data: u8 = cpu.register_file[r_val as usize];
 
                 // retrieve the data (address) stored inside X
                 let mut value_x: u16 = cpu.get_x();
-                log::info!("X: {value_x:#b} {value_x:#x} {value_x}");
+                log::info!("X: {value_x:#b} {value_x:#x} {value_x}\n");
 
                 // store data into memory (data space) at the address stored in Z
                 // (data space != I/O space (for I/O space, use the OUT instruction))
@@ -1107,18 +1306,18 @@ impl CPU {
             InstructionType::ST_STD_X_3 => {
 
                 // X: Post incremented
-                log::info!("[ST_STD_X_3]");
+                log::info!("[ST_STD_X_3]\n");
 
                 // retrieved the encoded value for the r register
                 let r_val: u16 = value_storage[&'r'];
-                log::info!("r: {r_val:#b} {r_val:#x} {r_val}");
+                log::info!("r: {r_val:#b} {r_val:#x} {r_val}\n");
 
                 // retrieve the current value from the r register
                 let data: u8 = cpu.register_file[r_val as usize];
 
                 // retrieve the data (address) stored inside X
                 let mut value_x: u16 = cpu.get_x();
-                log::info!("X: {value_x:#b} {value_x:#x} {value_x}");
+                log::info!("X: {value_x:#b} {value_x:#x} {value_x}\n");
 
                 // (pre) decrement X
                 value_x = value_x - 1;
@@ -1139,18 +1338,18 @@ impl CPU {
             InstructionType::ST_STD_Y_1 => {
 
                 // Y: Post incremented
-                log::info!("[ST_STD_Y_1]");
+                log::info!("[ST_STD_Y_1]\n");
 
                 // retrieved the encoded value for the r register
                 let r_val: u16 = value_storage[&'r'];
-                log::info!("r: {r_val:#b} {r_val:#x} {r_val}");
+                log::info!("r: {r_val:#b} {r_val:#x} {r_val}\n");
 
                 // retrieve the current value from the r register
                 let data: u8 = cpu.register_file[r_val as usize];
 
                 // retrieve the data (address) stored inside Y
                 let value_y: u16 = cpu.get_y();
-                log::info!("Y: {value_y:#b} {value_y:#x} {value_y}");
+                log::info!("Y: {value_y:#b} {value_y:#x} {value_y}\n");
 
                 // store data into memory (data space) at the address stored in Z
                 // (data space != I/O space (for I/O space, use the OUT instruction))
@@ -1167,18 +1366,18 @@ impl CPU {
             InstructionType::ST_STD_Y_2 => {
 
                 // Y: Post incremented
-                log::info!("[ST_STD_Y_2]");
+                log::info!("[ST_STD_Y_2]\n");
 
                 // retrieved the encoded value for the r register
                 let r_val: u16 = value_storage[&'r'];
-                log::info!("r: {r_val:#b} {r_val:#x} {r_val}");
+                log::info!("r: {r_val:#b} {r_val:#x} {r_val}\n");
 
                 // retrieve the current value from the r register
                 let data: u8 = cpu.register_file[r_val as usize];
 
                 // retrieve the data (address) stored inside Y
                 let mut value_y: u16 = cpu.get_y();
-                log::info!("Y: {value_y:#b} {value_y:#x} {value_y}");
+                log::info!("Y: {value_y:#b} {value_y:#x} {value_y}\n");
 
                 // store data into memory (data space) at the address stored in Y
                 // (data space != I/O space (for I/O space, use the OUT instruction))
@@ -1195,18 +1394,18 @@ impl CPU {
             InstructionType::ST_STD_Y_3 => {
 
                 // Y: Post incremented
-                log::info!("[ST_STD_Y_3]");
+                log::info!("[ST_STD_Y_3]\n");
 
                 // retrieved the encoded value for the r register
                 let r_val: u16 = value_storage[&'r'];
-                log::info!("r: {r_val:#b} {r_val:#x} {r_val}");
+                log::info!("r: {r_val:#b} {r_val:#x} {r_val}\n");
 
                 // retrieve the current value from the r register
                 let data: u8 = cpu.register_file[r_val as usize];
 
                 // retrieve the data (address) stored inside Y
                 let mut value_y: u16 = cpu.get_y();
-                log::info!("Y: {value_y:#b} {value_y:#x} {value_y}");
+                log::info!("Y: {value_y:#b} {value_y:#x} {value_y}\n");
 
                 // (pre) decrement Y
                 value_y = value_y - 1;
@@ -1227,11 +1426,15 @@ impl CPU {
             InstructionType::ST_STD_Z_1 => {
 
                 // Z: Post incremented
-                log::info!("[ST_STD_Z_1]");
+                log::trace!("[ST_STD_Z_1]\n");
 
                 // retrieved the encoded value for the r register
                 let r_val: u16 = value_storage[&'r'];
-                log::info!("r: {r_val:#b} {r_val:#x} {r_val}");
+                log::trace!("r: {r_val:#b} {r_val:#x} {r_val}\n");
+
+                // log::info!("st Z, r{}\n", r_val);
+                os.push_str(&format!("st Z, r{}", r_val));
+                log::info!("{}\n", os);
 
                 // retrieve the current value from the r register
                 let data: u8 = cpu.register_file[r_val as usize];
@@ -1254,11 +1457,11 @@ impl CPU {
             InstructionType::ST_STD_Z_2 => {
 
                 // Z: Post incremented
-                log::info!("[ST_STD_Z_2]");
+                log::info!("[ST_STD_Z_2]\n");
 
                 // retrieved the encoded value for the r register
                 let r_val: u16 = value_storage[&'r'];
-                log::info!("r: {r_val:#b} {r_val:#x} {r_val}");
+                log::info!("r: {r_val:#b} {r_val:#x} {r_val}\n");
 
                 // retrieve the current value from the r register
                 let data: u8 = cpu.register_file[r_val as usize];
@@ -1281,11 +1484,11 @@ impl CPU {
             InstructionType::ST_STD_Z_3 => {
 
                 // Z: Post incremented
-                log::info!("[ST_STD_Z_3]");
+                log::info!("[ST_STD_Z_3]\n");
 
                 // retrieved the encoded value for the r register
                 let r_val: u16 = value_storage[&'r'];
-                log::info!("r: {r_val:#b} {r_val:#x} {r_val}");
+                log::info!("r: {r_val:#b} {r_val:#x} {r_val}\n");
 
                 // retrieve the current value from the r register
                 let data: u8 = cpu.register_file[r_val as usize];
@@ -1309,13 +1512,13 @@ impl CPU {
             /* 120 */
             // Stores one byte from a Register to the data space
             InstructionType::STS => {
-                log::info!("[STS] 32 bit version");
+                log::info!("[STS] 32 bit version\n");
 
-                log::info!("value_storage: {:?}", value_storage);
+                log::info!("value_storage: {:?}\n", value_storage);
 
                 // retrieved the encoded value for the r register
                 let register: u16 = value_storage[&'d'];
-                log::info!("d: {register:#b} {register:#x} {register}");
+                log::info!("d: {register:#b} {register:#x} {register}\n");
 
                 // retrieve the current value from the r register
                 let register_value: u8 = cpu.register_file[register as usize];
@@ -1329,11 +1532,11 @@ impl CPU {
             }
 
             InstructionType::UNKNOWN => {
-                panic!("Unknown instruction: {:?}", instruction.instruction_type);
+                panic!("Unknown instruction: {:?}\n", instruction.instruction_type);
             }
 
             _ => {
-                panic!("Unknown instruction: {:?}", instruction.instruction_type);
+                panic!("Unknown instruction: {:?}\n", instruction.instruction_type);
             }
         }
 
