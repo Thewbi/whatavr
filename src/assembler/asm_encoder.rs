@@ -189,7 +189,7 @@ impl AsmEncoder {
 
     pub fn encode(&mut self, segment: &mut Segment, asm_record: &AsmRecord) {
 
-        log::info!("Encoding: \n{}" , asm_record);
+        log::info!("Encoding: {}\n" , asm_record);
 
         match asm_record.instruction_type {
 
@@ -590,10 +590,10 @@ impl AsmEncoder {
         //offset_k = offset_k * 2;
 
         let label_address: i32 = self.labels[label] as i32;
-        let mut offset_k: i32 = label_address - (*idx as i32);
+        let offset_k: i32 = label_address - (*idx as i32);
 
         // do I need to use some kind of little endian encoding?
-        let result: u16 = 0xF401u16 | ((offset_k as u16) << 3u16);
+        let result: u16 = 0xF401u16 | (((offset_k & 0x3Fi32) as u16) << 3u16);
 
         log::trace!("ENC BRNE: {:#02x}", (result >> 0u16) as u8);
         segment.data.push((result >> 0u16) as u8);
@@ -602,6 +602,8 @@ impl AsmEncoder {
         log::trace!("ENC BRNE: {:#02x}", (result >> 8u16) as u8);
         segment.data.push((result >> 8u16) as u8);
         segment.size += 1u32;
+
+        log::trace!("{:#18b}\n", result);
     }
 
     /// 36. CALL – Long Call to a Subroutine
@@ -789,11 +791,11 @@ impl AsmEncoder {
         let result: u16 =
             0x9403u16 | ((register_d) << 4u16);
 
-        log::info!("ENC INC: {:#02x}", (result >> 0u16) as u8);
+        log::trace!("ENC INC: {:#02x}\n", (result >> 0u16) as u8);
         segment.data.push((result >> 0u16) as u8);
         segment.size += 1u32;
 
-        log::info!("ENC INC: {:#02x}", (result >> 8u16) as u8);
+        log::trace!("ENC INC: {:#02x}\n", (result >> 8u16) as u8);
         segment.data.push((result >> 8u16) as u8);
         segment.size += 1u32;
     }
@@ -1288,7 +1290,11 @@ impl AsmEncoder {
         // convert from bytes to words
         //let offset_k: i16 = target_address / 2i16;
 
-        let offset_k: i16 = target_address;
+        // absolute offset
+        //let offset_k: i16 = target_address;
+
+        // relative offset
+        let offset_k: usize = target_address as usize - idx;
         
         log::trace!("offset_k (in words): {:#06x}", offset_k);
         log::trace!("offset_k (in words): {:#06x}", offset_k as u32);

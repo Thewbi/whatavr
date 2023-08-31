@@ -317,13 +317,13 @@ impl CPU {
     // as opposed to I/O space which is terminology for the memory mapped special function registers
     fn store_to_data_space(&mut self, address: usize, value: u8) {
         //todo!("Store value {} to address {} in data space!", value, address);
-        log::trace!("\tStore value {} {:#04X} to address {} {:#04X} in data space!\n", value, value, address, address);
+        log::info!("\tStore value {} {:#04X} to address {} {:#04X} in data space!\n", value, value, address, address);
         log::trace!("\n");
     }
 
     fn load_from_data_space(&mut self, address: usize, value: u8) {
         //todo!("Store value {} to address {} in data space!", value, address);
-        log::trace!("\tLoaded value {} {:#04X} at address {} {:#04X} from data space!\n", value, value, address, address);
+        log::info!("\tLoaded value {} {:#04X} at address {} {:#04X} from data space!\n", value, value, address, address);
         log::trace!("\n");
     }
 
@@ -579,21 +579,50 @@ impl CPU {
             }
 
             /*  13 */
+            // 1111 01kk kkkk ksss – BRBC - Branch if Bit in SREG is Cleared
+            // 1111 01kk kkkk k001 - BRNE – Branch if Not Equal
             InstructionType::BRBC => {
                 log::trace!("[BRBC]\n");
 
                 //process_brbc(rdr, &word, index, value_storage);
 
-                let k_val: i8 = value_storage[&'k'] as i8;
-                //log::info!("K: {k_val:#b} {k_val:#x}");
+                let k_val: u8 = value_storage[&'k'] as u8;
+                log::trace!("K: {k_val:#b} {k_val:#x} {k_val}\n");
+
+                // todo
+                // converting bit mask to i8
+                // 1. the amount of bits in the input has to be known, e.g. six bits
+                // 2. sign extend the bits with 1 to then next datatype six bits -> u8, 12 bits -> u16
+                // 3. convert from unsigned to signed: e.g. u8 -> i8, u16 -> i16, u32 -> i32
+                // 4. The correct value with correct sign is contained in the signed variable. Done
+
+                // sign extend
+                let k_val_sign_extend: u8 = (k_val | 0b11000000).try_into().unwrap();
+
+                let k_val_signed: i8 = k_val_sign_extend as i8;
+                log::trace!("k_val_signed: {}\n", k_val_signed);
+
                 let s_val = value_storage[&'s'];
                 //log::info!("d: {d_val:#b} {d_val:#x}");
 
+                // https://en.wikipedia.org/wiki/Two%27s_complement
+                // Step 1: starting with the equivalent positive number.
+                // 2 = 000010
+                // Step 2: inverting (or flipping) all bits – changing every 0 to 1, and every 1 to 0;
+                // 111101
+                // Step 3: adding 1 to the entire inverted number, ignoring any overflow. 
+                // Accounting for overflow will produce the wrong value for the result.
+                // 111110
+
                 // twos-complement
-                let offset: i8 = (k_val as i8 * -1i8) as i8;
+                //let offset: i8 = (k_val as i8 * -1i8) as i8;
+                let offset: i8 = k_val as i8;
+                //let offset: u8 = (k_val as i8 * -1i8) as u8;
+
+                log::trace!("offset: {}\n", offset);
 
                 //log::info!("brbc {}, {}\n", s_val, k_val);
-                os.push_str(&format!("brbc {}, {}", s_val, k_val));
+                os.push_str(&format!("brbc s{}, k{}", s_val, k_val));
                 log::info!("{}\n", os);
 
                 // todo find a better way to deal with the SREG array of status bits
@@ -606,8 +635,10 @@ impl CPU {
                     if cpu.z {
                         cpu.pc += 2i32;
                     } else {
-                        let offset_in_bytes: i8 = offset / 8i8;
-                        cpu.pc = (cpu.pc as i16 + 2*offset_in_bytes as i16) as i32;
+                        //let offset_in_bytes: i8 = offset / 8i8;
+                        //cpu.pc = (cpu.pc as i16 + 2*offset_in_bytes as i16) as i32;
+
+                        cpu.pc += k_val_signed as i32;
                     }
                 }
             }
@@ -743,7 +774,7 @@ impl CPU {
 
             /*  53 */
             InstructionType::DEC => {
-                log::info!("[DEC]\n");
+                log::trace!("[DEC]\n");
 
                 let d: u16 = value_storage[&'d'];
 
@@ -762,7 +793,7 @@ impl CPU {
                 );
 
                 //log::info!("dec {}\n", d);
-                os.push_str(&format!("dec {}", d));
+                os.push_str(&format!("dec r{}", d));
                 log::info!("{}\n", os);
 
                 cpu.pc += 2i32;
@@ -792,21 +823,34 @@ impl CPU {
 
             /*  65 */
             InstructionType::INC => {
-                log::info!("[INC]\n");
+                log::trace!("[INC]\n");
 
                 let register_d: u16 = value_storage[&'d'];
 
-                log::info!(
+                os.push_str(&format!("inc r{}", register_d));
+                log::info!("{}\n", os);
+
+                log::trace!(
                     "[INC] Before Inc: Register r{}: value at reg:{:#06x}\n",
                     register_d,
                     cpu.register_file[register_d as usize]
                 );
 
                 let mut val: u8 = cpu.register_file[register_d as usize];
-                val = val + 1;
+                //todo: handle overflow panic and set the zero (and all other relevant) flags in this case!
+                if std::u8::MAX == val
+                {
+                    val = 0;
+                    cpu.z = true;
+                }
+                else
+                {
+                    val = val + 1;
+                    cpu.z = false;
+                }
                 cpu.register_file[register_d as usize] = val as u8;
 
-                log::info!(
+                log::trace!(
                     "[INC] Before Inc: Register r{}: value at reg:{:#06x}\n",
                     register_d,
                     cpu.register_file[register_d as usize]
@@ -1221,17 +1265,24 @@ impl CPU {
             /* 105 */
             // 105. SBRS – Skip if Bit in Register is Set
             // 1111 111r rrrr 0bbb
+            //
+            // 1111 01kk kkkk k001 - BRNE - branch if not equal
             InstructionType::SBRS => {
 
-                log::info!("[SBRS]\n");
+                log::trace!("[SBRS]\n");
 
                 let r_val: u16 = value_storage[&'r'];
-                log::info!("r: {r_val:#b} {r_val:#x} {r_val}\n");
+                log::trace!("r: {r_val:#b} {r_val:#x} {r_val}\n");
 
                 let b_val: u16 = value_storage[&'b'];
-                log::info!("b: {b_val:#b} {b_val:#x} {b_val}\n");
+                log::trace!("b: {b_val:#b} {b_val:#x} {b_val}\n");
 
-                log::info!("[SBRS]\n");
+                log::trace!("[SBRS]\n");
+
+                //log::info!("sbrs r{} bit{}", r_val, b_val);
+
+                os.push_str(&format!("sbrs r{} bit{}", r_val, b_val));
+                log::info!("{}\n", os);
 
                 // retrieve the current value from the r register
                 let data: u8 = cpu.register_file[r_val as usize];
@@ -1278,18 +1329,21 @@ impl CPU {
             InstructionType::ST_STD_X_2 => {
 
                 // X: Post incremented
-                log::info!("[ST_STD_X_2]\n");
+                log::trace!("[ST_STD_X_2]\n");
 
                 // retrieved the encoded value for the r register
                 let r_val: u16 = value_storage[&'r'];
-                log::info!("r: {r_val:#b} {r_val:#x} {r_val}\n");
+                log::trace!("r: {r_val:#b} {r_val:#x} {r_val}\n");
 
                 // retrieve the current value from the r register
                 let data: u8 = cpu.register_file[r_val as usize];
 
+                os.push_str(&format!("st X+ r{}", r_val));
+                log::info!("{}\n", os);
+
                 // retrieve the data (address) stored inside X
                 let mut value_x: u16 = cpu.get_x();
-                log::info!("X: {value_x:#b} {value_x:#x} {value_x}\n");
+                log::trace!("X: {value_x:#b} {value_x:#x} {value_x}\n");
 
                 // store data into memory (data space) at the address stored in Z
                 // (data space != I/O space (for I/O space, use the OUT instruction))

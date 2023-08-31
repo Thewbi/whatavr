@@ -397,7 +397,7 @@ fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>)
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/asm_2.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/asm_3.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/asm_4.asm");
-    asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/call_and_return.asm"); // regression test
+    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/call_and_return.asm"); // regression test
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/call_test.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/call_test_2.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/def_assembler_directive.asm");
@@ -409,7 +409,7 @@ fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>)
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/preprocessor.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/push_pop.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/scratchpad.asm");
-    //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/scratchpad_2.asm");
+    asm_file_path.push_str("test_resources/sample_files/asm/scratchpad_2.asm");
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/setup_stack.asm"); // regression test
     //asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/timer_polling_example.asm");
     //asm_file_path.push_str("C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/avrasm/inc/m328Pdef.inc");
@@ -516,10 +516,11 @@ fn init_logging() {
             //writeln!(
             write!(
                 buf,
-                "{}:{} {} [{}] - {}",
+                //"{}:{} {} [{}] - {}",
+                "{}:{} [{}] - {}",
                 record.file().unwrap_or("unknown"),
                 record.line().unwrap_or(0),
-                chrono::Local::now().format("%Y-%m-%dT%H:%M:%S"),
+                //chrono::Local::now().format("%Y-%m-%dT%H:%M:%S"),
                 record.level(),
                 record.args()
             )
