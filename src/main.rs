@@ -82,14 +82,14 @@ fn main() -> io::Result<()> {
 
     let mut segments: Vec<Segment> = Vec::new();
 
-    // asm source code
-    load_segment_from_asm_source_code(&mut segments);
+    // // asm source code
+    // load_segment_from_asm_source_code(&mut segments);
 
     // // hex
     // load_segment_from_hex_file(&mut segments);
 
-    // // listing (lss) file
-    // load_segment_from_listing_file(&mut segments);
+    // listing (lss) file
+    load_segment_from_listing_file(&mut segments);
 
     //
     // Phase - Program Execution
@@ -132,15 +132,16 @@ fn main() -> io::Result<()> {
 fn load_segment_from_listing_file(segments: &mut Vec<Segment>) -> io::Result<()>
 {
     let mut lss_file_path: String = String::new();
-    lss_file_path.push_str("test_resources/sample_files/lss/ADC_C.lss");
+    //lss_file_path.push_str("test_resources/sample_files/lss/ADC_C.lss");
+    lss_file_path.push_str("test_resources/sample_files/lss/Vorlesung_HNP_Beispiel_1.lss");
 
     let srcdir = PathBuf::from(&lss_file_path);
-    println!("absolute path: {:?}", fs::canonicalize(&srcdir));
+    log::trace!("absolute path: {:?}", fs::canonicalize(&srcdir));
 
     let data = fs::read_to_string(&lss_file_path).expect("Unable to read file");
     log::trace!("\n{}\n", data);
 
-    let input_stream: InputStream<&str> = InputStream::new(data.as_str());
+    // let input_stream: InputStream<&str> = InputStream::new(data.as_str());
 
     // open the file in read-only mode (ignoring errors).
     let file = File::open(lss_file_path).unwrap();
@@ -149,6 +150,7 @@ fn load_segment_from_listing_file(segments: &mut Vec<Segment>) -> io::Result<()>
     let mut string_buffer = String::new();
 
     // read the file line by line using the lines() iterator from std::io::BufRead.
+    let mut idx: u32 = 1u32;
     for (index, line) in reader.lines().enumerate() {
 
         // ignore errors
@@ -159,7 +161,8 @@ fn load_segment_from_listing_file(segments: &mut Vec<Segment>) -> io::Result<()>
         }
 
         // DEBUG show the line and its number
-        //log::info!("{}. {}", index + 1, line);
+        log::info!("{}. {}\n", idx, line);
+        idx += 1u32;
 
         let colon_split = line.split(":");
         let colon_collection: Vec<&str> = colon_split.collect::<Vec<_>>();
@@ -178,22 +181,21 @@ fn load_segment_from_listing_file(segments: &mut Vec<Segment>) -> io::Result<()>
 
         let tab_collection: Vec<&str> = tab_split.collect::<Vec<_>>();
 
-        log::info!("{:?}\n", &tab_collection);
+        log::trace!("{:?}\n", &tab_collection);
 
         let start = 2;
         let end = tab_collection.len();
         let source_code_row = tab_collection[start .. end].join(" ");
 
-        log::info!("scr: {}\n", source_code_row);
+        log::trace!("scr: {}\n", source_code_row);
 
         string_buffer.push_str(&source_code_row);
         string_buffer.push_str("\n");
 
-        log::info!("done\n");
-
+        log::trace!("done\n");
     }
 
-    log::info!("{}", string_buffer);
+    log::trace!("{}", string_buffer);
 
     let input_stream: InputStream<&str> = InputStream::new(string_buffer.as_str());
 
@@ -529,19 +531,19 @@ fn init_logging() {
 }
 
 fn log_start() {
-    log::trace!("Application starts ...");
-    log::debug!("Application starts ...");
-    log::info!("Application starts ...");
-    log::warn!("Application starts ...");
-    log::error!("Application starts ...");
+    log::trace!("Application starts ...\n");
+    log::debug!("Application starts ...\n");
+    log::info!("Application starts ...\n");
+    log::warn!("Application starts ...\n");
+    log::error!("Application starts ...\n");
 }
 
 fn log_end() {
-    log::trace!("Application terminates.");
-    log::debug!("Application terminates.");
-    log::info!("Application terminates.");
-    log::warn!("Application terminates.");
-    log::error!("Application terminates.");
+    log::trace!("Application terminates.\n");
+    log::debug!("Application terminates.\n");
+    log::info!("Application terminates.\n");
+    log::warn!("Application terminates.\n");
+    log::error!("Application terminates.\n");
 }
 
 #[allow(dead_code, unused)]

@@ -45,6 +45,10 @@ expression :
     |
     expression EQUALS expression
     |
+    expression PLUS expression
+    |
+    expression MINUS expression
+    |
     DOT ( PLUS | MINUS ) numeric
     |
     BINARY_NUMBER
@@ -176,7 +180,7 @@ mnemonic_j :
     ;
 
 mnemonic_l :
-    LAC | LAS | LAT | LD | LDI | LDS | LDS | LPM | LSL | LSR
+    LAC | LAS | LAT | LD | LDD | LDI | LDS | LDS | LPM | LSL | LSR
     ; 
 
 mnemonic_m :
@@ -200,7 +204,7 @@ mnemonic_r :
     ;
 
 mnemonic_s :
-    SBC | SBCI | SBI | SBIC | SBIS | SBIW | SBR | SBRC | SBRS | SEC | SEH | SEI | SEN | SER | SES | SET | SEV | SEZ | SLEEP | SPM | ST | STS | SUB | SUBI | SWAP
+    SBC | SBCI | SBI | SBIC | SBIS | SBIW | SBR | SBRC | SBRS | SEC | SEH | SEI | SEN | SER | SES | SET | SEV | SEZ | SLEEP | SPM | ST | STD | STS | SUB | SUBI | SWAP
     ;
 
 mnemonic_t :
@@ -316,6 +320,7 @@ LAC : L A C ;
 LAS : L A S ;
 LAT : L A T ;
 LD : L D ;
+LDD : L D D ;
 LDI : L D I ; 
 LDS : L D S ;
 LPM : L P M ;
@@ -366,6 +371,7 @@ SEZ : S E Z ;
 SLEEP : S L E E P ;
 SPM : S P M ;
 ST : S T ;
+STD : S T D ;
 STS : S T S ;
 SUB : S U B ;
 SUBI : S U B I ;

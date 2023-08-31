@@ -851,34 +851,34 @@ impl AsmEncoder {
         // convert from bytes to words
         let mut offset_k: i32 = target_address / 2i32;
 
-        log::trace!("offset_k (in words): {:#06x}", offset_k);
-        log::trace!("offset_k (in words): {:#06x}", offset_k as u32);
+        log::trace!("offset_k (in words): {:#06x}\n", offset_k);
+        log::trace!("offset_k (in words): {:#06x}\n", offset_k as u32);
 
         offset_k &= 0b00000000001111111111111111111111i32;
 
-        log::trace!("offset_k (in words): {:#06x}", offset_k);
-        log::trace!("offset_k (in words): {:#06x}", offset_k as u32);
+        log::trace!("offset_k (in words): {:#06x}\n", offset_k);
+        log::trace!("offset_k (in words): {:#06x}\n", offset_k as u32);
 
         let result: u32 = (0b1001010u32 << 25)
             | ((offset_k as u32 >> 17) << 20)
             | (0b110u32 << 17)
             | (offset_k as u32 & 0b11111111111111111u32);
 
-        log::trace!("result: {:#32b}", result);
+        log::trace!("result: {:#32b}\n", result);
 
-        log::info!("ENC JMP: {:#02x}", (result >> 16u16) as u8);
+        log::info!("ENC JMP: {:#02x}\n", (result >> 16u16) as u8);
         segment.data.push((result >> 16u16) as u8);
         segment.size += 1u32;
 
-        log::info!("ENC JMP: {:#02x}", (result >> 24u16) as u8);
+        log::info!("ENC JMP: {:#02x}\n", (result >> 24u16) as u8);
         segment.data.push((result >> 24u16) as u8);
         segment.size += 1u32;
 
-        log::info!("ENC JMP: {:#02x}", (result >> 0u16) as u8);
+        log::info!("ENC JMP: {:#02x}\n", (result >> 0u16) as u8);
         segment.data.push((result >> 0u16) as u8);
         segment.size += 1u32;
 
-        log::info!("ENC JMP: {:#02x}", (result >> 8u16) as u8);
+        log::info!("ENC JMP: {:#02x}\n", (result >> 8u16) as u8);
         segment.data.push((result >> 8u16) as u8);
         segment.size += 1u32;
 
@@ -1294,7 +1294,8 @@ impl AsmEncoder {
         //let offset_k: i16 = target_address;
 
         // relative offset
-        let offset_k: usize = target_address as usize - idx;
+        let idx_isize: i16 = idx as i16;
+        let offset_k: isize = target_address as isize - idx_isize;
         
         log::trace!("offset_k (in words): {:#06x}", offset_k);
         log::trace!("offset_k (in words): {:#06x}", offset_k as u32);

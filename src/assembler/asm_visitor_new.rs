@@ -34,7 +34,7 @@ pub struct NewAssemblerVisitor {
 
     // debug
     pub debug_output: bool,
-    pub ident: u16,
+    pub indent: u16,
 
     // traversal
     pub return_val: Vec<String>,
@@ -49,8 +49,8 @@ impl Default for NewAssemblerVisitor {
             records: Vec::new(),
             record: AsmRecord::default(),
 
-            ident: 0u16,
-            debug_output: true,
+            indent: 0u16,
+            debug_output: false,
 
             return_val: Vec::new(),
 
@@ -65,15 +65,15 @@ impl<'i> NewAssemblerVisitor {
         if !self.debug_output {
             return;
         }
-        self.ident = self.ident - 1;
+        self.indent = self.indent - 1;
     }
 
     pub fn descend_ident(&mut self, label: &str) {
         if !self.debug_output {
             return;
         }
-        self.ident = self.ident + 1;
-        for _n in 0..self.ident {
+        self.indent = self.indent + 1;
+        for _n in 0..self.indent {
             print!("  ");
         }
         println!("{}", label);
@@ -295,17 +295,7 @@ impl<'i> NewAssemblerVisitor {
             let root: Rc<Asm_fileContextAll> = result.unwrap();
 
             // new visitor
-            let mut visitor: NewAssemblerVisitor = NewAssemblerVisitor {
-                records: Vec::new(),
-                record: AsmRecord::default(),
-
-                ident: 0u16,
-                debug_output: true,
-
-                return_val: Vec::new(),
-
-                label: String::default(),
-            };
+            let mut visitor: NewAssemblerVisitor = NewAssemblerVisitor::default();
             visitor.record.clear();
 
             let visitor_result = visitor.visit(&*root);
@@ -330,7 +320,7 @@ impl<'i> NewAssemblerVisitor {
 
     fn process_asm_intrinsic_usage(&mut self, visit_children_result: Vec<String>) -> Vec<String>
     {
-        println!("cr: {:?}", visit_children_result);
+        log::trace!("cr: {:?}", visit_children_result);
 
         let joined = visit_children_result.join("");
 
@@ -409,7 +399,7 @@ impl<'i> assemblerVisitorCompat<'i> for NewAssemblerVisitor {
         let children_result = self.visit_children(ctx);
         self.ascend_ident();
 
-        println!("cr: {:?}", children_result);
+        log::trace!("cr: {:?}", children_result);
 
         if children_result.len() == 2usize && children_result[1].eq(":")
         {
@@ -425,7 +415,7 @@ impl<'i> assemblerVisitorCompat<'i> for NewAssemblerVisitor {
         let visit_children_result = self.visit_children(ctx);
         self.ascend_ident();
 
-        println!("cr: {:?}", visit_children_result);
+        log::trace!("cr: {:?}", visit_children_result);
 
         let mut asm_record = AsmRecord::default();
 
@@ -446,7 +436,7 @@ impl<'i> assemblerVisitorCompat<'i> for NewAssemblerVisitor {
                 mnemonic.to_uppercase().eq("JMP") 
             ) && is_number_literal_i16(&visit_children_result[1])
         {
-            println!("{:?}", visit_children_result);
+            log::trace!("{:?}", visit_children_result);
             asm_record.target_address = number_literal_to_i16(&visit_children_result[1]) as i16;
             asm_record.instruction_type = InstructionType::from_string(mnemonic.as_str());
         }
@@ -579,7 +569,7 @@ impl<'i> assemblerVisitorCompat<'i> for NewAssemblerVisitor {
         let visit_children_result = self.visit_children(ctx);
         self.ascend_ident();
 
-        println!("cr: {:?}", visit_children_result);
+        log::trace!("cr: {:?}", visit_children_result);
 
         // look for assembler directives
         // assembler directives are identified via a dot character
@@ -660,7 +650,7 @@ impl<'i> assemblerVisitorCompat<'i> for NewAssemblerVisitor {
                     offset *= -1i16;
                 }
 
-                println!("sign: {}, offset: {}", sign, offset);
+                log::trace!("sign: {}, offset: {}", sign, offset);
 
                 return vec![offset.to_string()];
             }

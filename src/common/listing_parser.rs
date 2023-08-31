@@ -1,5 +1,7 @@
 use regex::Regex;
 
+/// Checks if the line starts with a number followed by a colon
+/// which is the marker for a code line inside a .lss file
 pub fn is_code_offset_c_listing(input: &str) -> bool {
     let trimmed_input = input.trim();
     let re = Regex::new("^(\\d|[aAbBcCdDeEfF])+\\:").unwrap();

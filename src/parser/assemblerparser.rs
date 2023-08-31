@@ -105,95 +105,97 @@ use std::any::{Any,TypeId};
 		pub const LAS:isize=64; 
 		pub const LAT:isize=65; 
 		pub const LD:isize=66; 
-		pub const LDI:isize=67; 
-		pub const LDS:isize=68; 
-		pub const LPM:isize=69; 
-		pub const LSL:isize=70; 
-		pub const LSR:isize=71; 
-		pub const MOV:isize=72; 
-		pub const MOVW:isize=73; 
-		pub const MUL:isize=74; 
-		pub const MULS:isize=75; 
-		pub const MULSU:isize=76; 
-		pub const NEG:isize=77; 
-		pub const NOP:isize=78; 
-		pub const OR:isize=79; 
-		pub const ORI:isize=80; 
-		pub const OUT:isize=81; 
-		pub const POP:isize=82; 
-		pub const PUSH:isize=83; 
-		pub const RCALL:isize=84; 
-		pub const RET:isize=85; 
-		pub const RETI:isize=86; 
-		pub const RJMP:isize=87; 
-		pub const ROL:isize=88; 
-		pub const ROR:isize=89; 
-		pub const SBC:isize=90; 
-		pub const SBCI:isize=91; 
-		pub const SBI:isize=92; 
-		pub const SBIC:isize=93; 
-		pub const SBIS:isize=94; 
-		pub const SBIW:isize=95; 
-		pub const SBR:isize=96; 
-		pub const SBRC:isize=97; 
-		pub const SBRS:isize=98; 
-		pub const SEC:isize=99; 
-		pub const SEH:isize=100; 
-		pub const SEI:isize=101; 
-		pub const SEN:isize=102; 
-		pub const SER:isize=103; 
-		pub const SES:isize=104; 
-		pub const SET:isize=105; 
-		pub const SEV:isize=106; 
-		pub const SEZ:isize=107; 
-		pub const SLEEP:isize=108; 
-		pub const SPM:isize=109; 
-		pub const ST:isize=110; 
-		pub const STS:isize=111; 
-		pub const SUB:isize=112; 
-		pub const SUBI:isize=113; 
-		pub const SWAP:isize=114; 
-		pub const TST:isize=115; 
-		pub const WDR:isize=116; 
-		pub const XCH:isize=117; 
-		pub const ASTERISK:isize=118; 
-		pub const AT:isize=119; 
-		pub const CLOSEING_BRACKET:isize=120; 
-		pub const COLON:isize=121; 
-		pub const COMMA:isize=122; 
-		pub const CSEG:isize=123; 
-		pub const DEF:isize=124; 
-		pub const DEVICE:isize=125; 
-		pub const DOT:isize=126; 
-		pub const ELSE:isize=127; 
-		pub const END_MACRO:isize=128; 
-		pub const ENDIF:isize=129; 
-		pub const EQUALS:isize=130; 
-		pub const EQU:isize=131; 
-		pub const ERROR:isize=132; 
-		pub const GT:isize=133; 
-		pub const HASH_TAG:isize=134; 
-		pub const IF:isize=135; 
-		pub const INCLUDE:isize=136; 
-		pub const LEFT_SHIFT:isize=137; 
-		pub const LT:isize=138; 
-		pub const MACRO:isize=139; 
-		pub const MINUS:isize=140; 
-		pub const OPENING_BRACKET:isize=141; 
-		pub const ORG:isize=142; 
-		pub const PLUS:isize=143; 
-		pub const RIGHT_SHIFT:isize=144; 
-		pub const SLASH:isize=145; 
-		pub const NEWLINE:isize=146; 
-		pub const WS:isize=147; 
-		pub const LINE_COMMENT:isize=148; 
-		pub const BLOCK_COMMENT:isize=149; 
-		pub const DOUBLE_SLASH_LINE_COMMENT:isize=150; 
-		pub const STRING:isize=151; 
-		pub const NUMBER:isize=152; 
-		pub const HEX_NUMBER:isize=153; 
-		pub const BINARY_NUMBER:isize=154; 
-		pub const IDENTIFIER:isize=155;
+		pub const LDD:isize=67; 
+		pub const LDI:isize=68; 
+		pub const LDS:isize=69; 
+		pub const LPM:isize=70; 
+		pub const LSL:isize=71; 
+		pub const LSR:isize=72; 
+		pub const MOV:isize=73; 
+		pub const MOVW:isize=74; 
+		pub const MUL:isize=75; 
+		pub const MULS:isize=76; 
+		pub const MULSU:isize=77; 
+		pub const NEG:isize=78; 
+		pub const NOP:isize=79; 
+		pub const OR:isize=80; 
+		pub const ORI:isize=81; 
+		pub const OUT:isize=82; 
+		pub const POP:isize=83; 
+		pub const PUSH:isize=84; 
+		pub const RCALL:isize=85; 
+		pub const RET:isize=86; 
+		pub const RETI:isize=87; 
+		pub const RJMP:isize=88; 
+		pub const ROL:isize=89; 
+		pub const ROR:isize=90; 
+		pub const SBC:isize=91; 
+		pub const SBCI:isize=92; 
+		pub const SBI:isize=93; 
+		pub const SBIC:isize=94; 
+		pub const SBIS:isize=95; 
+		pub const SBIW:isize=96; 
+		pub const SBR:isize=97; 
+		pub const SBRC:isize=98; 
+		pub const SBRS:isize=99; 
+		pub const SEC:isize=100; 
+		pub const SEH:isize=101; 
+		pub const SEI:isize=102; 
+		pub const SEN:isize=103; 
+		pub const SER:isize=104; 
+		pub const SES:isize=105; 
+		pub const SET:isize=106; 
+		pub const SEV:isize=107; 
+		pub const SEZ:isize=108; 
+		pub const SLEEP:isize=109; 
+		pub const SPM:isize=110; 
+		pub const ST:isize=111; 
+		pub const STD:isize=112; 
+		pub const STS:isize=113; 
+		pub const SUB:isize=114; 
+		pub const SUBI:isize=115; 
+		pub const SWAP:isize=116; 
+		pub const TST:isize=117; 
+		pub const WDR:isize=118; 
+		pub const XCH:isize=119; 
+		pub const ASTERISK:isize=120; 
+		pub const AT:isize=121; 
+		pub const CLOSEING_BRACKET:isize=122; 
+		pub const COLON:isize=123; 
+		pub const COMMA:isize=124; 
+		pub const CSEG:isize=125; 
+		pub const DEF:isize=126; 
+		pub const DEVICE:isize=127; 
+		pub const DOT:isize=128; 
+		pub const ELSE:isize=129; 
+		pub const END_MACRO:isize=130; 
+		pub const ENDIF:isize=131; 
+		pub const EQUALS:isize=132; 
+		pub const EQU:isize=133; 
+		pub const ERROR:isize=134; 
+		pub const GT:isize=135; 
+		pub const HASH_TAG:isize=136; 
+		pub const IF:isize=137; 
+		pub const INCLUDE:isize=138; 
+		pub const LEFT_SHIFT:isize=139; 
+		pub const LT:isize=140; 
+		pub const MACRO:isize=141; 
+		pub const MINUS:isize=142; 
+		pub const OPENING_BRACKET:isize=143; 
+		pub const ORG:isize=144; 
+		pub const PLUS:isize=145; 
+		pub const RIGHT_SHIFT:isize=146; 
+		pub const SLASH:isize=147; 
+		pub const NEWLINE:isize=148; 
+		pub const WS:isize=149; 
+		pub const LINE_COMMENT:isize=150; 
+		pub const BLOCK_COMMENT:isize=151; 
+		pub const DOUBLE_SLASH_LINE_COMMENT:isize=152; 
+		pub const STRING:isize=153; 
+		pub const NUMBER:isize=154; 
+		pub const HEX_NUMBER:isize=155; 
+		pub const BINARY_NUMBER:isize=156; 
+		pub const IDENTIFIER:isize=157;
 	pub const RULE_asm_file:usize = 0; 
 	pub const RULE_row:usize = 1; 
 	pub const RULE_instruction:usize = 2; 
@@ -236,7 +238,7 @@ use std::any::{Any,TypeId};
 	];
 
 
-	pub const _LITERAL_NAMES: [Option<&'static str>;146] = [
+	pub const _LITERAL_NAMES: [Option<&'static str>;148] = [
 		None, None, None, None, None, None, None, None, None, None, None, None, 
 		None, None, None, None, None, None, None, None, None, None, None, None, 
 		None, None, None, None, None, None, None, None, None, None, None, None, 
@@ -246,14 +248,14 @@ use std::any::{Any,TypeId};
 		None, None, None, None, None, None, None, None, None, None, None, None, 
 		None, None, None, None, None, None, None, None, None, None, None, None, 
 		None, None, None, None, None, None, None, None, None, None, None, None, 
-		None, None, None, None, None, None, None, None, None, None, Some("'*'"), 
-		Some("'@'"), Some("')'"), Some("':'"), Some("','"), Some("'cseg'"), Some("'def'"), 
-		Some("'device'"), Some("'.'"), Some("'else'"), Some("'endmacro'"), Some("'endif'"), 
-		Some("'='"), None, Some("'error'"), Some("'>'"), Some("'#'"), Some("'if'"), 
-		Some("'include'"), Some("'<<'"), Some("'<'"), Some("'macro'"), Some("'-'"), 
-		Some("'('"), Some("'org'"), Some("'+'"), Some("'>>'"), Some("'/'")
+		None, None, None, None, None, None, None, None, None, None, None, None, 
+		Some("'*'"), Some("'@'"), Some("')'"), Some("':'"), Some("','"), Some("'cseg'"), 
+		Some("'def'"), Some("'device'"), Some("'.'"), Some("'else'"), Some("'endmacro'"), 
+		Some("'endif'"), Some("'='"), None, Some("'error'"), Some("'>'"), Some("'#'"), 
+		Some("'if'"), Some("'include'"), Some("'<<'"), Some("'<'"), Some("'macro'"), 
+		Some("'-'"), Some("'('"), Some("'org'"), Some("'+'"), Some("'>>'"), Some("'/'")
 	];
-	pub const _SYMBOLIC_NAMES: [Option<&'static str>;156]  = [
+	pub const _SYMBOLIC_NAMES: [Option<&'static str>;158]  = [
 		None, Some("ADD"), Some("ADC"), Some("ADIW"), Some("AND"), Some("ANDI"), 
 		Some("ASR"), Some("BCLR"), Some("BLD"), Some("BRBC"), Some("BRBS"), Some("BRCC"), 
 		Some("BRCS"), Some("BREAK"), Some("BREQ"), Some("BRGE"), Some("BRHC"), 
@@ -266,23 +268,23 @@ use std::any::{Any,TypeId};
 		Some("EICALL"), Some("EIJMP"), Some("ELPM"), Some("EOR"), Some("FMUL"), 
 		Some("FMULS"), Some("FMULSU"), Some("ICALL"), Some("IJMP"), Some("IN"), 
 		Some("INC"), Some("JMP"), Some("LAC"), Some("LAS"), Some("LAT"), Some("LD"), 
-		Some("LDI"), Some("LDS"), Some("LPM"), Some("LSL"), Some("LSR"), Some("MOV"), 
-		Some("MOVW"), Some("MUL"), Some("MULS"), Some("MULSU"), Some("NEG"), Some("NOP"), 
-		Some("OR"), Some("ORI"), Some("OUT"), Some("POP"), Some("PUSH"), Some("RCALL"), 
-		Some("RET"), Some("RETI"), Some("RJMP"), Some("ROL"), Some("ROR"), Some("SBC"), 
-		Some("SBCI"), Some("SBI"), Some("SBIC"), Some("SBIS"), Some("SBIW"), Some("SBR"), 
-		Some("SBRC"), Some("SBRS"), Some("SEC"), Some("SEH"), Some("SEI"), Some("SEN"), 
-		Some("SER"), Some("SES"), Some("SET"), Some("SEV"), Some("SEZ"), Some("SLEEP"), 
-		Some("SPM"), Some("ST"), Some("STS"), Some("SUB"), Some("SUBI"), Some("SWAP"), 
-		Some("TST"), Some("WDR"), Some("XCH"), Some("ASTERISK"), Some("AT"), Some("CLOSEING_BRACKET"), 
-		Some("COLON"), Some("COMMA"), Some("CSEG"), Some("DEF"), Some("DEVICE"), 
-		Some("DOT"), Some("ELSE"), Some("END_MACRO"), Some("ENDIF"), Some("EQUALS"), 
-		Some("EQU"), Some("ERROR"), Some("GT"), Some("HASH_TAG"), Some("IF"), 
-		Some("INCLUDE"), Some("LEFT_SHIFT"), Some("LT"), Some("MACRO"), Some("MINUS"), 
-		Some("OPENING_BRACKET"), Some("ORG"), Some("PLUS"), Some("RIGHT_SHIFT"), 
-		Some("SLASH"), Some("NEWLINE"), Some("WS"), Some("LINE_COMMENT"), Some("BLOCK_COMMENT"), 
-		Some("DOUBLE_SLASH_LINE_COMMENT"), Some("STRING"), Some("NUMBER"), Some("HEX_NUMBER"), 
-		Some("BINARY_NUMBER"), Some("IDENTIFIER")
+		Some("LDD"), Some("LDI"), Some("LDS"), Some("LPM"), Some("LSL"), Some("LSR"), 
+		Some("MOV"), Some("MOVW"), Some("MUL"), Some("MULS"), Some("MULSU"), Some("NEG"), 
+		Some("NOP"), Some("OR"), Some("ORI"), Some("OUT"), Some("POP"), Some("PUSH"), 
+		Some("RCALL"), Some("RET"), Some("RETI"), Some("RJMP"), Some("ROL"), Some("ROR"), 
+		Some("SBC"), Some("SBCI"), Some("SBI"), Some("SBIC"), Some("SBIS"), Some("SBIW"), 
+		Some("SBR"), Some("SBRC"), Some("SBRS"), Some("SEC"), Some("SEH"), Some("SEI"), 
+		Some("SEN"), Some("SER"), Some("SES"), Some("SET"), Some("SEV"), Some("SEZ"), 
+		Some("SLEEP"), Some("SPM"), Some("ST"), Some("STD"), Some("STS"), Some("SUB"), 
+		Some("SUBI"), Some("SWAP"), Some("TST"), Some("WDR"), Some("XCH"), Some("ASTERISK"), 
+		Some("AT"), Some("CLOSEING_BRACKET"), Some("COLON"), Some("COMMA"), Some("CSEG"), 
+		Some("DEF"), Some("DEVICE"), Some("DOT"), Some("ELSE"), Some("END_MACRO"), 
+		Some("ENDIF"), Some("EQUALS"), Some("EQU"), Some("ERROR"), Some("GT"), 
+		Some("HASH_TAG"), Some("IF"), Some("INCLUDE"), Some("LEFT_SHIFT"), Some("LT"), 
+		Some("MACRO"), Some("MINUS"), Some("OPENING_BRACKET"), Some("ORG"), Some("PLUS"), 
+		Some("RIGHT_SHIFT"), Some("SLASH"), Some("NEWLINE"), Some("WS"), Some("LINE_COMMENT"), 
+		Some("BLOCK_COMMENT"), Some("DOUBLE_SLASH_LINE_COMMENT"), Some("STRING"), 
+		Some("NUMBER"), Some("HEX_NUMBER"), Some("BINARY_NUMBER"), Some("IDENTIFIER")
 	];
 	lazy_static!{
 	    static ref _shared_context_cache: Arc<PredictionContextCache> = Arc::new(PredictionContextCache::new());
@@ -460,21 +462,27 @@ where
 		) -> bool {
 		match pred_index {
 				0=>{
-					recog.precpred(None, 13)
+					recog.precpred(None, 15)
 				}
 				1=>{
-					recog.precpred(None, 12)
+					recog.precpred(None, 14)
 				}
 				2=>{
-					recog.precpred(None, 11)
+					recog.precpred(None, 13)
 				}
 				3=>{
-					recog.precpred(None, 10)
+					recog.precpred(None, 12)
 				}
 				4=>{
-					recog.precpred(None, 9)
+					recog.precpred(None, 11)
 				}
 				5=>{
+					recog.precpred(None, 10)
+				}
+				6=>{
+					recog.precpred(None, 9)
+				}
+				7=>{
 					recog.precpred(None, 8)
 				}
 			_ => true
@@ -830,7 +838,7 @@ pub type InstructionContext<'input> = BaseParserRuleContext<'input,InstructionCo
 
 #[derive(Clone)]
 pub struct InstructionContextExt<'input>{
-pub(crate) ph:PhantomData<&'input str>
+ph:PhantomData<&'input str>
 }
 
 impl<'input> assemblerParserContext<'input> for InstructionContext<'input>{}
@@ -861,7 +869,7 @@ impl<'input> CustomRuleContext<'input> for InstructionContextExt<'input>{
 antlr_rust::tid!{InstructionContextExt<'a>}
 
 impl<'input> InstructionContextExt<'input>{
-	pub fn new(parent: Option<Rc<dyn assemblerParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<InstructionContextAll<'input>> {
+	fn new(parent: Option<Rc<dyn assemblerParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<InstructionContextAll<'input>> {
 		Rc::new(
 			BaseParserRuleContext::new_parser_ctx(parent, invoking_state,InstructionContextExt{
 				ph:PhantomData
@@ -1749,7 +1757,7 @@ where
 
 			let tmp = recog.input.lt(-1).cloned();
 			recog.ctx.as_ref().unwrap().set_stop(tmp);
-			recog.base.set_state(165);
+			recog.base.set_state(171);
 			recog.err_handler.sync(&mut recog.base)?;
 			_alt = recog.interpreter.adaptive_predict(13,&mut recog.base)?;
 			while { _alt!=2 && _alt!=INVALID_ALT } {
@@ -1757,7 +1765,7 @@ where
 					recog.trigger_exit_rule_event();
 					_prevctx = _localctx.clone();
 					{
-					recog.base.set_state(163);
+					recog.base.set_state(169);
 					recog.err_handler.sync(&mut recog.base)?;
 					match  recog.interpreter.adaptive_predict(12,&mut recog.base)? {
 						1 =>{
@@ -1767,15 +1775,15 @@ where
 							recog.push_new_recursion_context(tmp.clone(), _startState, RULE_expression);
 							_localctx = tmp;
 							recog.base.set_state(145);
-							if !({recog.precpred(None, 13)}) {
-								Err(FailedPredicateError::new(&mut recog.base, Some("recog.precpred(None, 13)".to_owned()), None))?;
+							if !({recog.precpred(None, 15)}) {
+								Err(FailedPredicateError::new(&mut recog.base, Some("recog.precpred(None, 15)".to_owned()), None))?;
 							}
 							recog.base.set_state(146);
 							recog.base.match_token(LEFT_SHIFT,&mut recog.err_handler)?;
 
 							/*InvokeRule expression*/
 							recog.base.set_state(147);
-							recog.expression_rec(14)?;
+							recog.expression_rec(16)?;
 
 							}
 						}
@@ -1787,15 +1795,15 @@ where
 							recog.push_new_recursion_context(tmp.clone(), _startState, RULE_expression);
 							_localctx = tmp;
 							recog.base.set_state(148);
-							if !({recog.precpred(None, 12)}) {
-								Err(FailedPredicateError::new(&mut recog.base, Some("recog.precpred(None, 12)".to_owned()), None))?;
+							if !({recog.precpred(None, 14)}) {
+								Err(FailedPredicateError::new(&mut recog.base, Some("recog.precpred(None, 14)".to_owned()), None))?;
 							}
 							recog.base.set_state(149);
 							recog.base.match_token(RIGHT_SHIFT,&mut recog.err_handler)?;
 
 							/*InvokeRule expression*/
 							recog.base.set_state(150);
-							recog.expression_rec(13)?;
+							recog.expression_rec(15)?;
 
 							}
 						}
@@ -1807,15 +1815,15 @@ where
 							recog.push_new_recursion_context(tmp.clone(), _startState, RULE_expression);
 							_localctx = tmp;
 							recog.base.set_state(151);
-							if !({recog.precpred(None, 11)}) {
-								Err(FailedPredicateError::new(&mut recog.base, Some("recog.precpred(None, 11)".to_owned()), None))?;
+							if !({recog.precpred(None, 13)}) {
+								Err(FailedPredicateError::new(&mut recog.base, Some("recog.precpred(None, 13)".to_owned()), None))?;
 							}
 							recog.base.set_state(152);
 							recog.base.match_token(SLASH,&mut recog.err_handler)?;
 
 							/*InvokeRule expression*/
 							recog.base.set_state(153);
-							recog.expression_rec(12)?;
+							recog.expression_rec(14)?;
 
 							}
 						}
@@ -1827,15 +1835,15 @@ where
 							recog.push_new_recursion_context(tmp.clone(), _startState, RULE_expression);
 							_localctx = tmp;
 							recog.base.set_state(154);
-							if !({recog.precpred(None, 10)}) {
-								Err(FailedPredicateError::new(&mut recog.base, Some("recog.precpred(None, 10)".to_owned()), None))?;
+							if !({recog.precpred(None, 12)}) {
+								Err(FailedPredicateError::new(&mut recog.base, Some("recog.precpred(None, 12)".to_owned()), None))?;
 							}
 							recog.base.set_state(155);
 							recog.base.match_token(GT,&mut recog.err_handler)?;
 
 							/*InvokeRule expression*/
 							recog.base.set_state(156);
-							recog.expression_rec(11)?;
+							recog.expression_rec(13)?;
 
 							}
 						}
@@ -1847,15 +1855,15 @@ where
 							recog.push_new_recursion_context(tmp.clone(), _startState, RULE_expression);
 							_localctx = tmp;
 							recog.base.set_state(157);
-							if !({recog.precpred(None, 9)}) {
-								Err(FailedPredicateError::new(&mut recog.base, Some("recog.precpred(None, 9)".to_owned()), None))?;
+							if !({recog.precpred(None, 11)}) {
+								Err(FailedPredicateError::new(&mut recog.base, Some("recog.precpred(None, 11)".to_owned()), None))?;
 							}
 							recog.base.set_state(158);
 							recog.base.match_token(LT,&mut recog.err_handler)?;
 
 							/*InvokeRule expression*/
 							recog.base.set_state(159);
-							recog.expression_rec(10)?;
+							recog.expression_rec(12)?;
 
 							}
 						}
@@ -1867,14 +1875,54 @@ where
 							recog.push_new_recursion_context(tmp.clone(), _startState, RULE_expression);
 							_localctx = tmp;
 							recog.base.set_state(160);
-							if !({recog.precpred(None, 8)}) {
-								Err(FailedPredicateError::new(&mut recog.base, Some("recog.precpred(None, 8)".to_owned()), None))?;
+							if !({recog.precpred(None, 10)}) {
+								Err(FailedPredicateError::new(&mut recog.base, Some("recog.precpred(None, 10)".to_owned()), None))?;
 							}
 							recog.base.set_state(161);
 							recog.base.match_token(EQUALS,&mut recog.err_handler)?;
 
 							/*InvokeRule expression*/
 							recog.base.set_state(162);
+							recog.expression_rec(11)?;
+
+							}
+						}
+					,
+						7 =>{
+							{
+							/*recRuleAltStartAction*/
+							let mut tmp = ExpressionContextExt::new(_parentctx.clone(), _parentState);
+							recog.push_new_recursion_context(tmp.clone(), _startState, RULE_expression);
+							_localctx = tmp;
+							recog.base.set_state(163);
+							if !({recog.precpred(None, 9)}) {
+								Err(FailedPredicateError::new(&mut recog.base, Some("recog.precpred(None, 9)".to_owned()), None))?;
+							}
+							recog.base.set_state(164);
+							recog.base.match_token(PLUS,&mut recog.err_handler)?;
+
+							/*InvokeRule expression*/
+							recog.base.set_state(165);
+							recog.expression_rec(10)?;
+
+							}
+						}
+					,
+						8 =>{
+							{
+							/*recRuleAltStartAction*/
+							let mut tmp = ExpressionContextExt::new(_parentctx.clone(), _parentState);
+							recog.push_new_recursion_context(tmp.clone(), _startState, RULE_expression);
+							_localctx = tmp;
+							recog.base.set_state(166);
+							if !({recog.precpred(None, 8)}) {
+								Err(FailedPredicateError::new(&mut recog.base, Some("recog.precpred(None, 8)".to_owned()), None))?;
+							}
+							recog.base.set_state(167);
+							recog.base.match_token(MINUS,&mut recog.err_handler)?;
+
+							/*InvokeRule expression*/
+							recog.base.set_state(168);
 							recog.expression_rec(9)?;
 
 							}
@@ -1884,7 +1932,7 @@ where
 					}
 					} 
 				}
-				recog.base.set_state(167);
+				recog.base.set_state(173);
 				recog.err_handler.sync(&mut recog.base)?;
 				_alt = recog.interpreter.adaptive_predict(13,&mut recog.base)?;
 			}
@@ -1992,9 +2040,9 @@ where
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
 			{
-			recog.base.set_state(168);
+			recog.base.set_state(174);
 			_la = recog.base.input.la(1);
-			if { !(((((_la - 152)) & !0x3f) == 0 && ((1usize << (_la - 152)) & ((1usize << (NUMBER - 152)) | (1usize << (HEX_NUMBER - 152)) | (1usize << (BINARY_NUMBER - 152)))) != 0)) } {
+			if { !(((((_la - 154)) & !0x3f) == 0 && ((1usize << (_la - 154)) & ((1usize << (NUMBER - 154)) | (1usize << (HEX_NUMBER - 154)) | (1usize << (BINARY_NUMBER - 154)))) != 0)) } {
 				recog.err_handler.recover_inline(&mut recog.base)?;
 
 			}
@@ -2176,19 +2224,19 @@ where
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
 			{
-			recog.base.set_state(170);
+			recog.base.set_state(176);
 			recog.base.match_token(DOT,&mut recog.err_handler)?;
 
-			recog.base.set_state(191);
+			recog.base.set_state(197);
 			recog.err_handler.sync(&mut recog.base)?;
 			match recog.base.input.la(1) {
 			 INCLUDE 
 				=> {
 					{
-					recog.base.set_state(171);
+					recog.base.set_state(177);
 					recog.base.match_token(INCLUDE,&mut recog.err_handler)?;
 
-					recog.base.set_state(172);
+					recog.base.set_state(178);
 					recog.base.match_token(STRING,&mut recog.err_handler)?;
 
 					}
@@ -2197,10 +2245,10 @@ where
 			 DEVICE 
 				=> {
 					{
-					recog.base.set_state(173);
+					recog.base.set_state(179);
 					recog.base.match_token(DEVICE,&mut recog.err_handler)?;
 
-					recog.base.set_state(174);
+					recog.base.set_state(180);
 					recog.base.match_token(IDENTIFIER,&mut recog.err_handler)?;
 
 					}
@@ -2209,11 +2257,11 @@ where
 			 DEF 
 				=> {
 					{
-					recog.base.set_state(175);
+					recog.base.set_state(181);
 					recog.base.match_token(DEF,&mut recog.err_handler)?;
 
 					/*InvokeRule expression*/
-					recog.base.set_state(176);
+					recog.base.set_state(182);
 					recog.expression_rec(0)?;
 
 					}
@@ -2222,11 +2270,11 @@ where
 			 EQU 
 				=> {
 					{
-					recog.base.set_state(177);
+					recog.base.set_state(183);
 					recog.base.match_token(EQU,&mut recog.err_handler)?;
 
 					/*InvokeRule expression*/
-					recog.base.set_state(178);
+					recog.base.set_state(184);
 					recog.expression_rec(0)?;
 
 					}
@@ -2235,7 +2283,7 @@ where
 			 CSEG 
 				=> {
 					{
-					recog.base.set_state(179);
+					recog.base.set_state(185);
 					recog.base.match_token(CSEG,&mut recog.err_handler)?;
 
 					}
@@ -2244,10 +2292,10 @@ where
 			 ORG 
 				=> {
 					{
-					recog.base.set_state(180);
+					recog.base.set_state(186);
 					recog.base.match_token(ORG,&mut recog.err_handler)?;
 
-					recog.base.set_state(181);
+					recog.base.set_state(187);
 					_la = recog.base.input.la(1);
 					if { !(_la==HEX_NUMBER || _la==IDENTIFIER) } {
 						recog.err_handler.recover_inline(&mut recog.base)?;
@@ -2264,10 +2312,10 @@ where
 			 MACRO 
 				=> {
 					{
-					recog.base.set_state(182);
+					recog.base.set_state(188);
 					recog.base.match_token(MACRO,&mut recog.err_handler)?;
 
-					recog.base.set_state(183);
+					recog.base.set_state(189);
 					recog.base.match_token(IDENTIFIER,&mut recog.err_handler)?;
 
 					}
@@ -2276,7 +2324,7 @@ where
 			 END_MACRO 
 				=> {
 					{
-					recog.base.set_state(184);
+					recog.base.set_state(190);
 					recog.base.match_token(END_MACRO,&mut recog.err_handler)?;
 
 					}
@@ -2285,11 +2333,11 @@ where
 			 IF 
 				=> {
 					{
-					recog.base.set_state(185);
+					recog.base.set_state(191);
 					recog.base.match_token(IF,&mut recog.err_handler)?;
 
 					/*InvokeRule expression*/
-					recog.base.set_state(186);
+					recog.base.set_state(192);
 					recog.expression_rec(0)?;
 
 					}
@@ -2298,7 +2346,7 @@ where
 			 ELSE 
 				=> {
 					{
-					recog.base.set_state(187);
+					recog.base.set_state(193);
 					recog.base.match_token(ELSE,&mut recog.err_handler)?;
 
 					}
@@ -2307,7 +2355,7 @@ where
 			 ENDIF 
 				=> {
 					{
-					recog.base.set_state(188);
+					recog.base.set_state(194);
 					recog.base.match_token(ENDIF,&mut recog.err_handler)?;
 
 					}
@@ -2316,10 +2364,10 @@ where
 			 ERROR 
 				=> {
 					{
-					recog.base.set_state(189);
+					recog.base.set_state(195);
 					recog.base.match_token(ERROR,&mut recog.err_handler)?;
 
-					recog.base.set_state(190);
+					recog.base.set_state(196);
 					recog.base.match_token(STRING,&mut recog.err_handler)?;
 
 					}
@@ -2383,7 +2431,7 @@ impl<'input> CustomRuleContext<'input> for Asm_intrinsic_usageContextExt<'input>
 antlr_rust::tid!{Asm_intrinsic_usageContextExt<'a>}
 
 impl<'input> Asm_intrinsic_usageContextExt<'input>{
-	pub fn new(parent: Option<Rc<dyn assemblerParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Asm_intrinsic_usageContextAll<'input>> {
+	fn new(parent: Option<Rc<dyn assemblerParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Asm_intrinsic_usageContextAll<'input>> {
 		Rc::new(
 			BaseParserRuleContext::new_parser_ctx(parent, invoking_state,Asm_intrinsic_usageContextExt{
 				ph:PhantomData
@@ -2438,19 +2486,19 @@ where
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
 			{
-			recog.base.set_state(193);
+			recog.base.set_state(199);
 			recog.base.match_token(IDENTIFIER,&mut recog.err_handler)?;
 
-			recog.base.set_state(194);
+			recog.base.set_state(200);
 			recog.base.match_token(OPENING_BRACKET,&mut recog.err_handler)?;
 
-			recog.base.set_state(197);
+			recog.base.set_state(203);
 			recog.err_handler.sync(&mut recog.base)?;
 			match recog.base.input.la(1) {
 			 IDENTIFIER 
 				=> {
 					{
-					recog.base.set_state(195);
+					recog.base.set_state(201);
 					recog.base.match_token(IDENTIFIER,&mut recog.err_handler)?;
 
 					}
@@ -2460,7 +2508,7 @@ where
 				=> {
 					{
 					/*InvokeRule macro_placeholder*/
-					recog.base.set_state(196);
+					recog.base.set_state(202);
 					recog.macro_placeholder()?;
 
 					}
@@ -2468,7 +2516,7 @@ where
 
 				_ => Err(ANTLRError::NoAltError(NoViableAltError::new(&mut recog.base)))?
 			}
-			recog.base.set_state(199);
+			recog.base.set_state(205);
 			recog.base.match_token(CLOSEING_BRACKET,&mut recog.err_handler)?;
 
 			}
@@ -2621,10 +2669,10 @@ where
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
 			{
-			recog.base.set_state(201);
+			recog.base.set_state(207);
 			recog.base.match_token(HASH_TAG,&mut recog.err_handler)?;
 
-			recog.base.set_state(203); 
+			recog.base.set_state(209); 
 			recog.err_handler.sync(&mut recog.base)?;
 			_alt = 1;
 			loop {
@@ -2632,9 +2680,9 @@ where
 				    x if x == 1=>
 					{
 					{
-					recog.base.set_state(202);
+					recog.base.set_state(208);
 					_la = recog.base.input.la(1);
-					if { !(((((_la - 129)) & !0x3f) == 0 && ((1usize << (_la - 129)) & ((1usize << (ENDIF - 129)) | (1usize << (IF - 129)) | (1usize << (NUMBER - 129)) | (1usize << (HEX_NUMBER - 129)) | (1usize << (BINARY_NUMBER - 129)) | (1usize << (IDENTIFIER - 129)))) != 0)) } {
+					if { !(((((_la - 131)) & !0x3f) == 0 && ((1usize << (_la - 131)) & ((1usize << (ENDIF - 131)) | (1usize << (IF - 131)) | (1usize << (NUMBER - 131)) | (1usize << (HEX_NUMBER - 131)) | (1usize << (BINARY_NUMBER - 131)) | (1usize << (IDENTIFIER - 131)))) != 0)) } {
 						recog.err_handler.recover_inline(&mut recog.base)?;
 
 					}
@@ -2648,7 +2696,7 @@ where
 
 				_ => Err(ANTLRError::NoAltError(NoViableAltError::new(&mut recog.base)))?
 				}
-				recog.base.set_state(205); 
+				recog.base.set_state(211); 
 				recog.err_handler.sync(&mut recog.base)?;
 				_alt = recog.interpreter.adaptive_predict(16,&mut recog.base)?;
 				if _alt==2 || _alt==INVALID_ALT { break }
@@ -2793,7 +2841,7 @@ where
         let mut _localctx: Rc<MnemonicContextAll> = _localctx;
 		let result: Result<(), ANTLRError> = (|| {
 
-			recog.base.set_state(225);
+			recog.base.set_state(231);
 			recog.err_handler.sync(&mut recog.base)?;
 			match recog.base.input.la(1) {
 			 ADD | ADC | ADIW | AND | ANDI | ASR 
@@ -2802,7 +2850,7 @@ where
 					recog.base.enter_outer_alt(None, 1);
 					{
 					/*InvokeRule mnemonic_a*/
-					recog.base.set_state(207);
+					recog.base.set_state(213);
 					recog.mnemonic_a()?;
 
 					}
@@ -2816,7 +2864,7 @@ where
 					recog.base.enter_outer_alt(None, 2);
 					{
 					/*InvokeRule mnemonic_b*/
-					recog.base.set_state(208);
+					recog.base.set_state(214);
 					recog.mnemonic_b()?;
 
 					}
@@ -2829,7 +2877,7 @@ where
 					recog.base.enter_outer_alt(None, 3);
 					{
 					/*InvokeRule mnemonic_c*/
-					recog.base.set_state(209);
+					recog.base.set_state(215);
 					recog.mnemonic_c()?;
 
 					}
@@ -2841,7 +2889,7 @@ where
 					recog.base.enter_outer_alt(None, 4);
 					{
 					/*InvokeRule mnemonic_d*/
-					recog.base.set_state(210);
+					recog.base.set_state(216);
 					recog.mnemonic_d()?;
 
 					}
@@ -2853,7 +2901,7 @@ where
 					recog.base.enter_outer_alt(None, 5);
 					{
 					/*InvokeRule mnemonic_e*/
-					recog.base.set_state(211);
+					recog.base.set_state(217);
 					recog.mnemonic_e()?;
 
 					}
@@ -2865,7 +2913,7 @@ where
 					recog.base.enter_outer_alt(None, 6);
 					{
 					/*InvokeRule mnemonic_f*/
-					recog.base.set_state(212);
+					recog.base.set_state(218);
 					recog.mnemonic_f()?;
 
 					}
@@ -2877,7 +2925,7 @@ where
 					recog.base.enter_outer_alt(None, 7);
 					{
 					/*InvokeRule mnemonic_i*/
-					recog.base.set_state(213);
+					recog.base.set_state(219);
 					recog.mnemonic_i()?;
 
 					}
@@ -2889,19 +2937,19 @@ where
 					recog.base.enter_outer_alt(None, 8);
 					{
 					/*InvokeRule mnemonic_j*/
-					recog.base.set_state(214);
+					recog.base.set_state(220);
 					recog.mnemonic_j()?;
 
 					}
 				}
 
-			 LAC | LAS | LAT | LD | LDI | LDS | LPM | LSL | LSR 
+			 LAC | LAS | LAT | LD | LDD | LDI | LDS | LPM | LSL | LSR 
 				=> {
 					//recog.base.enter_outer_alt(_localctx.clone(), 9);
 					recog.base.enter_outer_alt(None, 9);
 					{
 					/*InvokeRule mnemonic_l*/
-					recog.base.set_state(215);
+					recog.base.set_state(221);
 					recog.mnemonic_l()?;
 
 					}
@@ -2913,7 +2961,7 @@ where
 					recog.base.enter_outer_alt(None, 10);
 					{
 					/*InvokeRule mnemonic_m*/
-					recog.base.set_state(216);
+					recog.base.set_state(222);
 					recog.mnemonic_m()?;
 
 					}
@@ -2925,7 +2973,7 @@ where
 					recog.base.enter_outer_alt(None, 11);
 					{
 					/*InvokeRule mnemonic_n*/
-					recog.base.set_state(217);
+					recog.base.set_state(223);
 					recog.mnemonic_n()?;
 
 					}
@@ -2937,7 +2985,7 @@ where
 					recog.base.enter_outer_alt(None, 12);
 					{
 					/*InvokeRule mnemonic_o*/
-					recog.base.set_state(218);
+					recog.base.set_state(224);
 					recog.mnemonic_o()?;
 
 					}
@@ -2949,7 +2997,7 @@ where
 					recog.base.enter_outer_alt(None, 13);
 					{
 					/*InvokeRule mnemonic_p*/
-					recog.base.set_state(219);
+					recog.base.set_state(225);
 					recog.mnemonic_p()?;
 
 					}
@@ -2961,21 +3009,21 @@ where
 					recog.base.enter_outer_alt(None, 14);
 					{
 					/*InvokeRule mnemonic_r*/
-					recog.base.set_state(220);
+					recog.base.set_state(226);
 					recog.mnemonic_r()?;
 
 					}
 				}
 
 			 SBC | SBCI | SBI | SBIC | SBIS | SBIW | SBR | SBRC | SBRS | SEC | SEH |
-			 SEI | SEN | SER | SES | SET | SEV | SEZ | SLEEP | SPM | ST | STS | SUB |
-			 SUBI | SWAP 
+			 SEI | SEN | SER | SES | SET | SEV | SEZ | SLEEP | SPM | ST | STD | STS |
+			 SUB | SUBI | SWAP 
 				=> {
 					//recog.base.enter_outer_alt(_localctx.clone(), 15);
 					recog.base.enter_outer_alt(None, 15);
 					{
 					/*InvokeRule mnemonic_s*/
-					recog.base.set_state(221);
+					recog.base.set_state(227);
 					recog.mnemonic_s()?;
 
 					}
@@ -2987,7 +3035,7 @@ where
 					recog.base.enter_outer_alt(None, 16);
 					{
 					/*InvokeRule mnemonic_t*/
-					recog.base.set_state(222);
+					recog.base.set_state(228);
 					recog.mnemonic_t()?;
 
 					}
@@ -2999,7 +3047,7 @@ where
 					recog.base.enter_outer_alt(None, 17);
 					{
 					/*InvokeRule mnemonic_w*/
-					recog.base.set_state(223);
+					recog.base.set_state(229);
 					recog.mnemonic_w()?;
 
 					}
@@ -3011,7 +3059,7 @@ where
 					recog.base.enter_outer_alt(None, 18);
 					{
 					/*InvokeRule mnemonic_x*/
-					recog.base.set_state(224);
+					recog.base.set_state(230);
 					recog.mnemonic_x()?;
 
 					}
@@ -3138,7 +3186,7 @@ where
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
 			{
-			recog.base.set_state(227);
+			recog.base.set_state(233);
 			_la = recog.base.input.la(1);
 			if { !((((_la) & !0x3f) == 0 && ((1usize << _la) & ((1usize << ADD) | (1usize << ADC) | (1usize << ADIW) | (1usize << AND) | (1usize << ANDI) | (1usize << ASR))) != 0)) } {
 				recog.err_handler.recover_inline(&mut recog.base)?;
@@ -3364,7 +3412,7 @@ where
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
 			{
-			recog.base.set_state(229);
+			recog.base.set_state(235);
 			_la = recog.base.input.la(1);
 			if { !((((_la) & !0x3f) == 0 && ((1usize << _la) & ((1usize << BCLR) | (1usize << BLD) | (1usize << BRBC) | (1usize << BRBS) | (1usize << BRCC) | (1usize << BRCS) | (1usize << BREAK) | (1usize << BREQ) | (1usize << BRGE) | (1usize << BRHC) | (1usize << BRHS) | (1usize << BRID) | (1usize << BRIE) | (1usize << BRLO) | (1usize << BRLT) | (1usize << BRMI) | (1usize << BRNE) | (1usize << BRPL) | (1usize << BRSH) | (1usize << BRTC) | (1usize << BRTS) | (1usize << BRVC) | (1usize << BRVS) | (1usize << BSET) | (1usize << BST))) != 0)) } {
 				recog.err_handler.recover_inline(&mut recog.base)?;
@@ -3550,7 +3598,7 @@ where
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
 			{
-			recog.base.set_state(231);
+			recog.base.set_state(237);
 			_la = recog.base.input.la(1);
 			if { !(((((_la - 32)) & !0x3f) == 0 && ((1usize << (_la - 32)) & ((1usize << (CALL - 32)) | (1usize << (CBI - 32)) | (1usize << (CBR - 32)) | (1usize << (CLC - 32)) | (1usize << (CLH - 32)) | (1usize << (CLI - 32)) | (1usize << (CLN - 32)) | (1usize << (CLR - 32)) | (1usize << (CLS - 32)) | (1usize << (CLT - 32)) | (1usize << (CLV - 32)) | (1usize << (CLZ - 32)) | (1usize << (COM - 32)) | (1usize << (CP - 32)) | (1usize << (CPC - 32)) | (1usize << (CPI - 32)) | (1usize << (CPSE - 32)))) != 0)) } {
 				recog.err_handler.recover_inline(&mut recog.base)?;
@@ -3661,7 +3709,7 @@ where
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
 			{
-			recog.base.set_state(233);
+			recog.base.set_state(239);
 			_la = recog.base.input.la(1);
 			if { !(_la==DEC || _la==DES) } {
 				recog.err_handler.recover_inline(&mut recog.base)?;
@@ -3782,7 +3830,7 @@ where
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
 			{
-			recog.base.set_state(235);
+			recog.base.set_state(241);
 			_la = recog.base.input.la(1);
 			if { !(((((_la - 51)) & !0x3f) == 0 && ((1usize << (_la - 51)) & ((1usize << (EICALL - 51)) | (1usize << (EIJMP - 51)) | (1usize << (ELPM - 51)) | (1usize << (EOR - 51)))) != 0)) } {
 				recog.err_handler.recover_inline(&mut recog.base)?;
@@ -3898,7 +3946,7 @@ where
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
 			{
-			recog.base.set_state(237);
+			recog.base.set_state(243);
 			_la = recog.base.input.la(1);
 			if { !(((((_la - 55)) & !0x3f) == 0 && ((1usize << (_la - 55)) & ((1usize << (FMUL - 55)) | (1usize << (FMULS - 55)) | (1usize << (FMULSU - 55)))) != 0)) } {
 				recog.err_handler.recover_inline(&mut recog.base)?;
@@ -4019,7 +4067,7 @@ where
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
 			{
-			recog.base.set_state(239);
+			recog.base.set_state(245);
 			_la = recog.base.input.la(1);
 			if { !(((((_la - 58)) & !0x3f) == 0 && ((1usize << (_la - 58)) & ((1usize << (ICALL - 58)) | (1usize << (IJMP - 58)) | (1usize << (IN - 58)) | (1usize << (INC - 58)))) != 0)) } {
 				recog.err_handler.recover_inline(&mut recog.base)?;
@@ -4124,7 +4172,7 @@ where
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
 			{
-			recog.base.set_state(241);
+			recog.base.set_state(247);
 			recog.base.match_token(JMP,&mut recog.err_handler)?;
 
 			}
@@ -4214,6 +4262,11 @@ fn LAT(&self) -> Option<Rc<TerminalNode<'input,assemblerParserContextType>>> whe
 fn LD(&self) -> Option<Rc<TerminalNode<'input,assemblerParserContextType>>> where Self:Sized{
 	self.get_token(LD, 0)
 }
+/// Retrieves first TerminalNode corresponding to token LDD
+/// Returns `None` if there is no child corresponding to token LDD
+fn LDD(&self) -> Option<Rc<TerminalNode<'input,assemblerParserContextType>>> where Self:Sized{
+	self.get_token(LDD, 0)
+}
 /// Retrieves first TerminalNode corresponding to token LDI
 /// Returns `None` if there is no child corresponding to token LDI
 fn LDI(&self) -> Option<Rc<TerminalNode<'input,assemblerParserContextType>>> where Self:Sized{
@@ -4262,9 +4315,9 @@ where
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
 			{
-			recog.base.set_state(243);
+			recog.base.set_state(249);
 			_la = recog.base.input.la(1);
-			if { !(((((_la - 63)) & !0x3f) == 0 && ((1usize << (_la - 63)) & ((1usize << (LAC - 63)) | (1usize << (LAS - 63)) | (1usize << (LAT - 63)) | (1usize << (LD - 63)) | (1usize << (LDI - 63)) | (1usize << (LDS - 63)) | (1usize << (LPM - 63)) | (1usize << (LSL - 63)) | (1usize << (LSR - 63)))) != 0)) } {
+			if { !(((((_la - 63)) & !0x3f) == 0 && ((1usize << (_la - 63)) & ((1usize << (LAC - 63)) | (1usize << (LAS - 63)) | (1usize << (LAT - 63)) | (1usize << (LD - 63)) | (1usize << (LDD - 63)) | (1usize << (LDI - 63)) | (1usize << (LDS - 63)) | (1usize << (LPM - 63)) | (1usize << (LSL - 63)) | (1usize << (LSR - 63)))) != 0)) } {
 				recog.err_handler.recover_inline(&mut recog.base)?;
 
 			}
@@ -4388,9 +4441,9 @@ where
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
 			{
-			recog.base.set_state(245);
+			recog.base.set_state(251);
 			_la = recog.base.input.la(1);
-			if { !(((((_la - 72)) & !0x3f) == 0 && ((1usize << (_la - 72)) & ((1usize << (MOV - 72)) | (1usize << (MOVW - 72)) | (1usize << (MUL - 72)) | (1usize << (MULS - 72)) | (1usize << (MULSU - 72)))) != 0)) } {
+			if { !(((((_la - 73)) & !0x3f) == 0 && ((1usize << (_la - 73)) & ((1usize << (MOV - 73)) | (1usize << (MOVW - 73)) | (1usize << (MUL - 73)) | (1usize << (MULS - 73)) | (1usize << (MULSU - 73)))) != 0)) } {
 				recog.err_handler.recover_inline(&mut recog.base)?;
 
 			}
@@ -4499,7 +4552,7 @@ where
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
 			{
-			recog.base.set_state(247);
+			recog.base.set_state(253);
 			_la = recog.base.input.la(1);
 			if { !(_la==NEG || _la==NOP) } {
 				recog.err_handler.recover_inline(&mut recog.base)?;
@@ -4615,9 +4668,9 @@ where
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
 			{
-			recog.base.set_state(249);
+			recog.base.set_state(255);
 			_la = recog.base.input.la(1);
-			if { !(((((_la - 79)) & !0x3f) == 0 && ((1usize << (_la - 79)) & ((1usize << (OR - 79)) | (1usize << (ORI - 79)) | (1usize << (OUT - 79)))) != 0)) } {
+			if { !(((((_la - 80)) & !0x3f) == 0 && ((1usize << (_la - 80)) & ((1usize << (OR - 80)) | (1usize << (ORI - 80)) | (1usize << (OUT - 80)))) != 0)) } {
 				recog.err_handler.recover_inline(&mut recog.base)?;
 
 			}
@@ -4726,7 +4779,7 @@ where
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
 			{
-			recog.base.set_state(251);
+			recog.base.set_state(257);
 			_la = recog.base.input.la(1);
 			if { !(_la==POP || _la==PUSH) } {
 				recog.err_handler.recover_inline(&mut recog.base)?;
@@ -4857,9 +4910,9 @@ where
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
 			{
-			recog.base.set_state(253);
+			recog.base.set_state(259);
 			_la = recog.base.input.la(1);
-			if { !(((((_la - 84)) & !0x3f) == 0 && ((1usize << (_la - 84)) & ((1usize << (RCALL - 84)) | (1usize << (RET - 84)) | (1usize << (RETI - 84)) | (1usize << (RJMP - 84)) | (1usize << (ROL - 84)) | (1usize << (ROR - 84)))) != 0)) } {
+			if { !(((((_la - 85)) & !0x3f) == 0 && ((1usize << (_la - 85)) & ((1usize << (RCALL - 85)) | (1usize << (RET - 85)) | (1usize << (RETI - 85)) | (1usize << (RJMP - 85)) | (1usize << (ROL - 85)) | (1usize << (ROR - 85)))) != 0)) } {
 				recog.err_handler.recover_inline(&mut recog.base)?;
 
 			}
@@ -5040,6 +5093,11 @@ fn SPM(&self) -> Option<Rc<TerminalNode<'input,assemblerParserContextType>>> whe
 fn ST(&self) -> Option<Rc<TerminalNode<'input,assemblerParserContextType>>> where Self:Sized{
 	self.get_token(ST, 0)
 }
+/// Retrieves first TerminalNode corresponding to token STD
+/// Returns `None` if there is no child corresponding to token STD
+fn STD(&self) -> Option<Rc<TerminalNode<'input,assemblerParserContextType>>> where Self:Sized{
+	self.get_token(STD, 0)
+}
 /// Retrieves first TerminalNode corresponding to token STS
 /// Returns `None` if there is no child corresponding to token STS
 fn STS(&self) -> Option<Rc<TerminalNode<'input,assemblerParserContextType>>> where Self:Sized{
@@ -5083,9 +5141,9 @@ where
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
 			{
-			recog.base.set_state(255);
+			recog.base.set_state(261);
 			_la = recog.base.input.la(1);
-			if { !(((((_la - 90)) & !0x3f) == 0 && ((1usize << (_la - 90)) & ((1usize << (SBC - 90)) | (1usize << (SBCI - 90)) | (1usize << (SBI - 90)) | (1usize << (SBIC - 90)) | (1usize << (SBIS - 90)) | (1usize << (SBIW - 90)) | (1usize << (SBR - 90)) | (1usize << (SBRC - 90)) | (1usize << (SBRS - 90)) | (1usize << (SEC - 90)) | (1usize << (SEH - 90)) | (1usize << (SEI - 90)) | (1usize << (SEN - 90)) | (1usize << (SER - 90)) | (1usize << (SES - 90)) | (1usize << (SET - 90)) | (1usize << (SEV - 90)) | (1usize << (SEZ - 90)) | (1usize << (SLEEP - 90)) | (1usize << (SPM - 90)) | (1usize << (ST - 90)) | (1usize << (STS - 90)) | (1usize << (SUB - 90)) | (1usize << (SUBI - 90)) | (1usize << (SWAP - 90)))) != 0)) } {
+			if { !(((((_la - 91)) & !0x3f) == 0 && ((1usize << (_la - 91)) & ((1usize << (SBC - 91)) | (1usize << (SBCI - 91)) | (1usize << (SBI - 91)) | (1usize << (SBIC - 91)) | (1usize << (SBIS - 91)) | (1usize << (SBIW - 91)) | (1usize << (SBR - 91)) | (1usize << (SBRC - 91)) | (1usize << (SBRS - 91)) | (1usize << (SEC - 91)) | (1usize << (SEH - 91)) | (1usize << (SEI - 91)) | (1usize << (SEN - 91)) | (1usize << (SER - 91)) | (1usize << (SES - 91)) | (1usize << (SET - 91)) | (1usize << (SEV - 91)) | (1usize << (SEZ - 91)) | (1usize << (SLEEP - 91)) | (1usize << (SPM - 91)) | (1usize << (ST - 91)) | (1usize << (STD - 91)) | (1usize << (STS - 91)) | (1usize << (SUB - 91)) | (1usize << (SUBI - 91)) | (1usize << (SWAP - 91)))) != 0)) } {
 				recog.err_handler.recover_inline(&mut recog.base)?;
 
 			}
@@ -5188,7 +5246,7 @@ where
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
 			{
-			recog.base.set_state(257);
+			recog.base.set_state(263);
 			recog.base.match_token(TST,&mut recog.err_handler)?;
 
 			}
@@ -5285,7 +5343,7 @@ where
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
 			{
-			recog.base.set_state(259);
+			recog.base.set_state(265);
 			recog.base.match_token(WDR,&mut recog.err_handler)?;
 
 			}
@@ -5382,7 +5440,7 @@ where
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
 			{
-			recog.base.set_state(261);
+			recog.base.set_state(267);
 			recog.base.match_token(XCH,&mut recog.err_handler)?;
 
 			}
@@ -5424,7 +5482,7 @@ lazy_static! {
 
 const _serializedATN:&'static str =
 	"\x03\u{608b}\u{a72a}\u{8133}\u{b9ed}\u{417c}\u{3be7}\u{7786}\u{5964}\x03\
-	\u{9d}\u{10a}\x04\x02\x09\x02\x04\x03\x09\x03\x04\x04\x09\x04\x04\x05\x09\
+	\u{9f}\u{110}\x04\x02\x09\x02\x04\x03\x09\x03\x04\x04\x09\x04\x04\x05\x09\
 	\x05\x04\x06\x09\x06\x04\x07\x09\x07\x04\x08\x09\x08\x04\x09\x09\x09\x04\
 	\x0a\x09\x0a\x04\x0b\x09\x0b\x04\x0c\x09\x0c\x04\x0d\x09\x0d\x04\x0e\x09\
 	\x0e\x04\x0f\x09\x0f\x04\x10\x09\x10\x04\x11\x09\x11\x04\x12\x09\x12\x04\
@@ -5443,132 +5501,135 @@ const _serializedATN:&'static str =
 	\x09\x03\x09\x03\x09\x03\x09\x03\x09\x03\x09\x03\x09\x03\x09\x03\x09\x05\
 	\x09\u{92}\x0a\x09\x03\x09\x03\x09\x03\x09\x03\x09\x03\x09\x03\x09\x03\x09\
 	\x03\x09\x03\x09\x03\x09\x03\x09\x03\x09\x03\x09\x03\x09\x03\x09\x03\x09\
-	\x03\x09\x03\x09\x07\x09\u{a6}\x0a\x09\x0c\x09\x0e\x09\u{a9}\x0b\x09\x03\
-	\x0a\x03\x0a\x03\x0b\x03\x0b\x03\x0b\x03\x0b\x03\x0b\x03\x0b\x03\x0b\x03\
+	\x03\x09\x03\x09\x03\x09\x03\x09\x03\x09\x03\x09\x03\x09\x03\x09\x07\x09\
+	\u{ac}\x0a\x09\x0c\x09\x0e\x09\u{af}\x0b\x09\x03\x0a\x03\x0a\x03\x0b\x03\
 	\x0b\x03\x0b\x03\x0b\x03\x0b\x03\x0b\x03\x0b\x03\x0b\x03\x0b\x03\x0b\x03\
-	\x0b\x03\x0b\x03\x0b\x03\x0b\x03\x0b\x05\x0b\u{c2}\x0a\x0b\x03\x0c\x03\x0c\
-	\x03\x0c\x03\x0c\x05\x0c\u{c8}\x0a\x0c\x03\x0c\x03\x0c\x03\x0d\x03\x0d\x06\
-	\x0d\u{ce}\x0a\x0d\x0d\x0d\x0e\x0d\u{cf}\x03\x0e\x03\x0e\x03\x0e\x03\x0e\
+	\x0b\x03\x0b\x03\x0b\x03\x0b\x03\x0b\x03\x0b\x03\x0b\x03\x0b\x03\x0b\x03\
+	\x0b\x03\x0b\x05\x0b\u{c8}\x0a\x0b\x03\x0c\x03\x0c\x03\x0c\x03\x0c\x05\x0c\
+	\u{ce}\x0a\x0c\x03\x0c\x03\x0c\x03\x0d\x03\x0d\x06\x0d\u{d4}\x0a\x0d\x0d\
+	\x0d\x0e\x0d\u{d5}\x03\x0e\x03\x0e\x03\x0e\x03\x0e\x03\x0e\x03\x0e\x03\x0e\
 	\x03\x0e\x03\x0e\x03\x0e\x03\x0e\x03\x0e\x03\x0e\x03\x0e\x03\x0e\x03\x0e\
-	\x03\x0e\x03\x0e\x03\x0e\x03\x0e\x03\x0e\x05\x0e\u{e4}\x0a\x0e\x03\x0f\x03\
-	\x0f\x03\x10\x03\x10\x03\x11\x03\x11\x03\x12\x03\x12\x03\x13\x03\x13\x03\
-	\x14\x03\x14\x03\x15\x03\x15\x03\x16\x03\x16\x03\x17\x03\x17\x03\x18\x03\
-	\x18\x03\x19\x03\x19\x03\x1a\x03\x1a\x03\x1b\x03\x1b\x03\x1c\x03\x1c\x03\
-	\x1d\x03\x1d\x03\x1e\x03\x1e\x03\x1f\x03\x1f\x03\x20\x03\x20\x03\x20\x02\
-	\x03\x10\x21\x02\x04\x06\x08\x0a\x0c\x0e\x10\x12\x14\x16\x18\x1a\x1c\x1e\
-	\x20\x22\x24\x26\x28\x2a\x2c\x2e\x30\x32\x34\x36\x38\x3a\x3c\x3e\x02\x14\
-	\x04\x02\u{8e}\u{8e}\u{91}\u{91}\x03\x02\u{9a}\u{9c}\x04\x02\u{9b}\u{9b}\
-	\u{9d}\u{9d}\x05\x02\u{83}\u{83}\u{89}\u{89}\u{9a}\u{9d}\x03\x02\x03\x08\
-	\x03\x02\x09\x21\x03\x02\x22\x32\x03\x02\x33\x34\x03\x02\x35\x38\x03\x02\
-	\x39\x3b\x03\x02\x3c\x3f\x03\x02\x41\x49\x03\x02\x4a\x4e\x03\x02\x4f\x50\
-	\x03\x02\x51\x53\x03\x02\x54\x55\x03\x02\x56\x5b\x03\x02\x5c\x74\x02\u{125}\
-	\x02\x43\x03\x02\x02\x02\x04\x60\x03\x02\x02\x02\x06\x62\x03\x02\x02\x02\
-	\x08\x74\x03\x02\x02\x02\x0a\x76\x03\x02\x02\x02\x0c\x7d\x03\x02\x02\x02\
-	\x0e\u{80}\x03\x02\x02\x02\x10\u{91}\x03\x02\x02\x02\x12\u{aa}\x03\x02\x02\
-	\x02\x14\u{ac}\x03\x02\x02\x02\x16\u{c3}\x03\x02\x02\x02\x18\u{cb}\x03\x02\
-	\x02\x02\x1a\u{e3}\x03\x02\x02\x02\x1c\u{e5}\x03\x02\x02\x02\x1e\u{e7}\x03\
-	\x02\x02\x02\x20\u{e9}\x03\x02\x02\x02\x22\u{eb}\x03\x02\x02\x02\x24\u{ed}\
-	\x03\x02\x02\x02\x26\u{ef}\x03\x02\x02\x02\x28\u{f1}\x03\x02\x02\x02\x2a\
-	\u{f3}\x03\x02\x02\x02\x2c\u{f5}\x03\x02\x02\x02\x2e\u{f7}\x03\x02\x02\x02\
-	\x30\u{f9}\x03\x02\x02\x02\x32\u{fb}\x03\x02\x02\x02\x34\u{fd}\x03\x02\x02\
-	\x02\x36\u{ff}\x03\x02\x02\x02\x38\u{101}\x03\x02\x02\x02\x3a\u{103}\x03\
-	\x02\x02\x02\x3c\u{105}\x03\x02\x02\x02\x3e\u{107}\x03\x02\x02\x02\x40\x42\
-	\x07\u{94}\x02\x02\x41\x40\x03\x02\x02\x02\x42\x45\x03\x02\x02\x02\x43\x41\
-	\x03\x02\x02\x02\x43\x44\x03\x02\x02\x02\x44\x46\x03\x02\x02\x02\x45\x43\
-	\x03\x02\x02\x02\x46\x50\x05\x04\x03\x02\x47\x49\x07\u{94}\x02\x02\x48\x47\
-	\x03\x02\x02\x02\x49\x4c\x03\x02\x02\x02\x4a\x48\x03\x02\x02\x02\x4a\x4b\
-	\x03\x02\x02\x02\x4b\x4d\x03\x02\x02\x02\x4c\x4a\x03\x02\x02\x02\x4d\x4f\
-	\x05\x04\x03\x02\x4e\x4a\x03\x02\x02\x02\x4f\x52\x03\x02\x02\x02\x50\x4e\
-	\x03\x02\x02\x02\x50\x51\x03\x02\x02\x02\x51\x56\x03\x02\x02\x02\x52\x50\
-	\x03\x02\x02\x02\x53\x55\x07\u{94}\x02\x02\x54\x53\x03\x02\x02\x02\x55\x58\
-	\x03\x02\x02\x02\x56\x54\x03\x02\x02\x02\x56\x57\x03\x02\x02\x02\x57\x59\
-	\x03\x02\x02\x02\x58\x56\x03\x02\x02\x02\x59\x5a\x07\x02\x02\x03\x5a\x03\
-	\x03\x02\x02\x02\x5b\x61\x05\x14\x0b\x02\x5c\x61\x05\x0a\x06\x02\x5d\x61\
-	\x05\x0c\x07\x02\x5e\x61\x05\x06\x04\x02\x5f\x61\x05\x18\x0d\x02\x60\x5b\
-	\x03\x02\x02\x02\x60\x5c\x03\x02\x02\x02\x60\x5d\x03\x02\x02\x02\x60\x5e\
-	\x03\x02\x02\x02\x60\x5f\x03\x02\x02\x02\x61\x05\x03\x02\x02\x02\x62\x68\
-	\x05\x1a\x0e\x02\x63\x66\x05\x08\x05\x02\x64\x65\x07\x7c\x02\x02\x65\x67\
-	\x05\x08\x05\x02\x66\x64\x03\x02\x02\x02\x66\x67\x03\x02\x02\x02\x67\x69\
-	\x03\x02\x02\x02\x68\x63\x03\x02\x02\x02\x68\x69\x03\x02\x02\x02\x69\x07\
-	\x03\x02\x02\x02\x6a\x6c\x07\u{8e}\x02\x02\x6b\x6a\x03\x02\x02\x02\x6b\x6c\
-	\x03\x02\x02\x02\x6c\x6d\x03\x02\x02\x02\x6d\x6f\x07\u{9d}\x02\x02\x6e\x70\
-	\x07\u{91}\x02\x02\x6f\x6e\x03\x02\x02\x02\x6f\x70\x03\x02\x02\x02\x70\x75\
-	\x03\x02\x02\x02\x71\x75\x05\x10\x09\x02\x72\x75\x05\x16\x0c\x02\x73\x75\
-	\x05\x0e\x08\x02\x74\x6b\x03\x02\x02\x02\x74\x71\x03\x02\x02\x02\x74\x72\
-	\x03\x02\x02\x02\x74\x73\x03\x02\x02\x02\x75\x09\x03\x02\x02\x02\x76\x7a\
-	\x07\u{9d}\x02\x02\x77\x79\x05\x10\x09\x02\x78\x77\x03\x02\x02\x02\x79\x7c\
-	\x03\x02\x02\x02\x7a\x78\x03\x02\x02\x02\x7a\x7b\x03\x02\x02\x02\x7b\x0b\
-	\x03\x02\x02\x02\x7c\x7a\x03\x02\x02\x02\x7d\x7e\x07\u{9d}\x02\x02\x7e\x7f\
-	\x07\x7b\x02\x02\x7f\x0d\x03\x02\x02\x02\u{80}\u{81}\x07\x79\x02\x02\u{81}\
-	\u{82}\x07\u{9a}\x02\x02\u{82}\x0f\x03\x02\x02\x02\u{83}\u{84}\x08\x09\x01\
-	\x02\u{84}\u{85}\x07\u{8f}\x02\x02\u{85}\u{86}\x05\x10\x09\x02\u{86}\u{87}\
-	\x07\x7a\x02\x02\u{87}\u{92}\x03\x02\x02\x02\u{88}\u{89}\x07\u{80}\x02\x02\
-	\u{89}\u{8a}\x09\x02\x02\x02\u{8a}\u{92}\x05\x12\x0a\x02\u{8b}\u{92}\x07\
-	\u{9c}\x02\x02\u{8c}\u{92}\x07\u{9b}\x02\x02\u{8d}\u{92}\x07\u{9a}\x02\x02\
-	\u{8e}\u{92}\x07\u{9d}\x02\x02\u{8f}\u{92}\x07\u{99}\x02\x02\u{90}\u{92}\
-	\x05\x0e\x08\x02\u{91}\u{83}\x03\x02\x02\x02\u{91}\u{88}\x03\x02\x02\x02\
-	\u{91}\u{8b}\x03\x02\x02\x02\u{91}\u{8c}\x03\x02\x02\x02\u{91}\u{8d}\x03\
-	\x02\x02\x02\u{91}\u{8e}\x03\x02\x02\x02\u{91}\u{8f}\x03\x02\x02\x02\u{91}\
-	\u{90}\x03\x02\x02\x02\u{92}\u{a7}\x03\x02\x02\x02\u{93}\u{94}\x0c\x0f\x02\
-	\x02\u{94}\u{95}\x07\u{8b}\x02\x02\u{95}\u{a6}\x05\x10\x09\x10\u{96}\u{97}\
-	\x0c\x0e\x02\x02\u{97}\u{98}\x07\u{92}\x02\x02\u{98}\u{a6}\x05\x10\x09\x0f\
-	\u{99}\u{9a}\x0c\x0d\x02\x02\u{9a}\u{9b}\x07\u{93}\x02\x02\u{9b}\u{a6}\x05\
-	\x10\x09\x0e\u{9c}\u{9d}\x0c\x0c\x02\x02\u{9d}\u{9e}\x07\u{87}\x02\x02\u{9e}\
-	\u{a6}\x05\x10\x09\x0d\u{9f}\u{a0}\x0c\x0b\x02\x02\u{a0}\u{a1}\x07\u{8c}\
-	\x02\x02\u{a1}\u{a6}\x05\x10\x09\x0c\u{a2}\u{a3}\x0c\x0a\x02\x02\u{a3}\u{a4}\
-	\x07\u{84}\x02\x02\u{a4}\u{a6}\x05\x10\x09\x0b\u{a5}\u{93}\x03\x02\x02\x02\
-	\u{a5}\u{96}\x03\x02\x02\x02\u{a5}\u{99}\x03\x02\x02\x02\u{a5}\u{9c}\x03\
-	\x02\x02\x02\u{a5}\u{9f}\x03\x02\x02\x02\u{a5}\u{a2}\x03\x02\x02\x02\u{a6}\
-	\u{a9}\x03\x02\x02\x02\u{a7}\u{a5}\x03\x02\x02\x02\u{a7}\u{a8}\x03\x02\x02\
-	\x02\u{a8}\x11\x03\x02\x02\x02\u{a9}\u{a7}\x03\x02\x02\x02\u{aa}\u{ab}\x09\
-	\x03\x02\x02\u{ab}\x13\x03\x02\x02\x02\u{ac}\u{c1}\x07\u{80}\x02\x02\u{ad}\
-	\u{ae}\x07\u{8a}\x02\x02\u{ae}\u{c2}\x07\u{99}\x02\x02\u{af}\u{b0}\x07\x7f\
-	\x02\x02\u{b0}\u{c2}\x07\u{9d}\x02\x02\u{b1}\u{b2}\x07\x7e\x02\x02\u{b2}\
-	\u{c2}\x05\x10\x09\x02\u{b3}\u{b4}\x07\u{85}\x02\x02\u{b4}\u{c2}\x05\x10\
-	\x09\x02\u{b5}\u{c2}\x07\x7d\x02\x02\u{b6}\u{b7}\x07\u{90}\x02\x02\u{b7}\
-	\u{c2}\x09\x04\x02\x02\u{b8}\u{b9}\x07\u{8d}\x02\x02\u{b9}\u{c2}\x07\u{9d}\
-	\x02\x02\u{ba}\u{c2}\x07\u{82}\x02\x02\u{bb}\u{bc}\x07\u{89}\x02\x02\u{bc}\
-	\u{c2}\x05\x10\x09\x02\u{bd}\u{c2}\x07\u{81}\x02\x02\u{be}\u{c2}\x07\u{83}\
-	\x02\x02\u{bf}\u{c0}\x07\u{86}\x02\x02\u{c0}\u{c2}\x07\u{99}\x02\x02\u{c1}\
-	\u{ad}\x03\x02\x02\x02\u{c1}\u{af}\x03\x02\x02\x02\u{c1}\u{b1}\x03\x02\x02\
-	\x02\u{c1}\u{b3}\x03\x02\x02\x02\u{c1}\u{b5}\x03\x02\x02\x02\u{c1}\u{b6}\
-	\x03\x02\x02\x02\u{c1}\u{b8}\x03\x02\x02\x02\u{c1}\u{ba}\x03\x02\x02\x02\
-	\u{c1}\u{bb}\x03\x02\x02\x02\u{c1}\u{bd}\x03\x02\x02\x02\u{c1}\u{be}\x03\
-	\x02\x02\x02\u{c1}\u{bf}\x03\x02\x02\x02\u{c2}\x15\x03\x02\x02\x02\u{c3}\
-	\u{c4}\x07\u{9d}\x02\x02\u{c4}\u{c7}\x07\u{8f}\x02\x02\u{c5}\u{c8}\x07\u{9d}\
-	\x02\x02\u{c6}\u{c8}\x05\x0e\x08\x02\u{c7}\u{c5}\x03\x02\x02\x02\u{c7}\u{c6}\
-	\x03\x02\x02\x02\u{c8}\u{c9}\x03\x02\x02\x02\u{c9}\u{ca}\x07\x7a\x02\x02\
-	\u{ca}\x17\x03\x02\x02\x02\u{cb}\u{cd}\x07\u{88}\x02\x02\u{cc}\u{ce}\x09\
-	\x05\x02\x02\u{cd}\u{cc}\x03\x02\x02\x02\u{ce}\u{cf}\x03\x02\x02\x02\u{cf}\
-	\u{cd}\x03\x02\x02\x02\u{cf}\u{d0}\x03\x02\x02\x02\u{d0}\x19\x03\x02\x02\
-	\x02\u{d1}\u{e4}\x05\x1c\x0f\x02\u{d2}\u{e4}\x05\x1e\x10\x02\u{d3}\u{e4}\
-	\x05\x20\x11\x02\u{d4}\u{e4}\x05\x22\x12\x02\u{d5}\u{e4}\x05\x24\x13\x02\
-	\u{d6}\u{e4}\x05\x26\x14\x02\u{d7}\u{e4}\x05\x28\x15\x02\u{d8}\u{e4}\x05\
-	\x2a\x16\x02\u{d9}\u{e4}\x05\x2c\x17\x02\u{da}\u{e4}\x05\x2e\x18\x02\u{db}\
-	\u{e4}\x05\x30\x19\x02\u{dc}\u{e4}\x05\x32\x1a\x02\u{dd}\u{e4}\x05\x34\x1b\
-	\x02\u{de}\u{e4}\x05\x36\x1c\x02\u{df}\u{e4}\x05\x38\x1d\x02\u{e0}\u{e4}\
-	\x05\x3a\x1e\x02\u{e1}\u{e4}\x05\x3c\x1f\x02\u{e2}\u{e4}\x05\x3e\x20\x02\
-	\u{e3}\u{d1}\x03\x02\x02\x02\u{e3}\u{d2}\x03\x02\x02\x02\u{e3}\u{d3}\x03\
-	\x02\x02\x02\u{e3}\u{d4}\x03\x02\x02\x02\u{e3}\u{d5}\x03\x02\x02\x02\u{e3}\
-	\u{d6}\x03\x02\x02\x02\u{e3}\u{d7}\x03\x02\x02\x02\u{e3}\u{d8}\x03\x02\x02\
-	\x02\u{e3}\u{d9}\x03\x02\x02\x02\u{e3}\u{da}\x03\x02\x02\x02\u{e3}\u{db}\
-	\x03\x02\x02\x02\u{e3}\u{dc}\x03\x02\x02\x02\u{e3}\u{dd}\x03\x02\x02\x02\
-	\u{e3}\u{de}\x03\x02\x02\x02\u{e3}\u{df}\x03\x02\x02\x02\u{e3}\u{e0}\x03\
-	\x02\x02\x02\u{e3}\u{e1}\x03\x02\x02\x02\u{e3}\u{e2}\x03\x02\x02\x02\u{e4}\
-	\x1b\x03\x02\x02\x02\u{e5}\u{e6}\x09\x06\x02\x02\u{e6}\x1d\x03\x02\x02\x02\
-	\u{e7}\u{e8}\x09\x07\x02\x02\u{e8}\x1f\x03\x02\x02\x02\u{e9}\u{ea}\x09\x08\
-	\x02\x02\u{ea}\x21\x03\x02\x02\x02\u{eb}\u{ec}\x09\x09\x02\x02\u{ec}\x23\
-	\x03\x02\x02\x02\u{ed}\u{ee}\x09\x0a\x02\x02\u{ee}\x25\x03\x02\x02\x02\u{ef}\
-	\u{f0}\x09\x0b\x02\x02\u{f0}\x27\x03\x02\x02\x02\u{f1}\u{f2}\x09\x0c\x02\
-	\x02\u{f2}\x29\x03\x02\x02\x02\u{f3}\u{f4}\x07\x40\x02\x02\u{f4}\x2b\x03\
-	\x02\x02\x02\u{f5}\u{f6}\x09\x0d\x02\x02\u{f6}\x2d\x03\x02\x02\x02\u{f7}\
-	\u{f8}\x09\x0e\x02\x02\u{f8}\x2f\x03\x02\x02\x02\u{f9}\u{fa}\x09\x0f\x02\
-	\x02\u{fa}\x31\x03\x02\x02\x02\u{fb}\u{fc}\x09\x10\x02\x02\u{fc}\x33\x03\
-	\x02\x02\x02\u{fd}\u{fe}\x09\x11\x02\x02\u{fe}\x35\x03\x02\x02\x02\u{ff}\
-	\u{100}\x09\x12\x02\x02\u{100}\x37\x03\x02\x02\x02\u{101}\u{102}\x09\x13\
-	\x02\x02\u{102}\x39\x03\x02\x02\x02\u{103}\u{104}\x07\x75\x02\x02\u{104}\
-	\x3b\x03\x02\x02\x02\u{105}\u{106}\x07\x76\x02\x02\u{106}\x3d\x03\x02\x02\
-	\x02\u{107}\u{108}\x07\x77\x02\x02\u{108}\x3f\x03\x02\x02\x02\x14\x43\x4a\
-	\x50\x56\x60\x66\x68\x6b\x6f\x74\x7a\u{91}\u{a5}\u{a7}\u{c1}\u{c7}\u{cf}\
-	\u{e3}";
+	\x03\x0e\x03\x0e\x05\x0e\u{ea}\x0a\x0e\x03\x0f\x03\x0f\x03\x10\x03\x10\x03\
+	\x11\x03\x11\x03\x12\x03\x12\x03\x13\x03\x13\x03\x14\x03\x14\x03\x15\x03\
+	\x15\x03\x16\x03\x16\x03\x17\x03\x17\x03\x18\x03\x18\x03\x19\x03\x19\x03\
+	\x1a\x03\x1a\x03\x1b\x03\x1b\x03\x1c\x03\x1c\x03\x1d\x03\x1d\x03\x1e\x03\
+	\x1e\x03\x1f\x03\x1f\x03\x20\x03\x20\x03\x20\x02\x03\x10\x21\x02\x04\x06\
+	\x08\x0a\x0c\x0e\x10\x12\x14\x16\x18\x1a\x1c\x1e\x20\x22\x24\x26\x28\x2a\
+	\x2c\x2e\x30\x32\x34\x36\x38\x3a\x3c\x3e\x02\x14\x04\x02\u{90}\u{90}\u{93}\
+	\u{93}\x03\x02\u{9c}\u{9e}\x04\x02\u{9d}\u{9d}\u{9f}\u{9f}\x05\x02\u{85}\
+	\u{85}\u{8b}\u{8b}\u{9c}\u{9f}\x03\x02\x03\x08\x03\x02\x09\x21\x03\x02\x22\
+	\x32\x03\x02\x33\x34\x03\x02\x35\x38\x03\x02\x39\x3b\x03\x02\x3c\x3f\x03\
+	\x02\x41\x4a\x03\x02\x4b\x4f\x03\x02\x50\x51\x03\x02\x52\x54\x03\x02\x55\
+	\x56\x03\x02\x57\x5c\x03\x02\x5d\x76\x02\u{12d}\x02\x43\x03\x02\x02\x02\
+	\x04\x60\x03\x02\x02\x02\x06\x62\x03\x02\x02\x02\x08\x74\x03\x02\x02\x02\
+	\x0a\x76\x03\x02\x02\x02\x0c\x7d\x03\x02\x02\x02\x0e\u{80}\x03\x02\x02\x02\
+	\x10\u{91}\x03\x02\x02\x02\x12\u{b0}\x03\x02\x02\x02\x14\u{b2}\x03\x02\x02\
+	\x02\x16\u{c9}\x03\x02\x02\x02\x18\u{d1}\x03\x02\x02\x02\x1a\u{e9}\x03\x02\
+	\x02\x02\x1c\u{eb}\x03\x02\x02\x02\x1e\u{ed}\x03\x02\x02\x02\x20\u{ef}\x03\
+	\x02\x02\x02\x22\u{f1}\x03\x02\x02\x02\x24\u{f3}\x03\x02\x02\x02\x26\u{f5}\
+	\x03\x02\x02\x02\x28\u{f7}\x03\x02\x02\x02\x2a\u{f9}\x03\x02\x02\x02\x2c\
+	\u{fb}\x03\x02\x02\x02\x2e\u{fd}\x03\x02\x02\x02\x30\u{ff}\x03\x02\x02\x02\
+	\x32\u{101}\x03\x02\x02\x02\x34\u{103}\x03\x02\x02\x02\x36\u{105}\x03\x02\
+	\x02\x02\x38\u{107}\x03\x02\x02\x02\x3a\u{109}\x03\x02\x02\x02\x3c\u{10b}\
+	\x03\x02\x02\x02\x3e\u{10d}\x03\x02\x02\x02\x40\x42\x07\u{96}\x02\x02\x41\
+	\x40\x03\x02\x02\x02\x42\x45\x03\x02\x02\x02\x43\x41\x03\x02\x02\x02\x43\
+	\x44\x03\x02\x02\x02\x44\x46\x03\x02\x02\x02\x45\x43\x03\x02\x02\x02\x46\
+	\x50\x05\x04\x03\x02\x47\x49\x07\u{96}\x02\x02\x48\x47\x03\x02\x02\x02\x49\
+	\x4c\x03\x02\x02\x02\x4a\x48\x03\x02\x02\x02\x4a\x4b\x03\x02\x02\x02\x4b\
+	\x4d\x03\x02\x02\x02\x4c\x4a\x03\x02\x02\x02\x4d\x4f\x05\x04\x03\x02\x4e\
+	\x4a\x03\x02\x02\x02\x4f\x52\x03\x02\x02\x02\x50\x4e\x03\x02\x02\x02\x50\
+	\x51\x03\x02\x02\x02\x51\x56\x03\x02\x02\x02\x52\x50\x03\x02\x02\x02\x53\
+	\x55\x07\u{96}\x02\x02\x54\x53\x03\x02\x02\x02\x55\x58\x03\x02\x02\x02\x56\
+	\x54\x03\x02\x02\x02\x56\x57\x03\x02\x02\x02\x57\x59\x03\x02\x02\x02\x58\
+	\x56\x03\x02\x02\x02\x59\x5a\x07\x02\x02\x03\x5a\x03\x03\x02\x02\x02\x5b\
+	\x61\x05\x14\x0b\x02\x5c\x61\x05\x0a\x06\x02\x5d\x61\x05\x0c\x07\x02\x5e\
+	\x61\x05\x06\x04\x02\x5f\x61\x05\x18\x0d\x02\x60\x5b\x03\x02\x02\x02\x60\
+	\x5c\x03\x02\x02\x02\x60\x5d\x03\x02\x02\x02\x60\x5e\x03\x02\x02\x02\x60\
+	\x5f\x03\x02\x02\x02\x61\x05\x03\x02\x02\x02\x62\x68\x05\x1a\x0e\x02\x63\
+	\x66\x05\x08\x05\x02\x64\x65\x07\x7e\x02\x02\x65\x67\x05\x08\x05\x02\x66\
+	\x64\x03\x02\x02\x02\x66\x67\x03\x02\x02\x02\x67\x69\x03\x02\x02\x02\x68\
+	\x63\x03\x02\x02\x02\x68\x69\x03\x02\x02\x02\x69\x07\x03\x02\x02\x02\x6a\
+	\x6c\x07\u{90}\x02\x02\x6b\x6a\x03\x02\x02\x02\x6b\x6c\x03\x02\x02\x02\x6c\
+	\x6d\x03\x02\x02\x02\x6d\x6f\x07\u{9f}\x02\x02\x6e\x70\x07\u{93}\x02\x02\
+	\x6f\x6e\x03\x02\x02\x02\x6f\x70\x03\x02\x02\x02\x70\x75\x03\x02\x02\x02\
+	\x71\x75\x05\x10\x09\x02\x72\x75\x05\x16\x0c\x02\x73\x75\x05\x0e\x08\x02\
+	\x74\x6b\x03\x02\x02\x02\x74\x71\x03\x02\x02\x02\x74\x72\x03\x02\x02\x02\
+	\x74\x73\x03\x02\x02\x02\x75\x09\x03\x02\x02\x02\x76\x7a\x07\u{9f}\x02\x02\
+	\x77\x79\x05\x10\x09\x02\x78\x77\x03\x02\x02\x02\x79\x7c\x03\x02\x02\x02\
+	\x7a\x78\x03\x02\x02\x02\x7a\x7b\x03\x02\x02\x02\x7b\x0b\x03\x02\x02\x02\
+	\x7c\x7a\x03\x02\x02\x02\x7d\x7e\x07\u{9f}\x02\x02\x7e\x7f\x07\x7d\x02\x02\
+	\x7f\x0d\x03\x02\x02\x02\u{80}\u{81}\x07\x7b\x02\x02\u{81}\u{82}\x07\u{9c}\
+	\x02\x02\u{82}\x0f\x03\x02\x02\x02\u{83}\u{84}\x08\x09\x01\x02\u{84}\u{85}\
+	\x07\u{91}\x02\x02\u{85}\u{86}\x05\x10\x09\x02\u{86}\u{87}\x07\x7c\x02\x02\
+	\u{87}\u{92}\x03\x02\x02\x02\u{88}\u{89}\x07\u{82}\x02\x02\u{89}\u{8a}\x09\
+	\x02\x02\x02\u{8a}\u{92}\x05\x12\x0a\x02\u{8b}\u{92}\x07\u{9e}\x02\x02\u{8c}\
+	\u{92}\x07\u{9d}\x02\x02\u{8d}\u{92}\x07\u{9c}\x02\x02\u{8e}\u{92}\x07\u{9f}\
+	\x02\x02\u{8f}\u{92}\x07\u{9b}\x02\x02\u{90}\u{92}\x05\x0e\x08\x02\u{91}\
+	\u{83}\x03\x02\x02\x02\u{91}\u{88}\x03\x02\x02\x02\u{91}\u{8b}\x03\x02\x02\
+	\x02\u{91}\u{8c}\x03\x02\x02\x02\u{91}\u{8d}\x03\x02\x02\x02\u{91}\u{8e}\
+	\x03\x02\x02\x02\u{91}\u{8f}\x03\x02\x02\x02\u{91}\u{90}\x03\x02\x02\x02\
+	\u{92}\u{ad}\x03\x02\x02\x02\u{93}\u{94}\x0c\x11\x02\x02\u{94}\u{95}\x07\
+	\u{8d}\x02\x02\u{95}\u{ac}\x05\x10\x09\x12\u{96}\u{97}\x0c\x10\x02\x02\u{97}\
+	\u{98}\x07\u{94}\x02\x02\u{98}\u{ac}\x05\x10\x09\x11\u{99}\u{9a}\x0c\x0f\
+	\x02\x02\u{9a}\u{9b}\x07\u{95}\x02\x02\u{9b}\u{ac}\x05\x10\x09\x10\u{9c}\
+	\u{9d}\x0c\x0e\x02\x02\u{9d}\u{9e}\x07\u{89}\x02\x02\u{9e}\u{ac}\x05\x10\
+	\x09\x0f\u{9f}\u{a0}\x0c\x0d\x02\x02\u{a0}\u{a1}\x07\u{8e}\x02\x02\u{a1}\
+	\u{ac}\x05\x10\x09\x0e\u{a2}\u{a3}\x0c\x0c\x02\x02\u{a3}\u{a4}\x07\u{86}\
+	\x02\x02\u{a4}\u{ac}\x05\x10\x09\x0d\u{a5}\u{a6}\x0c\x0b\x02\x02\u{a6}\u{a7}\
+	\x07\u{93}\x02\x02\u{a7}\u{ac}\x05\x10\x09\x0c\u{a8}\u{a9}\x0c\x0a\x02\x02\
+	\u{a9}\u{aa}\x07\u{90}\x02\x02\u{aa}\u{ac}\x05\x10\x09\x0b\u{ab}\u{93}\x03\
+	\x02\x02\x02\u{ab}\u{96}\x03\x02\x02\x02\u{ab}\u{99}\x03\x02\x02\x02\u{ab}\
+	\u{9c}\x03\x02\x02\x02\u{ab}\u{9f}\x03\x02\x02\x02\u{ab}\u{a2}\x03\x02\x02\
+	\x02\u{ab}\u{a5}\x03\x02\x02\x02\u{ab}\u{a8}\x03\x02\x02\x02\u{ac}\u{af}\
+	\x03\x02\x02\x02\u{ad}\u{ab}\x03\x02\x02\x02\u{ad}\u{ae}\x03\x02\x02\x02\
+	\u{ae}\x11\x03\x02\x02\x02\u{af}\u{ad}\x03\x02\x02\x02\u{b0}\u{b1}\x09\x03\
+	\x02\x02\u{b1}\x13\x03\x02\x02\x02\u{b2}\u{c7}\x07\u{82}\x02\x02\u{b3}\u{b4}\
+	\x07\u{8c}\x02\x02\u{b4}\u{c8}\x07\u{9b}\x02\x02\u{b5}\u{b6}\x07\u{81}\x02\
+	\x02\u{b6}\u{c8}\x07\u{9f}\x02\x02\u{b7}\u{b8}\x07\u{80}\x02\x02\u{b8}\u{c8}\
+	\x05\x10\x09\x02\u{b9}\u{ba}\x07\u{87}\x02\x02\u{ba}\u{c8}\x05\x10\x09\x02\
+	\u{bb}\u{c8}\x07\x7f\x02\x02\u{bc}\u{bd}\x07\u{92}\x02\x02\u{bd}\u{c8}\x09\
+	\x04\x02\x02\u{be}\u{bf}\x07\u{8f}\x02\x02\u{bf}\u{c8}\x07\u{9f}\x02\x02\
+	\u{c0}\u{c8}\x07\u{84}\x02\x02\u{c1}\u{c2}\x07\u{8b}\x02\x02\u{c2}\u{c8}\
+	\x05\x10\x09\x02\u{c3}\u{c8}\x07\u{83}\x02\x02\u{c4}\u{c8}\x07\u{85}\x02\
+	\x02\u{c5}\u{c6}\x07\u{88}\x02\x02\u{c6}\u{c8}\x07\u{9b}\x02\x02\u{c7}\u{b3}\
+	\x03\x02\x02\x02\u{c7}\u{b5}\x03\x02\x02\x02\u{c7}\u{b7}\x03\x02\x02\x02\
+	\u{c7}\u{b9}\x03\x02\x02\x02\u{c7}\u{bb}\x03\x02\x02\x02\u{c7}\u{bc}\x03\
+	\x02\x02\x02\u{c7}\u{be}\x03\x02\x02\x02\u{c7}\u{c0}\x03\x02\x02\x02\u{c7}\
+	\u{c1}\x03\x02\x02\x02\u{c7}\u{c3}\x03\x02\x02\x02\u{c7}\u{c4}\x03\x02\x02\
+	\x02\u{c7}\u{c5}\x03\x02\x02\x02\u{c8}\x15\x03\x02\x02\x02\u{c9}\u{ca}\x07\
+	\u{9f}\x02\x02\u{ca}\u{cd}\x07\u{91}\x02\x02\u{cb}\u{ce}\x07\u{9f}\x02\x02\
+	\u{cc}\u{ce}\x05\x0e\x08\x02\u{cd}\u{cb}\x03\x02\x02\x02\u{cd}\u{cc}\x03\
+	\x02\x02\x02\u{ce}\u{cf}\x03\x02\x02\x02\u{cf}\u{d0}\x07\x7c\x02\x02\u{d0}\
+	\x17\x03\x02\x02\x02\u{d1}\u{d3}\x07\u{8a}\x02\x02\u{d2}\u{d4}\x09\x05\x02\
+	\x02\u{d3}\u{d2}\x03\x02\x02\x02\u{d4}\u{d5}\x03\x02\x02\x02\u{d5}\u{d3}\
+	\x03\x02\x02\x02\u{d5}\u{d6}\x03\x02\x02\x02\u{d6}\x19\x03\x02\x02\x02\u{d7}\
+	\u{ea}\x05\x1c\x0f\x02\u{d8}\u{ea}\x05\x1e\x10\x02\u{d9}\u{ea}\x05\x20\x11\
+	\x02\u{da}\u{ea}\x05\x22\x12\x02\u{db}\u{ea}\x05\x24\x13\x02\u{dc}\u{ea}\
+	\x05\x26\x14\x02\u{dd}\u{ea}\x05\x28\x15\x02\u{de}\u{ea}\x05\x2a\x16\x02\
+	\u{df}\u{ea}\x05\x2c\x17\x02\u{e0}\u{ea}\x05\x2e\x18\x02\u{e1}\u{ea}\x05\
+	\x30\x19\x02\u{e2}\u{ea}\x05\x32\x1a\x02\u{e3}\u{ea}\x05\x34\x1b\x02\u{e4}\
+	\u{ea}\x05\x36\x1c\x02\u{e5}\u{ea}\x05\x38\x1d\x02\u{e6}\u{ea}\x05\x3a\x1e\
+	\x02\u{e7}\u{ea}\x05\x3c\x1f\x02\u{e8}\u{ea}\x05\x3e\x20\x02\u{e9}\u{d7}\
+	\x03\x02\x02\x02\u{e9}\u{d8}\x03\x02\x02\x02\u{e9}\u{d9}\x03\x02\x02\x02\
+	\u{e9}\u{da}\x03\x02\x02\x02\u{e9}\u{db}\x03\x02\x02\x02\u{e9}\u{dc}\x03\
+	\x02\x02\x02\u{e9}\u{dd}\x03\x02\x02\x02\u{e9}\u{de}\x03\x02\x02\x02\u{e9}\
+	\u{df}\x03\x02\x02\x02\u{e9}\u{e0}\x03\x02\x02\x02\u{e9}\u{e1}\x03\x02\x02\
+	\x02\u{e9}\u{e2}\x03\x02\x02\x02\u{e9}\u{e3}\x03\x02\x02\x02\u{e9}\u{e4}\
+	\x03\x02\x02\x02\u{e9}\u{e5}\x03\x02\x02\x02\u{e9}\u{e6}\x03\x02\x02\x02\
+	\u{e9}\u{e7}\x03\x02\x02\x02\u{e9}\u{e8}\x03\x02\x02\x02\u{ea}\x1b\x03\x02\
+	\x02\x02\u{eb}\u{ec}\x09\x06\x02\x02\u{ec}\x1d\x03\x02\x02\x02\u{ed}\u{ee}\
+	\x09\x07\x02\x02\u{ee}\x1f\x03\x02\x02\x02\u{ef}\u{f0}\x09\x08\x02\x02\u{f0}\
+	\x21\x03\x02\x02\x02\u{f1}\u{f2}\x09\x09\x02\x02\u{f2}\x23\x03\x02\x02\x02\
+	\u{f3}\u{f4}\x09\x0a\x02\x02\u{f4}\x25\x03\x02\x02\x02\u{f5}\u{f6}\x09\x0b\
+	\x02\x02\u{f6}\x27\x03\x02\x02\x02\u{f7}\u{f8}\x09\x0c\x02\x02\u{f8}\x29\
+	\x03\x02\x02\x02\u{f9}\u{fa}\x07\x40\x02\x02\u{fa}\x2b\x03\x02\x02\x02\u{fb}\
+	\u{fc}\x09\x0d\x02\x02\u{fc}\x2d\x03\x02\x02\x02\u{fd}\u{fe}\x09\x0e\x02\
+	\x02\u{fe}\x2f\x03\x02\x02\x02\u{ff}\u{100}\x09\x0f\x02\x02\u{100}\x31\x03\
+	\x02\x02\x02\u{101}\u{102}\x09\x10\x02\x02\u{102}\x33\x03\x02\x02\x02\u{103}\
+	\u{104}\x09\x11\x02\x02\u{104}\x35\x03\x02\x02\x02\u{105}\u{106}\x09\x12\
+	\x02\x02\u{106}\x37\x03\x02\x02\x02\u{107}\u{108}\x09\x13\x02\x02\u{108}\
+	\x39\x03\x02\x02\x02\u{109}\u{10a}\x07\x77\x02\x02\u{10a}\x3b\x03\x02\x02\
+	\x02\u{10b}\u{10c}\x07\x78\x02\x02\u{10c}\x3d\x03\x02\x02\x02\u{10d}\u{10e}\
+	\x07\x79\x02\x02\u{10e}\x3f\x03\x02\x02\x02\x14\x43\x4a\x50\x56\x60\x66\
+	\x68\x6b\x6f\x74\x7a\u{91}\u{ab}\u{ad}\u{c7}\u{cd}\u{d5}\u{e9}";
 
