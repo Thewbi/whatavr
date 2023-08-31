@@ -321,10 +321,14 @@ impl CPU {
         log::trace!("\n");
     }
 
-    fn load_from_data_space(&mut self, address: usize, value: u8) {
-        //todo!("Store value {} to address {} in data space!", value, address);
+    fn load_from_data_space(&mut self, address: usize) -> u8 {
+        //todo!("Load byte from address {} in data space!", address);
+
+        let value: u8 = 0x12;
         log::info!("\tLoaded value {} {:#04X} at address {} {:#04X} from data space!\n", value, value, address, address);
         log::trace!("\n");
+
+        return value;
     }
 
     fn store_to_i_o_space(&mut self, address: usize, value: u8) {
@@ -898,14 +902,17 @@ impl CPU {
                 log::trace!("d: {d_val:#b} {d_val:#x} {d_val}\n");
 
                 // retrieve the current value from the r register
-                let data: u8 = cpu.register_file[d_val as usize];
+                //let data: u8 = cpu.register_file[d_val as usize];
 
                 // retrieve the data (address) stored inside X
                 let value_x: u16 = cpu.get_x();
 
                 // store data into memory (data space) at the address stored in X
                 // (data space != I/O space (for I/O space, use the OUT instruction))
-                cpu.load_from_data_space(value_x as usize, data);
+                let value: u8 = cpu.load_from_data_space(value_x as usize);
+
+                // store the loaded value into the r register
+                cpu.register_file[d_val as usize] = value;
 
                 // // (post) increment X
                 // value_x = value_x + 1;
@@ -922,16 +929,16 @@ impl CPU {
                 let d_val: u16 = value_storage[&'d'];
                 log::info!("d: {d_val:#b} {d_val:#x} {d_val}\n");
 
-                // retrieve the current value from the r register
-                let data: u8 = cpu.register_file[d_val as usize];
-
                 // retrieve the data (address) stored inside X
                 let mut value_x: u16 = cpu.get_x();
                 log::info!("X: {value_x:#b} {value_x:#x} {value_x}\n");
 
                 // store data into memory (data space) at the address stored in X
                 // (data space != I/O space (for I/O space, use the OUT instruction))
-                cpu.load_from_data_space(value_x as usize, data);
+                let value: u8 = cpu.load_from_data_space(value_x as usize);
+
+                // store the loaded value into the r register
+                cpu.register_file[d_val as usize] = value;
 
                 // (post) increment X
                 value_x = value_x + 1;
@@ -956,14 +963,17 @@ impl CPU {
                 log::info!("{}\n", os);
 
                 // retrieve the current value from the r register
-                let data: u8 = cpu.register_file[d_val as usize];
+                //let data: u8 = cpu.register_file[d_val as usize];
 
                 // retrieve the data (address) stored inside Z
                 let value_z: u16 = cpu.get_z();
 
-                // store data into memory (data space) at the address stored in X
+                // store data into memory (data space) at the address stored in Z
                 // (data space != I/O space (for I/O space, use the OUT instruction))
-                cpu.load_from_data_space(value_z as usize, data);
+                let value: u8 = cpu.load_from_data_space(value_z as usize);
+
+                // store the loaded value into the r register
+                cpu.register_file[d_val as usize] = value;
 
                 // // (post) increment X
                 // value_x = value_x + 1;
@@ -996,6 +1006,66 @@ impl CPU {
 
                 // execute
                 cpu.register_file[register as usize] = k_val as u8;
+
+                cpu.pc += 2i32;
+            }
+
+            /*  76 */
+            InstructionType::LPM_1 => {
+                log::trace!("[LPM_1]\n");
+
+                // copy value pointed to by Z into the register r0
+
+                // retrieve the data (address) stored inside Z
+                let value_z: u16 = cpu.get_z();
+
+                // load data from memory (data space) at the address stored in Z
+                // (data space != I/O space (for I/O space, use the OUT instruction))
+                let value: u8 = cpu.load_from_data_space(value_z as usize);
+
+                let register: u16 = 0u16;
+                cpu.register_file[register as usize] = value;
+
+                cpu.pc += 2i32;
+            }
+            InstructionType::LPM_2 => {
+                log::trace!("[LPM_2]\n");
+
+                // copy value pointed to by Z into the destination register r?
+
+                // retrieve the data (address) stored inside Z
+                let value_z: u16 = cpu.get_z();
+
+                // load data from memory (data space) at the address stored in Z
+                // (data space != I/O space (for I/O space, use the OUT instruction))
+                let value: u8 = cpu.load_from_data_space(value_z as usize);
+
+                let d_val: u16 = value_storage[&'d'];
+                cpu.register_file[d_val as usize] = value;
+
+                cpu.pc += 2i32;
+            }
+            InstructionType::LPM_3 => {
+                log::trace!("[LPM_3]\n");
+
+                // copy value pointed to by Z into the destination register r?
+                // post increment Z
+
+                // retrieve the data (address) stored inside Z
+                let mut value_z: u16 = cpu.get_z();
+
+                // load data from memory (data space) at the address stored in Z
+                // (data space != I/O space (for I/O space, use the OUT instruction))
+                let value: u8 = cpu.load_from_data_space(value_z as usize);
+
+                let d_val: u16 = value_storage[&'d'];
+                cpu.register_file[d_val as usize] = value;
+
+                // (post) increment Z
+                value_z = value_z + 1;
+
+                // write back Z
+                cpu.set_z(value_z);
 
                 cpu.pc += 2i32;
             }

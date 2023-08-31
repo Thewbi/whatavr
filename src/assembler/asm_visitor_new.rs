@@ -225,6 +225,49 @@ impl<'i> NewAssemblerVisitor {
         }
     }
 
+    /// cr: ["lpm"]
+    /// cr: ["lpm", "r16", "Z"]
+    /// cr: ["lpm", "r24", "Z", "+"]
+    fn process_lpm(&mut self, _ctx: &InstructionContext<'i>,
+        visit_children_result: &<NewAssemblerVisitor as ParseTreeVisitorCompat>::Return,
+        asm_record: &mut AsmRecord)
+    {
+        if 1 == visit_children_result.len()
+        {
+            asm_record.instruction_type = InstructionType::LPM_1;
+        }
+        else if 3 == visit_children_result.len()
+        {
+            asm_record.instruction_type = InstructionType::LPM_2;
+
+            let param_1: &String = &visit_children_result[1usize];
+            let param_1_as_number: u16;
+            if is_register_name(param_1) {
+                param_1_as_number = register_name_to_u16(param_1);
+                asm_record.reg_1 = param_1_as_number;
+            } else {
+                panic!("invalid register");
+            }
+        }
+        else if 4 == visit_children_result.len()
+        {
+            asm_record.instruction_type = InstructionType::LPM_3;
+
+            let param_1: &String = &visit_children_result[1usize];
+            let param_1_as_number: u16;
+            if is_register_name(param_1) {
+                param_1_as_number = register_name_to_u16(param_1);
+                asm_record.reg_1 = param_1_as_number;
+            } else {
+                panic!("invalid register");
+            }
+        } 
+        else 
+        {
+            panic!("Unknown option");
+        }
+    }
+
     fn parse_assembler_directive(&mut self, assembler_directive: &Vec<String>) {
         log::trace!("parse_assembler_directive");
 
@@ -415,9 +458,9 @@ impl<'i> assemblerVisitorCompat<'i> for NewAssemblerVisitor {
         let visit_children_result = self.visit_children(ctx);
         self.ascend_ident();
 
-        log::trace!("cr: {:?}", visit_children_result);
+        log::info!("cr: {:?}\n", visit_children_result);
 
-        let mut asm_record = AsmRecord::default();
+        let mut asm_record: AsmRecord = AsmRecord::default();
 
         let mnemonic: &String = &visit_children_result[0];
 
@@ -428,6 +471,10 @@ impl<'i> assemblerVisitorCompat<'i> for NewAssemblerVisitor {
         else if mnemonic.to_uppercase().eq("LD")
         {
             self.process_ld(ctx, &visit_children_result, &mut asm_record);
+        }
+        else if mnemonic.to_uppercase().eq("LPM")
+        {
+            self.process_lpm(ctx, &visit_children_result, &mut asm_record);
         }
         else if (
                 mnemonic.to_uppercase().eq("BREQ") ||

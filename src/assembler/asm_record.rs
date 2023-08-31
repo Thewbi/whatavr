@@ -22,7 +22,7 @@ pub struct AsmRecord {
 
     pub io_dest: IoDestination,
 
-    pub idx: usize,
+    pub idx: u16,
 
 }
 
@@ -47,7 +47,7 @@ impl AsmRecord {
             target_label: target_label,
             target_address: target_address,
             io_dest: io_dest,
-            idx: 0usize,
+            idx: 0u16,
         }
     }
 
@@ -60,10 +60,10 @@ impl AsmRecord {
         self.target_label = String::default();
         self.target_address = 0i16;
         self.io_dest = IoDestination::UNKNOWN;
-        self.idx = usize::default();
+        self.idx = u16::default();
     }
 
-    pub fn set_idx(&mut self, idx: usize) {
+    pub fn set_idx(&mut self, idx: u16) {
         self.idx = idx;
     }
     
@@ -80,7 +80,7 @@ impl Default for AsmRecord {
             target_label: String::default(),
             target_address : 0i16,
             io_dest: IoDestination::UNKNOWN,
-            idx: usize::default(),
+            idx: u16::default(),
         }
     }
 }

@@ -98,7 +98,12 @@ pub enum InstructionType {
     /* 73 */ LDI,
     /* 74 */ LDS,
     /* 75 */ LDS_16bit, // (16-bit) – Load Direct from Data Space......................................................... 117
-    /* 76 */ LPM, // – Load Program Memory...............................................................................118
+
+    /* 76 */ //LPM, // – Load Program Memory...............................................................................118
+    LPM_1,
+    LPM_2,
+    LPM_3,
+    
     /* 77 */ LSL, // – Logical Shift Left..........................................................................................120
     /* 78 */ LSR, // – Logical Shift Right.......................................................................................122
     
@@ -249,23 +254,27 @@ impl InstructionType {
             69 => InstructionType::LAT,
 
             70 => InstructionType::LD_LDD_X_1,
-            // 118 => InstructionType::LD_STD_X_2,
-            // 118 => InstructionType::LD_STD_X_3,
+            // 70 => InstructionType::LD_STD_X_2,
+            // 70 => InstructionType::LD_STD_X_3,
             
             71 => InstructionType::LD_LDD_Y_1, 
-            // 119 => InstructionType::LD_STD_Y_2,
-            // 119 => InstructionType::LD_STD_Y_3,
-            // 119 => InstructionType::LD_STD_Y_4,
+            // 71 => InstructionType::LD_STD_Y_2,
+            // 71 => InstructionType::LD_STD_Y_3,
+            // 71 => InstructionType::LD_STD_Y_4,
             
             72 => InstructionType::LD_LDD_Z_1, 
-            // 120 => InstructionType::LD_STD_Z_2,
-            // 120 => InstructionType::LD_STD_Z_3,
-            // 120 => InstructionType::LD_STD_Z_4,
+            // 72 => InstructionType::LD_STD_Z_2,
+            // 72 => InstructionType::LD_STD_Z_3,
+            // 72 => InstructionType::LD_STD_Z_4,
 
             73 => InstructionType::LDI,
             74 => InstructionType::LDS,
             75 => InstructionType::LDS_16bit, // (16-bit) – Load Direct from Data Space......................................................... 117
-            76 => InstructionType::LPM, // – Load Program Memory...............................................................................118
+            
+            76 => InstructionType::LPM_1, // – Load Program Memory...............................................................................118
+            // 76 => InstructionType::LPM_2,
+            // 76 => InstructionType::LPM_3,
+
             77 => InstructionType::LSL, // – Logical Shift Left..........................................................................................120
             78 => InstructionType::LSR, // – Logical Shift Right.......................................................................................122
             79 => InstructionType::MOV, // – Copy Register............................................................................................123
@@ -433,7 +442,11 @@ impl InstructionType {
             "LDI" => InstructionType::LDI,
             "LDS" => InstructionType::LDS,
             "LDS_16bit" => InstructionType::LDS_16bit, // (16-bit) – Load Direct from Data Space......................................................... 117
-            "LPM" => InstructionType::LPM, // – Load Program Memory...............................................................................118
+            
+            "LPM_1" => InstructionType::LPM_1, // – Load Program Memory...............................................................................118
+            "LPM_2" => InstructionType::LPM_2,
+            "LPM_3" => InstructionType::LPM_3,
+            
             "LSL" => InstructionType::LSL, // – Logical Shift Left..........................................................................................120
             "LSR" => InstructionType::LSR, // – Logical Shift Right.......................................................................................122
             "MOV" => InstructionType::MOV, // – Copy Register............................................................................................123
@@ -610,7 +623,9 @@ impl InstructionType {
             InstructionType::LDI => String::from("LDI"),
             InstructionType::LDS => String::from("LDS"),
             InstructionType::LDS_16bit => String::from("LDS_16bit"), // (16-bit) – Load Direct from Data Space......................................................... 117
-            InstructionType::LPM => String::from("LPM"), // – Load Program Memory...............................................................................118
+            InstructionType::LPM_1 => String::from("LPM_1"), // – Load Program Memory...............................................................................118
+            InstructionType::LPM_2 => String::from("LPM_2"),
+            InstructionType::LPM_3 => String::from("LPM_3"),
             InstructionType::LSL => String::from("LSL"), // – Logical Shift Left..........................................................................................120
             InstructionType::LSR => String::from("LSR"), // – Logical Shift Right.......................................................................................122
             InstructionType::MOV => String::from("MOV"), // – Copy Register............................................................................................123
@@ -681,329 +696,335 @@ impl InstructionType {
     }
 
     #[allow(dead_code)]
-    pub const fn cycles(instruction_type: &InstructionType) -> usize {
+    pub const fn cycles(instruction_type: &InstructionType) -> u16 {
 
         match instruction_type {
-            /*   5 */ InstructionType::ADC => 2usize,
-            /*   6 */ InstructionType::ADD => 2usize,
-            /*   7 */ InstructionType::ADIW => 2usize,
-            /*   8 */ InstructionType::AND => 2usize,
-            /*   9 */ InstructionType::ANDI => 2usize,
-            /*  10 */ InstructionType::ASR => 2usize,
-            /*  11 */ InstructionType::BCLR => 2usize,
-            /*  12 */ InstructionType::BLD => 2usize,
-            /*  13 */ InstructionType::BRBC => 2usize,
-            /*  14 */ InstructionType::BRBS => 2usize,
-            /*  15 */ InstructionType::BRCC => 2usize,
-            /*  16 */ InstructionType::BRCS => 2usize,
-            /*  17 */ InstructionType::BREAK => 2usize, 
-            /*  18 */ InstructionType::BREQ => 2usize,
-            /*  19 */ InstructionType::BRGE => 2usize,
-            /*  20 */ InstructionType::BRHC => 2usize,
-            /*  21 */ InstructionType::BRHS => 2usize,
-            /*  22 */ InstructionType::BRID => 2usize,
-            /*  23 */ InstructionType::BRIE => 2usize,
-            /*  24 */ InstructionType::BRLO => 2usize,
-            /*  25 */ InstructionType::BRLT => 2usize,
-            /*  26 */ InstructionType::BRMI => 2usize,
-            /*  27 */ InstructionType::BRNE => 2usize,
-            /*  28 */ InstructionType::BRPL => 2usize,
-            /*  29 */ InstructionType::BRSH => 2usize,
-            /*  30 */ InstructionType::BRTC => 2usize,
-            /*  31 */ InstructionType::BRTS => 2usize,
-            /*  32 */ InstructionType::BRVC => 2usize,
-            /*  33 */ InstructionType::BRVS => 2usize,
-            /*  34 */ InstructionType::BSET => 2usize,
-            /*  35 */ InstructionType::BST => 2usize,
-            /*  36 */ InstructionType::CALL => 2usize,
-            /*  37 */ InstructionType::CBI => 2usize, 
-            /*  38 */ InstructionType::CBR => 2usize,
-            /*  39 */ InstructionType::CLC => 2usize,
-            /*  40 */ InstructionType::CLH => 2usize,
-            /*  41 */ InstructionType::CLI => 2usize,
-            /*  42 */ InstructionType::CLN => 2usize,
-            /*  43 */ InstructionType::CLR => 2usize,
-            /*  44 */ InstructionType::CLS => 2usize,
-            /*  45 */ InstructionType::CLT => 2usize,
-            /*  46 */ InstructionType::CLV => 2usize,
-            /*  47 */ InstructionType::CLZ => 2usize,
-            /*  48 */ InstructionType::COM => 2usize,
-            /*  49 */ InstructionType::CP => 2usize,
-            /*  50 */ InstructionType::CPC => 2usize,
-            /*  51 */ InstructionType::CPI => 2usize,
-            /*  52 */ InstructionType::CPSE => 2usize,
-            /*  53 */ InstructionType::DEC => 2usize,
-            /*  54 */ InstructionType::DES => 2usize,
-            /*  55 */ InstructionType::EICALL => 2usize,
-            /*  56 */ InstructionType::EIJMP => 2usize,
-            /*  57 */ InstructionType::ELPM => 2usize,
-            /*  58 */ InstructionType::EOR => 2usize,
-            /*  59 */ InstructionType::FMUL => 2usize,
-            /*  60 */ InstructionType::FMULS => 2usize,
-            /*  61 */ InstructionType::FMULSU => 2usize,
-            /*  62 */ InstructionType::ICALL => 2usize,
-            /*  63 */ InstructionType::IJMP => 2usize,
-            /*  64 */ InstructionType::IN => 2usize,
-            /*  65 */ InstructionType::INC => 2usize,
-            /*  66 */ InstructionType::JMP => 2usize,
-            /*  67 */ InstructionType::LAC => 2usize,
-            /*  68 */ InstructionType::LAS => 2usize,
-            /*  69 */ InstructionType::LAT => 2usize, 
+            /*   5 */ InstructionType::ADC => 2u16,
+            /*   6 */ InstructionType::ADD => 2u16,
+            /*   7 */ InstructionType::ADIW => 2u16,
+            /*   8 */ InstructionType::AND => 2u16,
+            /*   9 */ InstructionType::ANDI => 2u16,
+            /*  10 */ InstructionType::ASR => 2u16,
+            /*  11 */ InstructionType::BCLR => 2u16,
+            /*  12 */ InstructionType::BLD => 2u16,
+            /*  13 */ InstructionType::BRBC => 2u16,
+            /*  14 */ InstructionType::BRBS => 2u16,
+            /*  15 */ InstructionType::BRCC => 2u16,
+            /*  16 */ InstructionType::BRCS => 2u16,
+            /*  17 */ InstructionType::BREAK => 2u16, 
+            /*  18 */ InstructionType::BREQ => 2u16,
+            /*  19 */ InstructionType::BRGE => 2u16,
+            /*  20 */ InstructionType::BRHC => 2u16,
+            /*  21 */ InstructionType::BRHS => 2u16,
+            /*  22 */ InstructionType::BRID => 2u16,
+            /*  23 */ InstructionType::BRIE => 2u16,
+            /*  24 */ InstructionType::BRLO => 2u16,
+            /*  25 */ InstructionType::BRLT => 2u16,
+            /*  26 */ InstructionType::BRMI => 2u16,
+            /*  27 */ InstructionType::BRNE => 2u16,
+            /*  28 */ InstructionType::BRPL => 2u16,
+            /*  29 */ InstructionType::BRSH => 2u16,
+            /*  30 */ InstructionType::BRTC => 2u16,
+            /*  31 */ InstructionType::BRTS => 2u16,
+            /*  32 */ InstructionType::BRVC => 2u16,
+            /*  33 */ InstructionType::BRVS => 2u16,
+            /*  34 */ InstructionType::BSET => 2u16,
+            /*  35 */ InstructionType::BST => 2u16,
+            /*  36 */ InstructionType::CALL => 2u16,
+            /*  37 */ InstructionType::CBI => 2u16, 
+            /*  38 */ InstructionType::CBR => 2u16,
+            /*  39 */ InstructionType::CLC => 2u16,
+            /*  40 */ InstructionType::CLH => 2u16,
+            /*  41 */ InstructionType::CLI => 2u16,
+            /*  42 */ InstructionType::CLN => 2u16,
+            /*  43 */ InstructionType::CLR => 2u16,
+            /*  44 */ InstructionType::CLS => 2u16,
+            /*  45 */ InstructionType::CLT => 2u16,
+            /*  46 */ InstructionType::CLV => 2u16,
+            /*  47 */ InstructionType::CLZ => 2u16,
+            /*  48 */ InstructionType::COM => 2u16,
+            /*  49 */ InstructionType::CP => 2u16,
+            /*  50 */ InstructionType::CPC => 2u16,
+            /*  51 */ InstructionType::CPI => 2u16,
+            /*  52 */ InstructionType::CPSE => 2u16,
+            /*  53 */ InstructionType::DEC => 2u16,
+            /*  54 */ InstructionType::DES => 2u16,
+            /*  55 */ InstructionType::EICALL => 2u16,
+            /*  56 */ InstructionType::EIJMP => 2u16,
+            /*  57 */ InstructionType::ELPM => 2u16,
+            /*  58 */ InstructionType::EOR => 2u16,
+            /*  59 */ InstructionType::FMUL => 2u16,
+            /*  60 */ InstructionType::FMULS => 2u16,
+            /*  61 */ InstructionType::FMULSU => 2u16,
+            /*  62 */ InstructionType::ICALL => 2u16,
+            /*  63 */ InstructionType::IJMP => 2u16,
+            /*  64 */ InstructionType::IN => 2u16,
+            /*  65 */ InstructionType::INC => 2u16,
+            /*  66 */ InstructionType::JMP => 2u16,
+            /*  67 */ InstructionType::LAC => 2u16,
+            /*  68 */ InstructionType::LAS => 2u16,
+            /*  69 */ InstructionType::LAT => 2u16, 
             /*  70 */ 
-            InstructionType::LD_LDD_X_1 => 2usize,
-            InstructionType::LD_LDD_X_2 => 2usize,
-            InstructionType::LD_LDD_X_3 => 2usize,
+            InstructionType::LD_LDD_X_1 => 2u16,
+            InstructionType::LD_LDD_X_2 => 2u16,
+            InstructionType::LD_LDD_X_3 => 2u16,
             /*  71*/ 
-            InstructionType::LD_LDD_Y_1 => 2usize, 
-            InstructionType::LD_LDD_Y_2 => 2usize, 
-            InstructionType::LD_LDD_Y_3 => 2usize, 
-            InstructionType::LD_LDD_Y_4 => 2usize, 
+            InstructionType::LD_LDD_Y_1 => 2u16, 
+            InstructionType::LD_LDD_Y_2 => 2u16, 
+            InstructionType::LD_LDD_Y_3 => 2u16, 
+            InstructionType::LD_LDD_Y_4 => 2u16, 
             /*  72 */ 
-            InstructionType::LD_LDD_Z_1 => 2usize, 
-            InstructionType::LD_LDD_Z_2 => 2usize, 
-            InstructionType::LD_LDD_Z_3 => 2usize, 
-            InstructionType::LD_LDD_Z_4 => 2usize,
-            /*  73 */ InstructionType::LDI => 2usize,
-            /*  74 */ InstructionType::LDS => 2usize,
-            /*  75 */ InstructionType::LDS_16bit => 2usize, //  (16-bit) – Load Direct from Data Space......................................................... 117
-            /*  76 */ InstructionType::LPM => 2usize, //  – Load Program Memory...............................................................................118
-            /*  77 */ InstructionType::LSL => 2usize, //  – Logical Shift Left..........................................................................................120
-            /*  78 */ InstructionType::LSR => 2usize, //  – Logical Shift Right.......................................................................................122
-            /*  79 */ InstructionType::MOV => 2usize, //  – Copy Register............................................................................................123
-            /*  80 */ InstructionType::MOVW => 2usize, //  – Copy Register Word...............................................................................124
-            /*  81 */ InstructionType::MUL => 2usize, //  – Multiply Unsigned.......................................................................................125
-            /*  82 */ InstructionType::MULS => 2usize, //  – Multiply Signed........................................................................................ 126
-            /*  83 */ InstructionType::MULSU  => 2usize, // 
-            /*  84 */ InstructionType::NEG => 2usize,
-            /*  85 */ InstructionType::NOP => 2usize, 
-            /*  86 */ InstructionType::OR => 2usize,
-            /*  87 */ InstructionType::ORI => 2usize,
-            /*  88 */ InstructionType::OUT => 2usize,
-            /*  89 */ InstructionType::POP => 2usize,
-            /*  90 */ InstructionType::PUSH => 2usize,
-            /*  91 */ InstructionType::RCALL => 2usize,
-            /*  92 */ InstructionType::RET => 2usize,
-            /*  93 */ InstructionType::RETI => 2usize, 
-            /*  94 */ InstructionType::RJMP => 2usize,
-            /*  95 */ InstructionType::ROL => 2usize,  
-            /*  96 */ InstructionType::ROR => 2usize, //  – Rotate Right through Carry........................................................................145
-            /*  97 */ InstructionType::SBC => 2usize, 
-            /*  98 */ InstructionType::SBCI => 2usize,
-            /*  99 */ InstructionType::SBI => 2usize, //  – Set Bit in I/O Register.................................................................................. 151
-            /*  100 */ InstructionType::SBIC => 2usize, //  – Skip if Bit in I/O Register is Cleared........................................................ 152
-            /*  101 */ InstructionType::SBIS => 2usize, //  – Skip if Bit in I/O Register is Set............................................................... 153
-            /*  102 */ InstructionType::SBIW => 2usize, //  – Subtract Immediate from Word...............................................................154
-            /*  103 */ InstructionType::SBR => 2usize, //  – Set Bits in Register...................................................................................156
-            /*  104 */ InstructionType::SBRC => 2usize, //  – Skip if Bit in Register is Cleared............................................................ 157
-            /*  105 */ InstructionType::SBRS => 2usize, //  – Skip if Bit in Register is Set....................................................................158
-            /*  106 */ InstructionType::SEC => 2usize, //  – Set Carry Flag.......................................................................................... 159
-            /*  107 */ InstructionType::SEH => 2usize, //  – Set Half Carry Flag...................................................................................160
-            /*  108 */ InstructionType::SEI => 2usize, // 
-            /*  109 */ InstructionType::SEN => 2usize, //  – Set Negative Flag.....................................................................................162
-            /*  110 */ InstructionType::SER => 2usize, //  – Set all Bits in Register.............................................................................. 163
-            /*  111 */ InstructionType::SES => 2usize, //  – Set Signed Flag........................................................................................ 164
-            /*  112 */ InstructionType::SET => 2usize, //  – Set T Flag................................................................................................. 165
-            /*  113 */ InstructionType::SEV => 2usize, //  – Set Overflow Flag..................................................................................... 166
-            /*  114 */ InstructionType::SEZ => 2usize, //  – Set Zero Flag............................................................................................ 167
-            /*  115 */ InstructionType::SLEEP => 2usize, // ................................................................................................................. 168
-            /*  116 */ InstructionType::SPM => 2usize, //  – Store Program Memory............................................................................169
-            /*  117 */ InstructionType::SPM_2 => 2usize, //  SPM #2 – Store Program Memory.......................................................................171
+            InstructionType::LD_LDD_Z_1 => 2u16, 
+            InstructionType::LD_LDD_Z_2 => 2u16, 
+            InstructionType::LD_LDD_Z_3 => 2u16, 
+            InstructionType::LD_LDD_Z_4 => 2u16,
+            /*  73 */ InstructionType::LDI => 2u16,
+            /*  74 */ InstructionType::LDS => 2u16,
+            /*  75 */ InstructionType::LDS_16bit => 2u16, //  (16-bit) – Load Direct from Data Space......................................................... 117
+            /*  76 */ 
+            InstructionType::LPM_1 => 2u16, //  – Load Program Memory...............................................................................118
+            InstructionType::LPM_2 => 2u16,
+            InstructionType::LPM_3 => 2u16,
+            /*  77 */ InstructionType::LSL => 2u16, //  – Logical Shift Left..........................................................................................120
+            /*  78 */ InstructionType::LSR => 2u16, //  – Logical Shift Right.......................................................................................122
+            /*  79 */ InstructionType::MOV => 2u16, //  – Copy Register............................................................................................123
+            /*  80 */ InstructionType::MOVW => 2u16, //  – Copy Register Word...............................................................................124
+            /*  81 */ InstructionType::MUL => 2u16, //  – Multiply Unsigned.......................................................................................125
+            /*  82 */ InstructionType::MULS => 2u16, //  – Multiply Signed........................................................................................ 126
+            /*  83 */ InstructionType::MULSU  => 2u16, // 
+            /*  84 */ InstructionType::NEG => 2u16,
+            /*  85 */ InstructionType::NOP => 2u16, 
+            /*  86 */ InstructionType::OR => 2u16,
+            /*  87 */ InstructionType::ORI => 2u16,
+            /*  88 */ InstructionType::OUT => 2u16,
+            /*  89 */ InstructionType::POP => 2u16,
+            /*  90 */ InstructionType::PUSH => 2u16,
+            /*  91 */ InstructionType::RCALL => 2u16,
+            /*  92 */ InstructionType::RET => 2u16,
+            /*  93 */ InstructionType::RETI => 2u16, 
+            /*  94 */ InstructionType::RJMP => 2u16,
+            /*  95 */ InstructionType::ROL => 2u16,  
+            /*  96 */ InstructionType::ROR => 2u16, //  – Rotate Right through Carry........................................................................145
+            /*  97 */ InstructionType::SBC => 2u16, 
+            /*  98 */ InstructionType::SBCI => 2u16,
+            /*  99 */ InstructionType::SBI => 2u16, //  – Set Bit in I/O Register.................................................................................. 151
+            /*  100 */ InstructionType::SBIC => 2u16, //  – Skip if Bit in I/O Register is Cleared........................................................ 152
+            /*  101 */ InstructionType::SBIS => 2u16, //  – Skip if Bit in I/O Register is Set............................................................... 153
+            /*  102 */ InstructionType::SBIW => 2u16, //  – Subtract Immediate from Word...............................................................154
+            /*  103 */ InstructionType::SBR => 2u16, //  – Set Bits in Register...................................................................................156
+            /*  104 */ InstructionType::SBRC => 2u16, //  – Skip if Bit in Register is Cleared............................................................ 157
+            /*  105 */ InstructionType::SBRS => 2u16, //  – Skip if Bit in Register is Set....................................................................158
+            /*  106 */ InstructionType::SEC => 2u16, //  – Set Carry Flag.......................................................................................... 159
+            /*  107 */ InstructionType::SEH => 2u16, //  – Set Half Carry Flag...................................................................................160
+            /*  108 */ InstructionType::SEI => 2u16, // 
+            /*  109 */ InstructionType::SEN => 2u16, //  – Set Negative Flag.....................................................................................162
+            /*  110 */ InstructionType::SER => 2u16, //  – Set all Bits in Register.............................................................................. 163
+            /*  111 */ InstructionType::SES => 2u16, //  – Set Signed Flag........................................................................................ 164
+            /*  112 */ InstructionType::SET => 2u16, //  – Set T Flag................................................................................................. 165
+            /*  113 */ InstructionType::SEV => 2u16, //  – Set Overflow Flag..................................................................................... 166
+            /*  114 */ InstructionType::SEZ => 2u16, //  – Set Zero Flag............................................................................................ 167
+            /*  115 */ InstructionType::SLEEP => 2u16, // ................................................................................................................. 168
+            /*  116 */ InstructionType::SPM => 2u16, //  – Store Program Memory............................................................................169
+            /*  117 */ InstructionType::SPM_2 => 2u16, //  SPM #2 – Store Program Memory.......................................................................171
             /*  118 */ 
-            InstructionType::ST_STD_X_1 => 2usize,
-            InstructionType::ST_STD_X_2 => 2usize,
-            InstructionType::ST_STD_X_3 => 2usize,
+            InstructionType::ST_STD_X_1 => 2u16,
+            InstructionType::ST_STD_X_2 => 2u16,
+            InstructionType::ST_STD_X_3 => 2u16,
             /*  119 */ 
-            InstructionType::ST_STD_Y_1 => 2usize, 
-            InstructionType::ST_STD_Y_2 => 2usize, 
-            InstructionType::ST_STD_Y_3 => 2usize, 
-            InstructionType::ST_STD_Y_4 => 2usize, 
+            InstructionType::ST_STD_Y_1 => 2u16, 
+            InstructionType::ST_STD_Y_2 => 2u16, 
+            InstructionType::ST_STD_Y_3 => 2u16, 
+            InstructionType::ST_STD_Y_4 => 2u16, 
             /*  120 */ 
-            InstructionType::ST_STD_Z_1 => 2usize, 
-            InstructionType::ST_STD_Z_2 => 2usize, 
-            InstructionType::ST_STD_Z_3 => 2usize, 
-            InstructionType::ST_STD_Z_4 => 2usize, 
-            /*  121 */ InstructionType::STS => 2usize, //  STS – Store Direct to Data Space.......................................................................179
-            /*  122 */ InstructionType::STS_16bit => 2usize, //  STS (16-bit) – Store Direct to Data Space.......................................................... 180
-            /*  123 */ InstructionType::SUB => 2usize, //  – Subtract Without Carry.............................................................................181
-            /*  124 */ InstructionType::SUBI => 2usize, //  – Subtract Immediate................................................................................. 183
-            /*  125 */ InstructionType::SWAP => 2usize, //  – Swap Nibbles........................................................................................ 185
-            /*  126 */ InstructionType::TST => 2usize, //  – Test for Zero or Minus...............................................................................186
-            /*  127 */ InstructionType::WDR => 2usize, //  – Watchdog Reset......................................................................................187
-            /*  128 */ InstructionType::XCH => 2usize,
+            InstructionType::ST_STD_Z_1 => 2u16, 
+            InstructionType::ST_STD_Z_2 => 2u16, 
+            InstructionType::ST_STD_Z_3 => 2u16, 
+            InstructionType::ST_STD_Z_4 => 2u16, 
+            /*  121 */ InstructionType::STS => 2u16, //  STS – Store Direct to Data Space.......................................................................179
+            /*  122 */ InstructionType::STS_16bit => 2u16, //  STS (16-bit) – Store Direct to Data Space.......................................................... 180
+            /*  123 */ InstructionType::SUB => 2u16, //  – Subtract Without Carry.............................................................................181
+            /*  124 */ InstructionType::SUBI => 2u16, //  – Subtract Immediate................................................................................. 183
+            /*  125 */ InstructionType::SWAP => 2u16, //  – Swap Nibbles........................................................................................ 185
+            /*  126 */ InstructionType::TST => 2u16, //  – Test for Zero or Minus...............................................................................186
+            /*  127 */ InstructionType::WDR => 2u16, //  – Watchdog Reset......................................................................................187
+            /*  128 */ InstructionType::XCH => 2u16,
             
             _ => 0,
         }
     }
 
-    pub const fn words(instruction_type: &InstructionType) -> usize {
+    pub const fn words(instruction_type: &InstructionType) -> u16 {
 
         match instruction_type {
 
-            /*   5 */ InstructionType::ADC => 2usize,
-            /*   6 */ InstructionType::ADD => 2usize,
-            /*   7 */ InstructionType::ADIW => 2usize,
-            /*   8 */ InstructionType::AND => 2usize,
-            /*   9 */ InstructionType::ANDI => 2usize,
-            /*  10 */ InstructionType::ASR => 2usize,
+            /*   5 */ InstructionType::ADC => 2u16,
+            /*   6 */ InstructionType::ADD => 2u16,
+            /*   7 */ InstructionType::ADIW => 2u16,
+            /*   8 */ InstructionType::AND => 2u16,
+            /*   9 */ InstructionType::ANDI => 2u16,
+            /*  10 */ InstructionType::ASR => 2u16,
 
-            /*  11 */ InstructionType::BCLR => 2usize,
-            /*  12 */ InstructionType::BLD => 2usize,
-            /*  13 */ InstructionType::BRBC => 2usize,
-            /*  14 */ InstructionType::BRBS => 2usize,
-            /*  15 */ InstructionType::BRCC => 2usize,
-            /*  16 */ InstructionType::BRCS => 2usize,
-            /*  17 */ InstructionType::BREAK => 2usize, 
-            /*  18 */ InstructionType::BREQ => 2usize,
-            /*  19 */ InstructionType::BRGE => 2usize,
-            /*  20 */ InstructionType::BRHC => 2usize,
-            /*  21 */ InstructionType::BRHS => 2usize,
-            /*  22 */ InstructionType::BRID => 2usize,
-            /*  23 */ InstructionType::BRIE => 2usize,
-            /*  24 */ InstructionType::BRLO => 2usize,
-            /*  25 */ InstructionType::BRLT => 2usize,
-            /*  26 */ InstructionType::BRMI => 2usize,
-            /*  27 */ InstructionType::BRNE => 2usize,
-            /*  28 */ InstructionType::BRPL => 2usize,
-            /*  29 */ InstructionType::BRSH => 2usize,
-            /*  30 */ InstructionType::BRTC => 2usize,
-            /*  31 */ InstructionType::BRTS => 2usize,
-            /*  32 */ InstructionType::BRVC => 2usize,
-            /*  33 */ InstructionType::BRVS => 2usize,
-            /*  34 */ InstructionType::BSET => 2usize,
-            /*  35 */ InstructionType::BST => 2usize,
+            /*  11 */ InstructionType::BCLR => 2u16,
+            /*  12 */ InstructionType::BLD => 2u16,
+            /*  13 */ InstructionType::BRBC => 2u16,
+            /*  14 */ InstructionType::BRBS => 2u16,
+            /*  15 */ InstructionType::BRCC => 2u16,
+            /*  16 */ InstructionType::BRCS => 2u16,
+            /*  17 */ InstructionType::BREAK => 2u16, 
+            /*  18 */ InstructionType::BREQ => 2u16,
+            /*  19 */ InstructionType::BRGE => 2u16,
+            /*  20 */ InstructionType::BRHC => 2u16,
+            /*  21 */ InstructionType::BRHS => 2u16,
+            /*  22 */ InstructionType::BRID => 2u16,
+            /*  23 */ InstructionType::BRIE => 2u16,
+            /*  24 */ InstructionType::BRLO => 2u16,
+            /*  25 */ InstructionType::BRLT => 2u16,
+            /*  26 */ InstructionType::BRMI => 2u16,
+            /*  27 */ InstructionType::BRNE => 2u16,
+            /*  28 */ InstructionType::BRPL => 2u16,
+            /*  29 */ InstructionType::BRSH => 2u16,
+            /*  30 */ InstructionType::BRTC => 2u16,
+            /*  31 */ InstructionType::BRTS => 2u16,
+            /*  32 */ InstructionType::BRVC => 2u16,
+            /*  33 */ InstructionType::BRVS => 2u16,
+            /*  34 */ InstructionType::BSET => 2u16,
+            /*  35 */ InstructionType::BST => 2u16,
 
-            /*  36 */ InstructionType::CALL => 4usize,
-            /*  37 */ InstructionType::CBI => 2usize, 
-            /*  38 */ InstructionType::CBR => 2usize,
-            /*  39 */ InstructionType::CLC => 2usize,
-            /*  40 */ InstructionType::CLH => 2usize,
-            /*  41 */ InstructionType::CLI => 2usize,
-            /*  42 */ InstructionType::CLN => 2usize,
-            /*  43 */ InstructionType::CLR => 2usize,
-            /*  44 */ InstructionType::CLS => 2usize,
-            /*  45 */ InstructionType::CLT => 2usize,
-            /*  46 */ InstructionType::CLV => 2usize,
-            /*  47 */ InstructionType::CLZ => 2usize,
-            /*  48 */ InstructionType::COM => 2usize,
-            /*  49 */ InstructionType::CP => 2usize,
-            /*  50 */ InstructionType::CPC => 2usize,
-            /*  51 */ InstructionType::CPI => 2usize,
-            /*  52 */ InstructionType::CPSE => 2usize,
+            /*  36 */ InstructionType::CALL => 4u16,
+            /*  37 */ InstructionType::CBI => 2u16, 
+            /*  38 */ InstructionType::CBR => 2u16,
+            /*  39 */ InstructionType::CLC => 2u16,
+            /*  40 */ InstructionType::CLH => 2u16,
+            /*  41 */ InstructionType::CLI => 2u16,
+            /*  42 */ InstructionType::CLN => 2u16,
+            /*  43 */ InstructionType::CLR => 2u16,
+            /*  44 */ InstructionType::CLS => 2u16,
+            /*  45 */ InstructionType::CLT => 2u16,
+            /*  46 */ InstructionType::CLV => 2u16,
+            /*  47 */ InstructionType::CLZ => 2u16,
+            /*  48 */ InstructionType::COM => 2u16,
+            /*  49 */ InstructionType::CP => 2u16,
+            /*  50 */ InstructionType::CPC => 2u16,
+            /*  51 */ InstructionType::CPI => 2u16,
+            /*  52 */ InstructionType::CPSE => 2u16,
 
-            /*  53 */ InstructionType::DEC => 2usize,
-            /*  54 */ InstructionType::DES => 2usize,
+            /*  53 */ InstructionType::DEC => 2u16,
+            /*  54 */ InstructionType::DES => 2u16,
 
-            /*  55 */ InstructionType::EICALL => 2usize,
-            /*  56 */ InstructionType::EIJMP => 2usize,
-            /*  57 */ InstructionType::ELPM => 2usize,
-            /*  58 */ InstructionType::EOR => 2usize,
+            /*  55 */ InstructionType::EICALL => 2u16,
+            /*  56 */ InstructionType::EIJMP => 2u16,
+            /*  57 */ InstructionType::ELPM => 2u16,
+            /*  58 */ InstructionType::EOR => 2u16,
 
-            /*  59 */ InstructionType::FMUL => 2usize,
-            /*  60 */ InstructionType::FMULS => 2usize,
-            /*  61 */ InstructionType::FMULSU => 2usize,
+            /*  59 */ InstructionType::FMUL => 2u16,
+            /*  60 */ InstructionType::FMULS => 2u16,
+            /*  61 */ InstructionType::FMULSU => 2u16,
 
-            /*  62 */ InstructionType::ICALL => 2usize,
-            /*  63 */ InstructionType::IJMP => 2usize,
-            /*  64 */ InstructionType::IN => 2usize,
-            /*  65 */ InstructionType::INC => 2usize,
+            /*  62 */ InstructionType::ICALL => 2u16,
+            /*  63 */ InstructionType::IJMP => 2u16,
+            /*  64 */ InstructionType::IN => 2u16,
+            /*  65 */ InstructionType::INC => 2u16,
 
-            /*  66 */ InstructionType::JMP => 4usize,
+            /*  66 */ InstructionType::JMP => 4u16,
 
-            /*  67 */ InstructionType::LAC => 2usize,
-            /*  68 */ InstructionType::LAS => 2usize,
-            /*  69 */ InstructionType::LAT => 2usize, 
+            /*  67 */ InstructionType::LAC => 2u16,
+            /*  68 */ InstructionType::LAS => 2u16,
+            /*  69 */ InstructionType::LAT => 2u16, 
             /*  70 */ 
-            InstructionType::LD_LDD_X_1 => 2usize,
-            InstructionType::LD_LDD_X_2 => 2usize,
-            InstructionType::LD_LDD_X_3 => 2usize,
+            InstructionType::LD_LDD_X_1 => 2u16,
+            InstructionType::LD_LDD_X_2 => 2u16,
+            InstructionType::LD_LDD_X_3 => 2u16,
             /*  71 */ 
-            InstructionType::LD_LDD_Y_1 => 2usize, 
-            InstructionType::LD_LDD_Y_2 => 2usize, 
-            InstructionType::LD_LDD_Y_3 => 2usize, 
-            InstructionType::LD_LDD_Y_4 => 2usize, 
+            InstructionType::LD_LDD_Y_1 => 2u16, 
+            InstructionType::LD_LDD_Y_2 => 2u16, 
+            InstructionType::LD_LDD_Y_3 => 2u16, 
+            InstructionType::LD_LDD_Y_4 => 2u16, 
             /*  72 */ 
-            InstructionType::LD_LDD_Z_1 => 2usize, 
-            InstructionType::LD_LDD_Z_2 => 2usize,
-            InstructionType::LD_LDD_Z_3 => 2usize,
-            InstructionType::LD_LDD_Z_4 => 2usize,
-            /*  73 */ InstructionType::LDI => 2usize,
-            /*  74 */ InstructionType::LDS => 4usize,
-            /*  75 */ InstructionType::LDS_16bit => 2usize, //  (16-bit) – Load Direct from Data Space......................................................... 117
-            /*  76 */ InstructionType::LPM => 2usize, //  – Load Program Memory...............................................................................118
-            /*  77 */ InstructionType::LSL => 2usize, //  – Logical Shift Left..........................................................................................120
-            /*  78 */ InstructionType::LSR => 2usize, //  – Logical Shift Right.......................................................................................122
+            InstructionType::LD_LDD_Z_1 => 2u16, 
+            InstructionType::LD_LDD_Z_2 => 2u16,
+            InstructionType::LD_LDD_Z_3 => 2u16,
+            InstructionType::LD_LDD_Z_4 => 2u16,
+            /*  73 */ InstructionType::LDI => 2u16,
+            /*  74 */ InstructionType::LDS => 4u16,
+            /*  75 */ InstructionType::LDS_16bit => 2u16, //  (16-bit) – Load Direct from Data Space......................................................... 117
+            /*  76 */ 
+            InstructionType::LPM_1 => 2u16, //  – Load Program Memory...............................................................................118
+            InstructionType::LPM_2 => 2u16,
+            InstructionType::LPM_3 => 2u16,
+            /*  77 */ InstructionType::LSL => 2u16, //  – Logical Shift Left..........................................................................................120
+            /*  78 */ InstructionType::LSR => 2u16, //  – Logical Shift Right.......................................................................................122
             
-            /*  79 */ InstructionType::MOV => 2usize, //  – Copy Register............................................................................................123
-            /*  80 */ InstructionType::MOVW => 2usize, //  – Copy Register Word...............................................................................124
-            /*  81 */ InstructionType::MUL => 2usize, //  – Multiply Unsigned.......................................................................................125
-            /*  82 */ InstructionType::MULS => 2usize, //  – Multiply Signed........................................................................................ 126
-            /*  83 */ InstructionType::MULSU  => 2usize, // 
+            /*  79 */ InstructionType::MOV => 2u16, //  – Copy Register............................................................................................123
+            /*  80 */ InstructionType::MOVW => 2u16, //  – Copy Register Word...............................................................................124
+            /*  81 */ InstructionType::MUL => 2u16, //  – Multiply Unsigned.......................................................................................125
+            /*  82 */ InstructionType::MULS => 2u16, //  – Multiply Signed........................................................................................ 126
+            /*  83 */ InstructionType::MULSU  => 2u16, // 
             
-            /*  84 */ InstructionType::NEG => 2usize,
-            /*  85 */ InstructionType::NOP => 2usize, 
+            /*  84 */ InstructionType::NEG => 2u16,
+            /*  85 */ InstructionType::NOP => 2u16, 
             
-            /*  86 */ InstructionType::OR => 2usize,
-            /*  87 */ InstructionType::ORI => 2usize,
-            /*  88 */ InstructionType::OUT => 2usize,
+            /*  86 */ InstructionType::OR => 2u16,
+            /*  87 */ InstructionType::ORI => 2u16,
+            /*  88 */ InstructionType::OUT => 2u16,
            
-            /*  89 */ InstructionType::POP => 2usize,
-            /*  90 */ InstructionType::PUSH => 2usize,
+            /*  89 */ InstructionType::POP => 2u16,
+            /*  90 */ InstructionType::PUSH => 2u16,
             
-            /*  91 */ InstructionType::RCALL => 2usize,
-            /*  92 */ InstructionType::RET => 2usize,
-            /*  93 */ InstructionType::RETI => 2usize, 
-            /*  94 */ InstructionType::RJMP => 2usize,
-            /*  95 */ InstructionType::ROL => 2usize,  
-            /*  96 */ InstructionType::ROR => 2usize, //  – Rotate Right through Carry........................................................................145
+            /*  91 */ InstructionType::RCALL => 2u16,
+            /*  92 */ InstructionType::RET => 2u16,
+            /*  93 */ InstructionType::RETI => 2u16, 
+            /*  94 */ InstructionType::RJMP => 2u16,
+            /*  95 */ InstructionType::ROL => 2u16,  
+            /*  96 */ InstructionType::ROR => 2u16, //  – Rotate Right through Carry........................................................................145
             
-            /*  97 */ InstructionType::SBC => 2usize, 
-            /*  98 */ InstructionType::SBCI => 2usize,
-            /*  99 */ InstructionType::SBI => 2usize, //  – Set Bit in I/O Register.................................................................................. 151
-            /*  100 */ InstructionType::SBIC => 2usize, //  – Skip if Bit in I/O Register is Cleared........................................................ 152
-            /*  101 */ InstructionType::SBIS => 2usize, //  – Skip if Bit in I/O Register is Set............................................................... 153
-            /*  102 */ InstructionType::SBIW => 2usize, //  – Subtract Immediate from Word...............................................................154
-            /*  103 */ InstructionType::SBR => 2usize, //  – Set Bits in Register...................................................................................156
-            /*  104 */ InstructionType::SBRC => 2usize, //  – Skip if Bit in Register is Cleared............................................................ 157
-            /*  105 */ InstructionType::SBRS => 2usize, //  – Skip if Bit in Register is Set....................................................................158
-            /*  106 */ InstructionType::SEC => 2usize, //  – Set Carry Flag.......................................................................................... 159
-            /*  107 */ InstructionType::SEH => 2usize, //  – Set Half Carry Flag...................................................................................160
-            /*  108 */ InstructionType::SEI => 2usize, // 
-            /*  109 */ InstructionType::SEN => 2usize, //  – Set Negative Flag.....................................................................................162
-            /*  110 */ InstructionType::SER => 2usize, //  – Set all Bits in Register.............................................................................. 163
-            /*  111 */ InstructionType::SES => 2usize, //  – Set Signed Flag........................................................................................ 164
-            /*  112 */ InstructionType::SET => 2usize, //  – Set T Flag................................................................................................. 165
-            /*  113 */ InstructionType::SEV => 2usize, //  – Set Overflow Flag..................................................................................... 166
-            /*  114 */ InstructionType::SEZ => 2usize, //  – Set Zero Flag............................................................................................ 167
-            /*  115 */ InstructionType::SLEEP => 2usize, // ................................................................................................................. 168
-            /*  116 */ InstructionType::SPM => 2usize, //  – Store Program Memory............................................................................169
-            /*  117 */ InstructionType::SPM_2 => 2usize, //  SPM #2 – Store Program Memory.......................................................................171
+            /*  97 */ InstructionType::SBC => 2u16, 
+            /*  98 */ InstructionType::SBCI => 2u16,
+            /*  99 */ InstructionType::SBI => 2u16, //  – Set Bit in I/O Register.................................................................................. 151
+            /*  100 */ InstructionType::SBIC => 2u16, //  – Skip if Bit in I/O Register is Cleared........................................................ 152
+            /*  101 */ InstructionType::SBIS => 2u16, //  – Skip if Bit in I/O Register is Set............................................................... 153
+            /*  102 */ InstructionType::SBIW => 2u16, //  – Subtract Immediate from Word...............................................................154
+            /*  103 */ InstructionType::SBR => 2u16, //  – Set Bits in Register...................................................................................156
+            /*  104 */ InstructionType::SBRC => 2u16, //  – Skip if Bit in Register is Cleared............................................................ 157
+            /*  105 */ InstructionType::SBRS => 2u16, //  – Skip if Bit in Register is Set....................................................................158
+            /*  106 */ InstructionType::SEC => 2u16, //  – Set Carry Flag.......................................................................................... 159
+            /*  107 */ InstructionType::SEH => 2u16, //  – Set Half Carry Flag...................................................................................160
+            /*  108 */ InstructionType::SEI => 2u16, // 
+            /*  109 */ InstructionType::SEN => 2u16, //  – Set Negative Flag.....................................................................................162
+            /*  110 */ InstructionType::SER => 2u16, //  – Set all Bits in Register.............................................................................. 163
+            /*  111 */ InstructionType::SES => 2u16, //  – Set Signed Flag........................................................................................ 164
+            /*  112 */ InstructionType::SET => 2u16, //  – Set T Flag................................................................................................. 165
+            /*  113 */ InstructionType::SEV => 2u16, //  – Set Overflow Flag..................................................................................... 166
+            /*  114 */ InstructionType::SEZ => 2u16, //  – Set Zero Flag............................................................................................ 167
+            /*  115 */ InstructionType::SLEEP => 2u16, // ................................................................................................................. 168
+            /*  116 */ InstructionType::SPM => 2u16, //  – Store Program Memory............................................................................169
+            /*  117 */ InstructionType::SPM_2 => 2u16, //  SPM #2 – Store Program Memory.......................................................................171
             /*  118 */ 
-            InstructionType::ST_STD_X_1 => 2usize,
-            InstructionType::ST_STD_X_2 => 2usize,
-            InstructionType::ST_STD_X_3 => 2usize,
+            InstructionType::ST_STD_X_1 => 2u16,
+            InstructionType::ST_STD_X_2 => 2u16,
+            InstructionType::ST_STD_X_3 => 2u16,
             /*  119 */ 
-            InstructionType::ST_STD_Y_1 => 2usize, 
-            InstructionType::ST_STD_Y_2 => 2usize, 
-            InstructionType::ST_STD_Y_3 => 2usize, 
-            InstructionType::ST_STD_Y_4 => 2usize, 
+            InstructionType::ST_STD_Y_1 => 2u16, 
+            InstructionType::ST_STD_Y_2 => 2u16, 
+            InstructionType::ST_STD_Y_3 => 2u16, 
+            InstructionType::ST_STD_Y_4 => 2u16, 
             /*  120 */ 
-            InstructionType::ST_STD_Z_1 => 2usize, 
-            InstructionType::ST_STD_Z_2 => 2usize,
-            InstructionType::ST_STD_Z_3 => 2usize,
-            InstructionType::ST_STD_Z_4 => 2usize,
-            /*  121 */ InstructionType::STS => 4usize, //  STS – Store Direct to Data Space.......................................................................179
-            /*  122 */ InstructionType::STS_16bit => 2usize, //  STS (16-bit) – Store Direct to Data Space.......................................................... 180
-            /*  123 */ InstructionType::SUB => 2usize, //  – Subtract Without Carry.............................................................................181
-            /*  124 */ InstructionType::SUBI => 2usize, //  – Subtract Immediate................................................................................. 183
-            /*  125 */ InstructionType::SWAP => 2usize, //  – Swap Nibbles........................................................................................ 185
+            InstructionType::ST_STD_Z_1 => 2u16, 
+            InstructionType::ST_STD_Z_2 => 2u16,
+            InstructionType::ST_STD_Z_3 => 2u16,
+            InstructionType::ST_STD_Z_4 => 2u16,
+            /*  121 */ InstructionType::STS => 4u16, //  STS – Store Direct to Data Space.......................................................................179
+            /*  122 */ InstructionType::STS_16bit => 2u16, //  STS (16-bit) – Store Direct to Data Space.......................................................... 180
+            /*  123 */ InstructionType::SUB => 2u16, //  – Subtract Without Carry.............................................................................181
+            /*  124 */ InstructionType::SUBI => 2u16, //  – Subtract Immediate................................................................................. 183
+            /*  125 */ InstructionType::SWAP => 2u16, //  – Swap Nibbles........................................................................................ 185
             
-            /*  126 */ InstructionType::TST => 2usize, //  – Test for Zero or Minus...............................................................................186
+            /*  126 */ InstructionType::TST => 2u16, //  – Test for Zero or Minus...............................................................................186
             
-            /*  127 */ InstructionType::WDR => 2usize, //  – Watchdog Reset......................................................................................187
+            /*  127 */ InstructionType::WDR => 2u16, //  – Watchdog Reset......................................................................................187
             
-            /*  128 */ InstructionType::XCH => 2usize,
+            /*  128 */ InstructionType::XCH => 2u16,
             
-            _ => 0,
+            _ => 0u16,
         }
     }
 

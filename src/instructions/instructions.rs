@@ -94,7 +94,12 @@ use super::{instruction_definition::InstructionDefinition, instruction_type::Ins
     /* 73 => InstructionType::LDI */            const LDI:          InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::LDI),         instruction_type: InstructionType::LDI,         bit_pattern: "1110 KKKK dddd KKKK" };
     /* 74 => InstructionType::LDS */            const LDS:          InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::LDS),         instruction_type: InstructionType::LDS,         bit_pattern: "1001 000d dddd 0000" };
     /* 75 => InstructionType::LDS_16bit */      const LDS_16BIT:    InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::LDS_16bit),   instruction_type: InstructionType::LDS_16bit,   bit_pattern: "1010 0kkk dddd kkkk" };
-    // /* 76 => InstructionType::LPM */            const LPM:          InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::LPM),         instruction_type: InstructionType::LPM,         bit_pattern: "" };
+    
+    ///* 76 => InstructionType::LPM */            const LPM:          InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::LPM),         instruction_type: InstructionType::LPM,         bit_pattern: "" };
+    const LPM_1:          InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::LPM_1),         instruction_type: InstructionType::LPM_1,         bit_pattern: "1001 0101 1100 1000" };
+    const LPM_2:          InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::LPM_2),         instruction_type: InstructionType::LPM_2,         bit_pattern: "1001 000d dddd 0100" };
+    const LPM_3:          InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::LPM_3),         instruction_type: InstructionType::LPM_3,         bit_pattern: "1001 000d dddd 0101" };
+    
     /* 77 => InstructionType::LSL */            const LSL:          InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::LSL),         instruction_type: InstructionType::LSL,         bit_pattern: "0000 11dd dddd dddd" };
     /* 78 => InstructionType::LSR */            const LSR:          InstructionDefinition = InstructionDefinition { index: InstructionType::to_code(&InstructionType::LSR),         instruction_type: InstructionType::LSR,         bit_pattern: "1001 010d dddd 0110" };
     
@@ -274,7 +279,12 @@ use super::{instruction_definition::InstructionDefinition, instruction_type::Ins
         LDI,
         LDS,
         LDS_16BIT,
-        // LPM, // TODO
+
+        // LPM,
+        LPM_1,
+        LPM_2,
+        LPM_3,
+
         LSL,
         LSR,
 
@@ -321,7 +331,7 @@ use super::{instruction_definition::InstructionDefinition, instruction_type::Ins
         SEZ,
         SLEEP,
         SPM,
-        // SPM_2, // TODO
+        // SPM_2, // TODO - 117. SPM #2 – Store Program Memory
         // ST, // TODO
         // ST_STD_X, // split up into subcommands
         ST_STD_X_1,

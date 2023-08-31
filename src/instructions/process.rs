@@ -355,10 +355,18 @@ pub fn match_instruction<R: crate::io::Read>(
         InstructionType::LDS_16bit => {
             process_lds_16bit(rdr, &word, index, value_storage);
         } // (16-bit) – Load Direct from Data Space......................................................... 117
+        
         /*  76 */
-        InstructionType::LPM => {
-            process_lpm(rdr, &word, index, value_storage);
+        InstructionType::LPM_1 => {
+            process_lpm_1(rdr, &word, index, value_storage);
         } // – Load Program Memory...............................................................................118
+        InstructionType::LPM_2 => {
+            process_lpm_2(rdr, &word, index, value_storage);
+        }
+        InstructionType::LPM_3 => {
+            process_lpm_3(rdr, &word, index, value_storage);
+        }
+        
         /*  77 */
         InstructionType::LSL => {
             process_lsl(rdr, &word, index, value_storage);
@@ -1418,7 +1426,23 @@ pub fn process_lds_16bit<R: crate::io::Read>(
 ) { todo!("()"); }
 
 #[allow(dead_code, unused)]
-pub fn process_lpm<R: crate::io::Read>(
+pub fn process_lpm_1<R: crate::io::Read>(
+    rdr: &mut R,
+    word: &u16,
+    index: &mut usize,
+    value_storage: &mut HashMap<char, u16>,
+) { todo!("()"); }
+
+#[allow(dead_code, unused)]
+pub fn process_lpm_2<R: crate::io::Read>(
+    rdr: &mut R,
+    word: &u16,
+    index: &mut usize,
+    value_storage: &mut HashMap<char, u16>,
+) { todo!("()"); }
+
+#[allow(dead_code, unused)]
+pub fn process_lpm_3<R: crate::io::Read>(
     rdr: &mut R,
     word: &u16,
     index: &mut usize,

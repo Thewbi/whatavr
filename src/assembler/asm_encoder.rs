@@ -124,7 +124,7 @@ macro_rules! LOW_LOW_I32 {
     };
 }
 
-pub fn create_label(labels: &mut HashMap<String, usize>, label: String, idx: usize) {
+pub fn create_label(labels: &mut HashMap<String, u16>, label: String, idx: u16) {
     labels.insert(label.clone(), idx);
     println!("Label: {} -> idx: {:#04X}", label, idx);
 }
@@ -139,7 +139,7 @@ pub fn create_label(labels: &mut HashMap<String, usize>, label: String, idx: usi
 // 1. Add a cycle counter
 pub struct AsmEncoder {
 
-    pub labels: HashMap<String, usize>,
+    pub labels: HashMap<String, u16>,
 
     pub encoding_success: bool,
 
@@ -160,7 +160,7 @@ impl AsmEncoder {
         // phase 1 - scan for labels
         //
 
-        let mut idx: usize = 0usize;
+        let mut idx: u16 = 0u16;
         for asm_record in asm_records.iter_mut() {
 
             // assign the current address to the record
@@ -290,6 +290,18 @@ impl AsmEncoder {
             InstructionType::LDS_16bit => {
                 Self::encode_lds_16bit(&self, segment, asm_record.reg_1, asm_record.data);
             }
+
+            /*  76 */
+            InstructionType::LPM_1 => {
+                Self::encode_lpm_1(&self, segment);
+            }
+            InstructionType::LPM_2 => {
+                Self::encode_lpm_2(&self, segment, asm_record.reg_1);
+            }
+            InstructionType::LPM_3 => {
+                Self::encode_lpm_3(&self, segment, asm_record.reg_1);
+            }
+
             /*  79 */
             InstructionType::MOV => {
                 Self::encode_mov(&self, segment, asm_record.reg_1, asm_record.reg_2);
@@ -521,7 +533,7 @@ impl AsmEncoder {
     /// 18. BREQ – Branch if Equal
     /// 1111 00kk kkkk k001
     /// 1111 00kk kkkk ksss // BRBS (more general instruction that entails BREQ)
-    fn encode_breq(&self, segment: &mut Segment, idx: &usize, label: &String, address: i16) {
+    fn encode_breq(&self, segment: &mut Segment, idx: &u16, label: &String, address: i16) {
 
         // asdf
         // let offset_k: i32;
@@ -582,7 +594,7 @@ impl AsmEncoder {
 
     /// 27. BRNE – Branch if Not Equal
     /// 1111 01kk kkkk k001
-    fn encode_brne(&self, segment: &mut Segment, idx: &usize, label: &String) {
+    fn encode_brne(&self, segment: &mut Segment, idx: &u16, label: &String) {
 
         //let mut offset_k: u16 = self.labels[label] as u16;
 
@@ -609,7 +621,7 @@ impl AsmEncoder {
     /// 36. CALL – Long Call to a Subroutine
     /// 1001 010k kkkk 111k
     /// kkkk kkkk kkkk kkkk
-    fn encode_call(&self, segment: &mut Segment, idx: &usize, label: &String, address: i16) {
+    fn encode_call(&self, segment: &mut Segment, idx: &u16, label: &String, address: i16) {
 
         if 0x00 == address && label.is_empty() {
             panic!("No label or address found for call instruction!");
@@ -804,7 +816,7 @@ impl AsmEncoder {
     /// 1001 010k kkkk 110k
     /// kkkk kkkk kkkk kkkk
     //fn encode_jmp(&mut self, segment: &mut Segment, idx: &usize, label_or_immediate: &String) {
-    fn encode_jmp(&mut self, segment: &mut Segment, idx: &usize, label: &String, address: i16) {
+    fn encode_jmp(&mut self, segment: &mut Segment, idx: &u16, label: &String, address: i16) {
 
         // if 0x00 == address && label.is_empty() {
         //     panic!("No label or address found for call instruction!");
@@ -866,19 +878,19 @@ impl AsmEncoder {
 
         log::trace!("result: {:#32b}\n", result);
 
-        log::info!("ENC JMP: {:#02x}\n", (result >> 16u16) as u8);
+        log::trace!("ENC JMP: {:#02x}\n", (result >> 16u16) as u8);
         segment.data.push((result >> 16u16) as u8);
         segment.size += 1u32;
 
-        log::info!("ENC JMP: {:#02x}\n", (result >> 24u16) as u8);
+        log::trace!("ENC JMP: {:#02x}\n", (result >> 24u16) as u8);
         segment.data.push((result >> 24u16) as u8);
         segment.size += 1u32;
 
-        log::info!("ENC JMP: {:#02x}\n", (result >> 0u16) as u8);
+        log::trace!("ENC JMP: {:#02x}\n", (result >> 0u16) as u8);
         segment.data.push((result >> 0u16) as u8);
         segment.size += 1u32;
 
-        log::info!("ENC JMP: {:#02x}\n", (result >> 8u16) as u8);
+        log::trace!("ENC JMP: {:#02x}\n", (result >> 8u16) as u8);
         segment.data.push((result >> 8u16) as u8);
         segment.size += 1u32;
 
@@ -1067,6 +1079,51 @@ impl AsmEncoder {
         segment.size += 1u32;
     }
 
+    fn encode_lpm_1(&self, segment: &mut Segment)
+    {
+        let result: u16 = 0x95C8u16;
+        
+        log::trace!("ENC LPM_1: {:b}\n", result);
+
+        log::trace!("ENC LPM_1: {:#02x}\n", (result >> 0u16) as u8);
+        segment.data.push((result >> 0u16) as u8);
+        segment.size += 1u32;
+
+        log::trace!("ENC LPM_1: {:#02x}\n", (result >> 8u16) as u8);
+        segment.data.push((result >> 8u16) as u8);
+        segment.size += 1u32;
+    }
+
+    fn encode_lpm_2(&self, segment: &mut Segment, register_d: u16)
+    {
+        let result: u16 = 0x9004u16 | (register_d << 4u16) & 0x1Fu16;
+
+        log::trace!("ENC LPM_2: {:b}\n", result);
+
+        log::trace!("ENC LPM_2: {:#02x}\n", (result >> 0u16) as u8);
+        segment.data.push((result >> 0u16) as u8);
+        segment.size += 1u32;
+
+        log::trace!("ENC LPM_2: {:#02x}\n", (result >> 8u16) as u8);
+        segment.data.push((result >> 8u16) as u8);
+        segment.size += 1u32;
+    }
+
+    fn encode_lpm_3(&self, segment: &mut Segment, register_d: u16)
+    {
+        let result: u16 = 0x9005u16 | (register_d << 4u16) & 0x1Fu16;
+
+        log::trace!("ENC LPM_3: {:b}\n", result);
+
+        log::trace!("ENC LPM_3: {:#02x}\n", (result >> 0u16) as u8);
+        segment.data.push((result >> 0u16) as u8);
+        segment.size += 1u32;
+
+        log::trace!("ENC LPM_3: {:#02x}\n", (result >> 8u16) as u8);
+        segment.data.push((result >> 8u16) as u8);
+        segment.size += 1u32;
+    }
+
     /// 79. MOV – Copy Register
     /// 0010 11rd dddd rrrr
     fn encode_mov(&self, segment: &mut Segment, register_d: u16, register_r: u16) {
@@ -1199,7 +1256,7 @@ impl AsmEncoder {
 
     /// 91. RCALL – Relative Call to Subroutine
     /// 1101 kkkk kkkk kkkk
-    fn encode_rcall(&self, segment: &mut Segment, idx: &usize, label: &String) {
+    fn encode_rcall(&self, segment: &mut Segment, idx: &u16, label: &String) {
         // THIS CODE HAS BEEN COPIED FROM RJMP
 
         let label_address: i16 = self.labels[label] as i16;
@@ -1263,7 +1320,7 @@ impl AsmEncoder {
     /// 94. RJMP – Relative Jump
     /// 1100 kkkk kkkk kkkk
     #[allow(dead_code)]
-    fn encode_rjmp(&self, segment: &mut Segment, idx: &usize, label: &String, address: i16) {
+    fn encode_rjmp(&self, segment: &mut Segment, idx: &u16, label: &String, address: i16) {
 
         // let label_address: i16 = self.labels[label] as i16;
         // log::trace!("label_address: {:#06x}", label_address);
@@ -1294,8 +1351,8 @@ impl AsmEncoder {
         //let offset_k: i16 = target_address;
 
         // relative offset
-        let idx_isize: i16 = idx as i16;
-        let offset_k: isize = target_address as isize - idx_isize;
+        let idx_isize: i16 = *idx as i16;
+        let offset_k: i16 = target_address - idx_isize;
         
         log::trace!("offset_k (in words): {:#06x}", offset_k);
         log::trace!("offset_k (in words): {:#06x}", offset_k as u32);
@@ -1309,24 +1366,23 @@ impl AsmEncoder {
 
         let result: u16 = 0xC000u16 | ((offset_k as u16) & 0b111111111111);
         //let result: u16 = 0xC000u16;
-        log::info!("result: {:#34b}", result);
+        log::info!("result: {:#34b}\n", result);
         //log::info!("result: {:#026b}", result);
 
-        log::info!("ENC RJMP: {:#02x}", (result >> 0u16) as u8);
+        log::info!("ENC RJMP: {:#02x}\n", (result >> 0u16) as u8);
         segment.data.push((result >> 0u16) as u8);
         segment.size += 1u32;
 
-        log::info!("ENC RJMP: {:#02x}", (result >> 8u16) as u8);
+        log::info!("ENC RJMP: {:#02x}\n", (result >> 8u16) as u8);
         segment.data.push((result >> 8u16) as u8);
         segment.size += 1u32;
-
         
     }
 
     /// 99. SBI – Set Bit in I/O Register
     /// 1001 1010 AAAA Abbb
     #[allow(dead_code)]
-    fn encode_sbi(&self, segment: &mut Segment, _idx: &usize, register_a: u16, bit_to_set: u16) {
+    fn encode_sbi(&self, segment: &mut Segment, _idx: &u16, register_a: u16, bit_to_set: u16) {
 
         if register_a > 31 {
             panic!("Invalid register for SBI! Only registers [0, 31] are allowed!")
@@ -1349,7 +1405,7 @@ impl AsmEncoder {
     /// 105. SBRS – Skip if Bit in Register is Set
     /// 1111 111r rrrr 0bbb
     #[allow(dead_code)]
-    fn encode_sbrs(&self, segment: &mut Segment, _idx: &usize, register_r: u16, bit_to_set: u16) {
+    fn encode_sbrs(&self, segment: &mut Segment, _idx: &u16, register_r: u16, bit_to_set: u16) {
 
         if register_r > 31 {
             panic!("Invalid register for SBRS! Only registers [0, 31] are allowed!")
@@ -1372,7 +1428,7 @@ impl AsmEncoder {
     /// 108. SEI – Set Global Interrupt Flag
     /// 1001 0100 0111 1000
     #[allow(dead_code)]
-    fn encode_sei(&self, segment: &mut Segment, _idx: &usize) {
+    fn encode_sei(&self, segment: &mut Segment, _idx: &u16) {
 
         let result: u16 = 0x9478u16;
 
