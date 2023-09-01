@@ -88,7 +88,7 @@ fn main() -> io::Result<()> {
     // // hex
     // load_segment_from_hex_file(&mut segments);
 
-    // // listing (lss) file
+    // // listing (lss) file (from C-SourceCode)
     // load_segment_from_listing_file(&mut segments);
 
     //
@@ -410,6 +410,7 @@ fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>)
     //asm_file_path.push_str("test_resources/sample_files/asm/jmp.asm"); // good for regression test (will increment r17 until overflow)
     //asm_file_path.push_str("test_resources/sample_files/asm/preprocessor.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/push_pop.asm");
+    asm_file_path.push_str("test_resources/sample_files/asm/ret_test.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/scratchpad.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/scratchpad_2.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/setup_stack.asm"); // regression test
@@ -417,6 +418,7 @@ fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>)
     //asm_file_path.push_str("C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/avrasm/inc/m328Pdef.inc");
     //asm_file_path.push_str("test_resources/sample_files/asm/hwnp_excercise_1.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/st_std_test.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/stack_test.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/pin_change_interrupt_demo.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/pin_change_interrupt_demo.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/rjh_coding_avr-asm-add-16.asm");
@@ -453,7 +455,7 @@ fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>)
     //asm_file_path.push_str("test_resources/sample_files/asm/ld.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/ld_z.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/ldi.asm");
-    asm_file_path.push_str("test_resources/sample_files/asm/lpm.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/lpm.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/lsr.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/lsl.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/mov.asm");

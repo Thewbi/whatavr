@@ -15,6 +15,7 @@ use crate::common::number_literal_parser::is_number_literal_u16;
 use crate::common::number_literal_parser::number_literal_to_i16;
 use crate::common::number_literal_parser::number_literal_to_u16;
 use crate::common::register_parser::is_register_name;
+// use crate::common::register_parser::is_sfr_name;
 use crate::common::register_parser::register_name_to_u16;
 use crate::instructions::instruction_type::InstructionType;
 use crate::parser;
@@ -501,6 +502,10 @@ impl<'i> assemblerVisitorCompat<'i> for NewAssemblerVisitor {
                     param_1_as_number = register_name_to_u16(param_1);
                     asm_record.reg_1 = param_1_as_number;
                 }
+                // else if is_sfr_name(param_1)
+                // {
+                //     asm_record.reg_1 = sfr_name_to_u16(param_1);
+                // }
                 else if is_number_literal_u16(param_1)
                 {
                     param_1_as_number = number_literal_to_u16(&param_1);
@@ -515,7 +520,6 @@ impl<'i> assemblerVisitorCompat<'i> for NewAssemblerVisitor {
                     if map.contains_key(&param_as_string)
                     {
                         let constant_value = map.get(&param_as_string).unwrap();
-
                         if is_number_literal_u16(constant_value)
                         {
                             asm_record.reg_1 = number_literal_to_u16(constant_value);
@@ -523,7 +527,7 @@ impl<'i> assemblerVisitorCompat<'i> for NewAssemblerVisitor {
                         else if is_register_name(constant_value)
                         {
                             asm_record.reg_1 = register_name_to_u16(constant_value);
-                        }
+                        } 
                     }
                     else
                     {
@@ -542,6 +546,10 @@ impl<'i> assemblerVisitorCompat<'i> for NewAssemblerVisitor {
                     param_2_as_number = register_name_to_u16(param_2);
                     asm_record.reg_2 = param_2_as_number;
                 }
+                // else if is_sfr_name(param_2)
+                // {
+                //     asm_record.reg_2 = register_name_to_u16(param_2);
+                // }
                 else if is_number_literal_u16(param_2)
                 {
                     param_2_as_number = number_literal_to_u16(&param_2);

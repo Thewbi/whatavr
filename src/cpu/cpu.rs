@@ -17,62 +17,70 @@ use crate::{HIGH, HIGH_HIGH_I32, HIGH_I16, HIGH_I32, LOW, LOW_I16, LOW_I32, LOW_
 // the value is placed at the stackpointer then, after that, the stack pointer is decremented
 pub fn push_to_stack_u8(cpu: &mut CPU, data: u8) {
     let stack_pointer: u16 = ((*cpu.sph() as u16) << 8u16) | *cpu.spl() as u16;
-    cpu.sram[(stack_pointer - 1) as usize] = data;
+    cpu.sram[(stack_pointer) as usize] = data;
     decrement_stack_pointer(cpu);
 }
 
 #[allow(dead_code)]
 pub fn push_to_stack_u16(cpu: &mut CPU, data: &u16) {
     let stack_pointer: u16 = ((*cpu.sph() as u16) << 8u16) | *cpu.spl() as u16;
-    cpu.sram[(stack_pointer - 1) as usize] = HIGH!(data).try_into().unwrap();
+    cpu.sram[(stack_pointer) as usize] = HIGH!(data).try_into().unwrap();
     decrement_stack_pointer(cpu);
 
     let stack_pointer: u16 = ((*cpu.sph() as u16) << 8u16) | *cpu.spl() as u16;
-    cpu.sram[(stack_pointer - 1) as usize] = LOW!(data).try_into().unwrap();
+    cpu.sram[(stack_pointer) as usize] = LOW!(data).try_into().unwrap();
     decrement_stack_pointer(cpu);
 }
 
 pub fn push_to_stack_i16(cpu: &mut CPU, data: i16) {
     let stack_pointer: u16 = ((*cpu.sph() as u16) << 8u16) | *cpu.spl() as u16;
-    cpu.sram[(stack_pointer - 1) as usize] = HIGH_I16!(data).try_into().unwrap();
+    cpu.sram[(stack_pointer) as usize] = HIGH_I16!(data).try_into().unwrap();
     decrement_stack_pointer(cpu);
 
     let stack_pointer: u16 = ((*cpu.sph() as u16) << 8u16) | *cpu.spl() as u16;
-    cpu.sram[(stack_pointer - 1) as usize] = LOW_I16!(data).try_into().unwrap();
+    cpu.sram[(stack_pointer) as usize] = LOW_I16!(data).try_into().unwrap();
     decrement_stack_pointer(cpu);
 }
 
 #[allow(dead_code)]
 pub fn push_to_stack_i32(cpu: &mut CPU, data: i32) {
     let stack_pointer: u16 = ((*cpu.sph() as u16) << 8u16) | *cpu.spl() as u16;
-    cpu.sram[(stack_pointer - 1) as usize] = HIGH_HIGH_I32!(data).try_into().unwrap();
+    cpu.sram[(stack_pointer) as usize] = HIGH_HIGH_I32!(data).try_into().unwrap();
     decrement_stack_pointer(cpu);
 
     let stack_pointer: u16 = ((*cpu.sph() as u16) << 8u16) | *cpu.spl() as u16;
-    cpu.sram[(stack_pointer - 1) as usize] = HIGH_I32!(data).try_into().unwrap();
+    cpu.sram[(stack_pointer) as usize] = HIGH_I32!(data).try_into().unwrap();
     decrement_stack_pointer(cpu);
 
     let stack_pointer: u16 = ((*cpu.sph() as u16) << 8u16) | *cpu.spl() as u16;
-    cpu.sram[(stack_pointer - 1) as usize] = LOW_I32!(data).try_into().unwrap();
+    cpu.sram[(stack_pointer) as usize] = LOW_I32!(data).try_into().unwrap();
     decrement_stack_pointer(cpu);
 
     let stack_pointer: u16 = ((*cpu.sph() as u16) << 8u16) | *cpu.spl() as u16;
-    cpu.sram[(stack_pointer - 1) as usize] = LOW_LOW_I32!(data).try_into().unwrap();
+    cpu.sram[(stack_pointer) as usize] = LOW_LOW_I32!(data).try_into().unwrap();
     decrement_stack_pointer(cpu);
 }
 
 pub fn pop_from_stack_u8(cpu: &mut CPU) -> u8 {
+    // pre-increment
     increment_stack_pointer(cpu);
+
+    // get value
     let stack_pointer: u16 = ((*cpu.sph() as u16) << 8u16) | *cpu.spl() as u16;
-    let data: u8 = cpu.sram[(stack_pointer - 1) as usize];
-    data
+    cpu.sram[(stack_pointer) as usize]
 }
 
 fn increment_stack_pointer(cpu: &mut CPU) {
+
     let mut stack_pointer: u16 = ((*cpu.sph() as u16) << 8u16) | *cpu.spl() as u16;
+    log::trace!("{:#06x}\n", stack_pointer);
+    
     stack_pointer += 1u16;
     *cpu.sph() = HIGH!(stack_pointer).try_into().unwrap();
     *cpu.spl() = LOW!(stack_pointer).try_into().unwrap();
+
+    stack_pointer = ((*cpu.sph() as u16) << 8u16) | *cpu.spl() as u16;
+    log::trace!("{:#06x}\n", stack_pointer);
 }
 
 fn decrement_stack_pointer(cpu: &mut CPU) {
@@ -114,6 +122,7 @@ pub struct CPU {
     // register file, 32 8bit registers
     pub register_file: [u8; 32usize],
 
+    // sram todo: move to own struct / trait!
     pub sram: [u8; RAMEND as usize],
 
     // special function register
@@ -132,7 +141,6 @@ impl Default for CPU {
             h: false,
             t: false,
             i: false,
-            //pc: 0x02i32,
             pc: 0x00i32,
             register_file: [0; 32usize],
             sram: [0; RAMEND as usize],
@@ -183,60 +191,60 @@ impl CPU {
     // https://stackoverflow.com/questions/35390615/writing-getter-setter-properties-in-rust
     fn sph(&mut self) -> &mut u8 {
 
-        // let map = HASHMAP.lock().unwrap();
-        // let value_as_string = map.get("SPH").unwrap();
+        let map = HASHMAP.lock().unwrap();
+        let value_as_string = map.get("SPH").unwrap();
 
-        // let without_prefix = value_as_string.trim_start_matches("0x");
-        // let value: usize = usize::from_str_radix(without_prefix, 16).unwrap();
+        let without_prefix = value_as_string.trim_start_matches("0x");
+        let value: usize = usize::from_str_radix(without_prefix, 16).unwrap();
 
-        //return &mut self.sfr[value];
+        return &mut self.sfr[value];
 
-        // ATmega328p
-        // 6.5.1 SPH and SPL – Stack Pointer High and Stack Pointer Low Register
-        // 0x3E (0x5E) stack pointer high
-        return &mut self.sfr[0x3E];
+        // // ATmega328p
+        // // 6.5.1 SPH and SPL – Stack Pointer High and Stack Pointer Low Register
+        // // 0x3E (0x5E) stack pointer high
+        // return &mut self.sfr[0x3E];
     }
 
     fn spl(&mut self) -> &mut u8 {
 
-        // let map = HASHMAP.lock().unwrap();
-        // let value_as_string = map.get("SPL").unwrap();
+        let map = HASHMAP.lock().unwrap();
+        let value_as_string = map.get("SPL").unwrap();
 
-        // let without_prefix = value_as_string.trim_start_matches("0x");
-        // let value: usize = usize::from_str_radix(without_prefix, 16).unwrap();
+        let without_prefix = value_as_string.trim_start_matches("0x");
+        let value: usize = usize::from_str_radix(without_prefix, 16).unwrap();
 
-        // return &mut self.sfr[value];
+        return &mut self.sfr[value];
 
-        // ATmega328p
-        // 6.5.1 SPH and SPL – Stack Pointer High and Stack Pointer Low Register
-        // 0x3D (0x5D) stack pointer low
-        return &mut self.sfr[0x3D];
+        // // ATmega328p
+        // // 6.5.1 SPH and SPL – Stack Pointer High and Stack Pointer Low Register
+        // // 0x3D (0x5D) stack pointer low
+        // return &mut self.sfr[0x3D];
     }
 
     fn get_sph(&self) -> u8 {
 
-        // let map = HASHMAP.lock().unwrap();
-        // let value_as_string = map.get("SPH").unwrap();
+        let map = HASHMAP.lock().unwrap();
+        let value_as_string = map.get("SPH").unwrap();
 
-        // let without_prefix = value_as_string.trim_start_matches("0x");
-        // let value: usize = usize::from_str_radix(without_prefix, 16).unwrap();
+        let without_prefix = value_as_string.trim_start_matches("0x");
+        let value: usize = usize::from_str_radix(without_prefix, 16).unwrap();
 
-        // return self.sfr[value];
+        return self.sfr[value];
 
-        return self.sfr[0x3E];
+        // return self.sfr[0x3E];
     }
 
     fn get_spl(&self) -> u8 {
 
-        // let map = HASHMAP.lock().unwrap();
-        // let value_as_string = map.get("SPL").unwrap();
+        let map = HASHMAP.lock().unwrap();
+        let value_as_string = map.get("SPL").unwrap();
 
-        // let without_prefix = value_as_string.trim_start_matches("0x");
-        // let value: usize = usize::from_str_radix(without_prefix, 16).unwrap();
+        let without_prefix = value_as_string.trim_start_matches("0x");
+        let value: usize = usize::from_str_radix(without_prefix, 16).unwrap();
 
-        // return self.sfr[value];
+        return self.sfr[value];
 
-        return self.sfr[0x3D];
+        // return self.sfr[0x3D];
     }
 
     #[allow(dead_code, unused)]
@@ -313,22 +321,45 @@ impl CPU {
         self.register_file[31] = HIGH_U16!(value);
     }
 
+    // pub fn is_sfr_name(&mut self, input: &str) -> bool 
+    // {
+    //     log::info!("sfr: {}\n", input);
+    //     if input.to_lowercase().eq("sph") || input.to_lowercase().eq("spl")
+    //     {
+    //         return true;
+    //     }
+    //     false
+    // }
+
+    // pub fn sfr_name_to_u8(&mut self, input: &str) -> u8 
+    // {
+    //     let map = HASHMAP.lock().unwrap();
+    //     let value_as_string = map.get(input).unwrap();
+
+    //     let without_prefix = value_as_string.trim_start_matches("0x");
+    //     let value: usize = usize::from_str_radix(without_prefix, 16).unwrap();
+
+    //     return self.sfr[value];
+    // }
+
     // data_space is terminology used in the datasheet of the ATmega328p for SRAM memory access
     // as opposed to I/O space which is terminology for the memory mapped special function registers
     fn store_to_data_space(&mut self, address: usize, value: u8) {
         //todo!("Store value {} to address {} in data space!", value, address);
         log::info!("\tStore value {} {:#04X} to address {} {:#04X} in data space!\n", value, value, address, address);
         log::trace!("\n");
+
+        self.sram[address] = value;
     }
 
     fn load_from_data_space(&mut self, address: usize) -> u8 {
         //todo!("Load byte from address {} in data space!", address);
 
-        let value: u8 = 0x12;
+        let value: u8 = self.sram[address];
         log::info!("\tLoaded value {} {:#04X} at address {} {:#04X} from data space!\n", value, value, address, address);
         log::trace!("\n");
 
-        return value;
+        value
     }
 
     fn store_to_i_o_space(&mut self, address: usize, value: u8) {
@@ -1157,17 +1188,18 @@ impl CPU {
                 let d_val: u16 = value_storage[&'d'];
                 log::trace!("d: {d_val:#b} {d_val:#x} {d_val}\n");
 
-                cpu.pc += 2i32;
-
+                // load value
                 let stack_content: u8 = pop_from_stack_u8(&mut cpu);
 
-                //log::info!("pop {d_val:#x}\n");
-                os.push_str(&format!("pop {d_val:#x}"));
+                os.push_str(&format!("pop r{} ", d_val));
+                os.push_str(&format!(" (popped_value: {}, {:#04x})", stack_content, stack_content));
                 log::info!("{}\n", os);
 
                 cpu.register_file[d_val as usize] = stack_content;
 
                 log::trace!("stack pointer: {} {}\n", cpu.stack_info_high(), cpu.stack_info_low());
+
+                cpu.pc += 2i32;
             }
 
             /*  90 */
@@ -1236,16 +1268,14 @@ impl CPU {
                 log::trace!("ret - <<< stack popped: {k_val:#06X}\n");
 
                 cpu.pc = k_val as i32;
-                //cpu.pc = (k_val * 2i16) as i32;
-                //cpu.pc += 2i32;
-                //cpu.pc += 4i32;
 
-                //log::info!("ret\n");
                 os.push_str(&format!("ret"));
                 log::info!("{}\n", os);
 
                 //log::info!("ret - stack pointer: {:#04x} {:#04x}", cpu.sph, cpu.spl);
-                log::trace!("stack pointer: {} {}\n", cpu.stack_info_high(), cpu.stack_info_low());
+                //log::trace!("stack pointer: {} {}\n", cpu.stack_info_high(), cpu.stack_info_low());
+                
+                log::info!("pc: {:#06x}\n", cpu.pc);
             }
 
             /*  94 */

@@ -8,7 +8,6 @@ use super::{
 };
 use crate::{parser::assemblerparser::InstructionContext, assembler::{asm_record::AsmRecord, io_destination::IoDestination}, instructions::instruction_type::InstructionType, ihex_mgmt::ihex_mgmt::Segment, cpu::cpu::CPU, LOW, HIGH};
 use crate::parser::assemblerparser::Label_definitionContext;
-// use crate::parser::assemblerparser::ParameterContext;
 
 #[allow(non_camel_case_types)]
 pub struct assemblerListenerImpl {
@@ -74,15 +73,6 @@ impl<'input> assemblerListener<'input> for assemblerListenerImpl {
         // the very last line contained a label definition
         // force a NOP operation and place the label onto that NOP operation
         if self.label != "" {
-
-            // let asm_record: AsmRecord = AsmRecord::new(self.label.clone(), 
-            //     InstructionType::NOP, 
-            // 0xFF,
-            //     0xFF,
-            //     0, 
-            //     String::from(""), 
-            //     0x00i16, 
-            //     IoDestination::UNKNOWN);
             
             let mut asm_record: AsmRecord = AsmRecord::default();
             asm_record.instruction_type = InstructionType::NOP;
@@ -100,15 +90,6 @@ impl<'input> assemblerListener<'input> for assemblerListenerImpl {
         self.asm_encoder.assemble(&mut self.asm_records, &mut assembler_segment);
 
         // ATmega328p cpu
-        // let mut cpu: CPU = CPU {
-        //     z: false,
-        //     sph: 0x00u8,
-        //     spl: 0x00u8,
-        //     pc: 0x02i32,
-        //     register_file: [0; 32usize],
-        //     sram: [0; RAMEND as usize],
-        //     sfr: [0; 255usize],
-        // };
         let mut cpu: CPU = CPU::default();
 
         log::info!(">>> CPU program execution ...");
@@ -156,24 +137,6 @@ impl<'input> assemblerListener<'input> for assemblerListenerImpl {
         if self.label != "" && self.mnemonic == "" {
             return;
         }
-
-        // if self.label == "" && asm_record.instruction_type == InstructionType::UNKNOWN {
-        //     // if the .asm file contains a row that just contains an empty label, the label
-        //     // is remembered and placed onto the next record. No asm_record is created.
-        //     self.reset_self();
-
-        //     return;
-        // } 
-
-        // let mut asm_record: AsmRecord = AsmRecord::new(
-        //     String::from(""), 
-        //     InstructionType::UNKNOWN, 
-        //     0xFF, 
-        //     0xFF, 
-        //     0, 
-        //     String::from(""), 
-        //     0i16,
-        //     IoDestination::UNKNOWN);
 
         let mut asm_record: AsmRecord = AsmRecord::default();
 

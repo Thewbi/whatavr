@@ -1366,14 +1366,14 @@ impl AsmEncoder {
 
         let result: u16 = 0xC000u16 | ((offset_k as u16) & 0b111111111111);
         //let result: u16 = 0xC000u16;
-        log::info!("result: {:#34b}\n", result);
+        log::trace!("result: {:#34b}\n", result);
         //log::info!("result: {:#026b}", result);
 
-        log::info!("ENC RJMP: {:#02x}\n", (result >> 0u16) as u8);
+        log::trace!("ENC RJMP: {:#02x}\n", (result >> 0u16) as u8);
         segment.data.push((result >> 0u16) as u8);
         segment.size += 1u32;
 
-        log::info!("ENC RJMP: {:#02x}\n", (result >> 8u16) as u8);
+        log::trace!("ENC RJMP: {:#02x}\n", (result >> 8u16) as u8);
         segment.data.push((result >> 8u16) as u8);
         segment.size += 1u32;
         
