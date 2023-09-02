@@ -1,6 +1,4 @@
 use antlr_rust::common_token_stream::CommonTokenStream;
-use antlr_rust::parser::ParserNodeType;
-use antlr_rust::parser_rule_context::BaseParserRuleContext;
 use antlr_rust::token_factory::ArenaCommonFactory;
 use antlr_rust::tree::ParseTreeVisitorCompat;
 use antlr_rust::InputStream;
@@ -14,8 +12,8 @@ use crate::common::number_literal_parser::is_number_literal_i16;
 use crate::common::number_literal_parser::is_number_literal_u16;
 use crate::common::number_literal_parser::number_literal_to_i16;
 use crate::common::number_literal_parser::number_literal_to_u16;
+use crate::common::number_literal_parser::number_literal_to_u8;
 use crate::common::register_parser::is_register_name;
-// use crate::common::register_parser::is_sfr_name;
 use crate::common::register_parser::register_name_to_u16;
 use crate::instructions::instruction_type::InstructionType;
 use crate::parser;
@@ -24,11 +22,16 @@ use crate::parser::assemblerparser::Asm_fileContextAll;
 use crate::parser::assemblerparser::InstructionContext;
 use crate::parser::assemblerparser::ParamContext;
 use crate::parser::assemblervisitor::assemblerVisitorCompat;
-use crate::HASHMAP;
+use crate::DSEG_HASHMAP;
+use crate::CSEG_HASHMAP;
 use crate::HIGH;
 use antlr_rust::tree::ParseTree;
 
+use super::segment_mode;
+use super::segment_mode::SegmentMode;
+
 pub struct NewAssemblerVisitor {
+
     // result
     pub records: Vec<AsmRecord>,
     pub record: AsmRecord,
@@ -42,6 +45,14 @@ pub struct NewAssemblerVisitor {
 
     // label
     pub label: String,
+
+    // data segment as opposed to the code segment which is filled from the AsmRecords
+    pub sram: [u8; RAMEND as usize],
+
+    pub segment_mode: SegmentMode,
+
+    pub cseg_org_pointer: u16,
+    pub dseg_org_pointer: u16,
 }
 
 impl Default for NewAssemblerVisitor {
@@ -56,6 +67,13 @@ impl Default for NewAssemblerVisitor {
             return_val: Vec::new(),
 
             label: String::default(),
+
+            sram: [0; RAMEND as usize],
+
+            segment_mode: SegmentMode::CodeSegment,
+
+            cseg_org_pointer: 0x00u16,
+            dseg_org_pointer: 0x00u16,
         }
     }
 }
@@ -276,7 +294,37 @@ impl<'i> NewAssemblerVisitor {
 
         if "cseg".eq(&asm_directive) {
 
+            self.segment_mode = SegmentMode::CodeSegment;
+
+        } else if "dseg".eq(&asm_directive) {
+
+            self.segment_mode = SegmentMode::DataSegment;
+
+        }  else if "db".eq(&asm_directive) {
+
             // ignored
+            //println!("db");
+
+            if SegmentMode::DataSegment == self.segment_mode
+            {
+
+                // store the label in the sram (data_segment) hashmap
+                let mut map = DSEG_HASHMAP.lock().unwrap();
+                map.insert(self.label.clone(), self.dseg_org_pointer);
+
+                log::info!("DSEG_HASHMAP {:?}\n", map);
+
+                // copy the bytes into sram (data_segment)
+                for i in 2..assembler_directive.len() 
+                {    
+                    self.sram[self.dseg_org_pointer as usize] = number_literal_to_u8(&assembler_directive[i]);
+                    self.dseg_org_pointer += 1u16;
+                } 
+            }
+            else 
+            {
+                panic!("DB in mode CodeSegment! Not implemented yet!");
+            }
 
         } else if "device".eq(&asm_directive) {
 
@@ -289,7 +337,7 @@ impl<'i> NewAssemblerVisitor {
             // in the rest of the program to refer to the register it is assigned to. A register can have several symbolic
             // names attached to it. A symbol can be redefined later in the program.
 
-            let mut map = HASHMAP.lock().unwrap();
+            let mut map = CSEG_HASHMAP.lock().unwrap();
             map.insert(assembler_directive[2].to_string(), assembler_directive[4].to_string());
 
         } else if "equ".eq(&asm_directive) {
@@ -298,7 +346,7 @@ impl<'i> NewAssemblerVisitor {
             // The EQU directive assigns a value to a label. This label can then be used in later expressions. A label
             // assigned to a value by the EQU directive is a constant and can not be changed or redefined.
 
-            let mut map = HASHMAP.lock().unwrap();
+            let mut map = CSEG_HASHMAP.lock().unwrap();
             map.insert(assembler_directive[2].to_string(), assembler_directive[4].to_string());
 
         } else if "include".eq(&asm_directive) {
@@ -353,7 +401,18 @@ impl<'i> NewAssemblerVisitor {
 
         } else if "org".eq(&asm_directive) {
 
-            // ignored
+            match self.segment_mode
+            {
+                SegmentMode::CodeSegment => {
+                    self.cseg_org_pointer = number_literal_to_u16(&assembler_directive[2]);
+                }
+                SegmentMode::DataSegment => {
+                    self.dseg_org_pointer = number_literal_to_u16(&assembler_directive[2]);
+                }
+
+                SegmentMode::UNKNOWN => panic!("Unknown segment mode!")
+            }
+            
 
         } else {
 
@@ -502,10 +561,6 @@ impl<'i> assemblerVisitorCompat<'i> for NewAssemblerVisitor {
                     param_1_as_number = register_name_to_u16(param_1);
                     asm_record.reg_1 = param_1_as_number;
                 }
-                // else if is_sfr_name(param_1)
-                // {
-                //     asm_record.reg_1 = sfr_name_to_u16(param_1);
-                // }
                 else if is_number_literal_u16(param_1)
                 {
                     param_1_as_number = number_literal_to_u16(&param_1);
@@ -516,7 +571,7 @@ impl<'i> assemblerVisitorCompat<'i> for NewAssemblerVisitor {
                     let param_as_string = param_1.to_string();
 
                     // try to resolve constants
-                    let map = HASHMAP.lock().unwrap();
+                    let map = CSEG_HASHMAP.lock().unwrap();
                     if map.contains_key(&param_as_string)
                     {
                         let constant_value = map.get(&param_as_string).unwrap();
@@ -546,10 +601,6 @@ impl<'i> assemblerVisitorCompat<'i> for NewAssemblerVisitor {
                     param_2_as_number = register_name_to_u16(param_2);
                     asm_record.reg_2 = param_2_as_number;
                 }
-                // else if is_sfr_name(param_2)
-                // {
-                //     asm_record.reg_2 = register_name_to_u16(param_2);
-                // }
                 else if is_number_literal_u16(param_2)
                 {
                     param_2_as_number = number_literal_to_u16(&param_2);
@@ -560,7 +611,7 @@ impl<'i> assemblerVisitorCompat<'i> for NewAssemblerVisitor {
                     let param_as_string = param_2.to_string();
 
                     // try to resolve constants
-                    let map = HASHMAP.lock().unwrap();
+                    let map = CSEG_HASHMAP.lock().unwrap();
                     if map.contains_key(&param_as_string)
                     {
                         let constant_value = map.get(&param_as_string).unwrap();

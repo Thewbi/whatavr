@@ -1,10 +1,9 @@
 use std::collections::HashMap;
 
-use crate::HASHMAP;
+use crate::CSEG_HASHMAP;
 use crate::HIGH_U16;
 use crate::LOW_U16;
 use crate::common::common_constants::RAMEND;
-use crate::common::number_literal_parser::number_literal_to_u16;
 use crate::ihex_mgmt::ihex_mgmt::Segment;
 use crate::instructions::instructions::INSTRUCTIONS;
 use crate::instructions::instructions::UNKNOWN;
@@ -17,47 +16,47 @@ use crate::{HIGH, HIGH_HIGH_I32, HIGH_I16, HIGH_I32, LOW, LOW_I16, LOW_I32, LOW_
 // the value is placed at the stackpointer then, after that, the stack pointer is decremented
 pub fn push_to_stack_u8(cpu: &mut CPU, data: u8) {
     let stack_pointer: u16 = ((*cpu.sph() as u16) << 8u16) | *cpu.spl() as u16;
-    cpu.sram[(stack_pointer) as usize] = data;
+    cpu.sram[(stack_pointer - 1) as usize] = data;
     decrement_stack_pointer(cpu);
 }
 
 #[allow(dead_code)]
 pub fn push_to_stack_u16(cpu: &mut CPU, data: &u16) {
     let stack_pointer: u16 = ((*cpu.sph() as u16) << 8u16) | *cpu.spl() as u16;
-    cpu.sram[(stack_pointer) as usize] = HIGH!(data).try_into().unwrap();
+    cpu.sram[(stack_pointer - 1) as usize] = HIGH!(data).try_into().unwrap();
     decrement_stack_pointer(cpu);
 
     let stack_pointer: u16 = ((*cpu.sph() as u16) << 8u16) | *cpu.spl() as u16;
-    cpu.sram[(stack_pointer) as usize] = LOW!(data).try_into().unwrap();
+    cpu.sram[(stack_pointer - 1) as usize] = LOW!(data).try_into().unwrap();
     decrement_stack_pointer(cpu);
 }
 
 pub fn push_to_stack_i16(cpu: &mut CPU, data: i16) {
     let stack_pointer: u16 = ((*cpu.sph() as u16) << 8u16) | *cpu.spl() as u16;
-    cpu.sram[(stack_pointer) as usize] = HIGH_I16!(data).try_into().unwrap();
+    cpu.sram[(stack_pointer - 1) as usize] = HIGH_I16!(data).try_into().unwrap();
     decrement_stack_pointer(cpu);
 
     let stack_pointer: u16 = ((*cpu.sph() as u16) << 8u16) | *cpu.spl() as u16;
-    cpu.sram[(stack_pointer) as usize] = LOW_I16!(data).try_into().unwrap();
+    cpu.sram[(stack_pointer - 1) as usize] = LOW_I16!(data).try_into().unwrap();
     decrement_stack_pointer(cpu);
 }
 
 #[allow(dead_code)]
 pub fn push_to_stack_i32(cpu: &mut CPU, data: i32) {
     let stack_pointer: u16 = ((*cpu.sph() as u16) << 8u16) | *cpu.spl() as u16;
-    cpu.sram[(stack_pointer) as usize] = HIGH_HIGH_I32!(data).try_into().unwrap();
+    cpu.sram[(stack_pointer - 1) as usize] = HIGH_HIGH_I32!(data).try_into().unwrap();
     decrement_stack_pointer(cpu);
 
     let stack_pointer: u16 = ((*cpu.sph() as u16) << 8u16) | *cpu.spl() as u16;
-    cpu.sram[(stack_pointer) as usize] = HIGH_I32!(data).try_into().unwrap();
+    cpu.sram[(stack_pointer - 1) as usize] = HIGH_I32!(data).try_into().unwrap();
     decrement_stack_pointer(cpu);
 
     let stack_pointer: u16 = ((*cpu.sph() as u16) << 8u16) | *cpu.spl() as u16;
-    cpu.sram[(stack_pointer) as usize] = LOW_I32!(data).try_into().unwrap();
+    cpu.sram[(stack_pointer - 1) as usize] = LOW_I32!(data).try_into().unwrap();
     decrement_stack_pointer(cpu);
 
     let stack_pointer: u16 = ((*cpu.sph() as u16) << 8u16) | *cpu.spl() as u16;
-    cpu.sram[(stack_pointer) as usize] = LOW_LOW_I32!(data).try_into().unwrap();
+    cpu.sram[(stack_pointer - 1) as usize] = LOW_LOW_I32!(data).try_into().unwrap();
     decrement_stack_pointer(cpu);
 }
 
@@ -67,7 +66,7 @@ pub fn pop_from_stack_u8(cpu: &mut CPU) -> u8 {
 
     // get value
     let stack_pointer: u16 = ((*cpu.sph() as u16) << 8u16) | *cpu.spl() as u16;
-    cpu.sram[(stack_pointer) as usize]
+    cpu.sram[(stack_pointer - 1) as usize]
 }
 
 fn increment_stack_pointer(cpu: &mut CPU) {
@@ -123,6 +122,7 @@ pub struct CPU {
     pub register_file: [u8; 32usize],
 
     // sram todo: move to own struct / trait!
+    // sram is the data segment
     pub sram: [u8; RAMEND as usize],
 
     // special function register
@@ -191,7 +191,7 @@ impl CPU {
     // https://stackoverflow.com/questions/35390615/writing-getter-setter-properties-in-rust
     fn sph(&mut self) -> &mut u8 {
 
-        let map = HASHMAP.lock().unwrap();
+        let map = CSEG_HASHMAP.lock().unwrap();
         let value_as_string = map.get("SPH").unwrap();
 
         let without_prefix = value_as_string.trim_start_matches("0x");
@@ -207,7 +207,7 @@ impl CPU {
 
     fn spl(&mut self) -> &mut u8 {
 
-        let map = HASHMAP.lock().unwrap();
+        let map = CSEG_HASHMAP.lock().unwrap();
         let value_as_string = map.get("SPL").unwrap();
 
         let without_prefix = value_as_string.trim_start_matches("0x");
@@ -223,7 +223,7 @@ impl CPU {
 
     fn get_sph(&self) -> u8 {
 
-        let map = HASHMAP.lock().unwrap();
+        let map = CSEG_HASHMAP.lock().unwrap();
         let value_as_string = map.get("SPH").unwrap();
 
         let without_prefix = value_as_string.trim_start_matches("0x");
@@ -236,7 +236,7 @@ impl CPU {
 
     fn get_spl(&self) -> u8 {
 
-        let map = HASHMAP.lock().unwrap();
+        let map = CSEG_HASHMAP.lock().unwrap();
         let value_as_string = map.get("SPL").unwrap();
 
         let without_prefix = value_as_string.trim_start_matches("0x");
@@ -541,8 +541,8 @@ impl CPU {
             }
 
             /*   8 */
-            /// AND – Logical AND
-            /// 0010 00rd dddd rrrr
+            // AND – Logical AND
+            // 0010 00rd dddd rrrr
             InstructionType::AND => {
                 log::trace!("[AND]\n");
 
@@ -981,7 +981,7 @@ impl CPU {
             }
 
             /*  72 */
-            /// 72. LD (LDD) – Load Indirect From Data Space to Register using Index Z
+            // 72. LD (LDD) – Load Indirect From Data Space to Register using Index Z
             InstructionType::LD_LDD_Z_1 => {
                 log::trace!("[LD_LDD_Z_1]\n");
 
@@ -1126,8 +1126,8 @@ impl CPU {
             }
 
             /*  87 */
-            /// ORI – Logical OR with Immediate
-            /// 0110 KKKK dddd KKKK
+            // ORI – Logical OR with Immediate
+            // 0110 KKKK dddd KKKK
             InstructionType::ORI => {
                 log::trace!("[ORI]\n");
 
@@ -1270,12 +1270,13 @@ impl CPU {
                 cpu.pc = k_val as i32;
 
                 os.push_str(&format!("ret"));
+                os.push_str(&format!(" (pc: {:#06x})", cpu.pc));
                 log::info!("{}\n", os);
 
                 //log::info!("ret - stack pointer: {:#04x} {:#04x}", cpu.sph, cpu.spl);
                 //log::trace!("stack pointer: {} {}\n", cpu.stack_info_high(), cpu.stack_info_low());
                 
-                log::info!("pc: {:#06x}\n", cpu.pc);
+                //log::info!("pc: {:#06x}\n", cpu.pc);
             }
 
             /*  94 */

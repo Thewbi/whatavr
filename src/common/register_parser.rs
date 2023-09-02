@@ -1,7 +1,5 @@
 use regex::Regex;
 
-use crate::HASHMAP;
-
 // https://rust-lang-nursery.github.io/rust-cookbook/text/regex.html
 pub fn is_register_name(input: &str) -> bool 
 {

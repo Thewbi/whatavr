@@ -69,6 +69,12 @@ pub trait assemblerVisitor<'input>: ParseTreeVisitor<'input,assemblerParserConte
 	fn visit_asm_instrinsic_instruction(&mut self, ctx: &Asm_instrinsic_instructionContext<'input>) { self.visit_children(ctx) }
 
 	/**
+	 * Visit a parse tree produced by {@link assemblerParser#byte_csv}.
+	 * @param ctx the parse tree
+	 */
+	fn visit_byte_csv(&mut self, ctx: &Byte_csvContext<'input>) { self.visit_children(ctx) }
+
+	/**
 	 * Visit a parse tree produced by {@link assemblerParser#asm_intrinsic_usage}.
 	 * @param ctx the parse tree
 	 */
@@ -274,6 +280,14 @@ pub trait assemblerVisitorCompat<'input>:ParseTreeVisitorCompat<'input, Node= as
 	 * @param ctx the parse tree
 	 */
 		fn visit_asm_instrinsic_instruction(&mut self, ctx: &Asm_instrinsic_instructionContext<'input>) -> Self::Return {
+			self.visit_children(ctx)
+		}
+
+	/**
+	 * Visit a parse tree produced by {@link assemblerParser#byte_csv}.
+	 * @param ctx the parse tree
+	 */
+		fn visit_byte_csv(&mut self, ctx: &Byte_csvContext<'input>) -> Self::Return {
 			self.visit_children(ctx)
 		}
 
@@ -498,6 +512,11 @@ where
 
 	fn visit_asm_instrinsic_instruction(&mut self, ctx: &Asm_instrinsic_instructionContext<'input>){
 		let result = <Self as assemblerVisitorCompat>::visit_asm_instrinsic_instruction(self, ctx);
+        *<Self as ParseTreeVisitorCompat>::temp_result(self) = result;
+	}
+
+	fn visit_byte_csv(&mut self, ctx: &Byte_csvContext<'input>){
+		let result = <Self as assemblerVisitorCompat>::visit_byte_csv(self, ctx);
         *<Self as ParseTreeVisitorCompat>::temp_result(self) = result;
 	}
 

@@ -49,10 +49,17 @@ use byteorder::{LittleEndian, ReadBytesExt};
 extern crate lazy_static;
 use std::sync::Mutex;
 lazy_static! {
-    static ref HASHMAP: Mutex<HashMap<String, String>> = {
+
+    static ref CSEG_HASHMAP: Mutex<HashMap<String, String>> = {
         let m = HashMap::new();
         Mutex::new(m)
     };
+
+    static ref DSEG_HASHMAP: Mutex<HashMap<String, u16>> = {
+        let m = HashMap::new();
+        Mutex::new(m)
+    };
+
 }
 
 // rustup default stable
@@ -80,6 +87,7 @@ fn main() -> io::Result<()> {
     init_logging();
     log_start();
 
+    // this is cseg the code segment
     let mut segments: Vec<Segment> = Vec::new();
 
     // asm source code
@@ -403,6 +411,7 @@ fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>)
     //asm_file_path.push_str("test_resources/sample_files/asm/call_test.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/call_test_2.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/def_assembler_directive.asm");
+    asm_file_path.push_str("test_resources/sample_files/asm/dseg.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/expression.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/inc.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/intrinsic.asm");
@@ -410,7 +419,7 @@ fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>)
     //asm_file_path.push_str("test_resources/sample_files/asm/jmp.asm"); // good for regression test (will increment r17 until overflow)
     //asm_file_path.push_str("test_resources/sample_files/asm/preprocessor.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/push_pop.asm");
-    asm_file_path.push_str("test_resources/sample_files/asm/ret_test.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/ret_test.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/scratchpad.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/scratchpad_2.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/setup_stack.asm"); // regression test

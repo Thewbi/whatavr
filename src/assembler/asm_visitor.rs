@@ -6,7 +6,7 @@ use antlr_rust::tree::ParseTreeVisitorCompat;
 use std::fs;
 use std::rc::Rc;
 
-use crate::HASHMAP;
+use crate::CSEG_HASHMAP;
 use crate::HIGH;
 use crate::assembler::asm_record::AsmRecord;
 use crate::assembler::io_destination::IoDestination;
@@ -114,7 +114,7 @@ impl DefaultAssemblerVisitor {
             // in the rest of the program to refer to the register it is assigned to. A register can have several symbolic
             // names attached to it. A symbol can be redefined later in the program.
             
-            let mut map = HASHMAP.lock().unwrap();
+            let mut map = CSEG_HASHMAP.lock().unwrap();
             map.insert(assembler_directive[2].to_string(), assembler_directive[4].to_string());
             
         } else if "equ".eq(&asm_directive) {
@@ -123,7 +123,7 @@ impl DefaultAssemblerVisitor {
             // The EQU directive assigns a value to a label. This label can then be used in later expressions. A label
             // assigned to a value by the EQU directive is a constant and can not be changed or redefined.
             
-            let mut map = HASHMAP.lock().unwrap();
+            let mut map = CSEG_HASHMAP.lock().unwrap();
             map.insert(assembler_directive[2].to_string(), assembler_directive[4].to_string());
 
         } else if "include".eq(&asm_directive) {
@@ -561,7 +561,7 @@ impl<'i> assemblerVisitorCompat<'i> for DefaultAssemblerVisitor {
                     println!("not a decimal ({})", e);
 
                     // try to resolve constants
-                    let map = HASHMAP.lock().unwrap();
+                    let map = CSEG_HASHMAP.lock().unwrap();
                     if map.contains_key(&result_join) {
                         let constant_value = map.get(&result_join).unwrap();
                         if self.reg_1 == "" {

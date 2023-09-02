@@ -72,7 +72,6 @@ numeric :
     NUMBER
     ;
 
-
 asm_instrinsic_instruction :
     DOT (
         INCLUDE STRING
@@ -83,8 +82,12 @@ asm_instrinsic_instruction :
         |
         EQU expression
         | 
-        CSEG 
-        | 
+        CSEG
+        |
+        DSEG
+        |
+        DB byte_csv
+        |
         ORG (HEX_NUMBER | IDENTIFIER)
         | 
         MACRO IDENTIFIER
@@ -99,6 +102,12 @@ asm_instrinsic_instruction :
         | 
         ERROR STRING
     )
+    ;
+
+byte_csv :
+    byte_csv COMMA (HEX_NUMBER | NUMBER)
+    |
+    (HEX_NUMBER | NUMBER)
     ;
 
 asm_intrinsic_usage :
@@ -393,9 +402,11 @@ COLON : ':' ;
 COMMA : ',' ;
 CSEG : 'cseg' ;
 
+DB : 'db' ;
 DEF : 'def' ;
 DEVICE : 'device' ;
 DOT : '.' ;
+DSEG : 'dseg' ;
 
 ELSE : 'else' ;
 END_MACRO : 'endmacro' ;

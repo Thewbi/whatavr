@@ -640,20 +640,20 @@ impl AsmEncoder {
         // convert from bytes to words
         let mut offset_k: i32 = target_address / 2i32;
 
-        log::info!("offset_k (in words): {:#06x}", offset_k);
-        log::info!("offset_k (in words): {:#06x}", offset_k as u32);
+        log::trace!("offset_k (in words): {:#06x}\n", offset_k);
+        log::trace!("offset_k (in words): {:#06x}\n", offset_k as u32);
 
         offset_k &= 0b00000000001111111111111111111111i32;
 
-        log::info!("offset_k (in words): {:#06x}", offset_k);
-        log::info!("offset_k (in words): {:#06x}", offset_k as u32);
+        log::trace!("offset_k (in words): {:#06x}\n", offset_k);
+        log::trace!("offset_k (in words): {:#06x}\n", offset_k as u32);
 
         let result: u32 = (0b1001010u32 << 25)
             | ((offset_k as u32 >> 17) << 20)
             | (0b111u32 << 17)
             | (offset_k as u32 & 0b11111111111111111u32);
 
-        log::info!("result (in words): {:#32b}", result);
+        log::trace!("result (in words): {:#32b}\n", result);
 
         log::trace!("ENC CALL: {:#02x}", (result >> 16u16) as u8);
         segment.data.push((result >> 16u16) as u8);
@@ -689,11 +689,11 @@ impl AsmEncoder {
 
         let result: u16 = 0x9800u16 | register_a << 3usize | bit_to_clear;
 
-        log::trace!("ENC CBI: {:#02x}", (result >> 0u16) as u8);
+        log::trace!("ENC CBI: {:#02x}\n", (result >> 0u16) as u8);
         segment.data.push((result >> 0u16) as u8);
         segment.size += 1u32;
 
-        log::trace!("ENC CBI: {:#02x}", (result >> 8u16) as u8);
+        log::trace!("ENC CBI: {:#02x}\n", (result >> 8u16) as u8);
         segment.data.push((result >> 8u16) as u8);
         segment.size += 1u32;
     }
@@ -704,11 +704,11 @@ impl AsmEncoder {
 
         let result: u16 = 0x94F8u16;
 
-        log::trace!("ENC CLI: {:#02x}", (result >> 0u16) as u8);
+        log::trace!("ENC CLI: {:#02x}\n", (result >> 0u16) as u8);
         segment.data.push((result >> 0u16) as u8);
         segment.size += 1u32;
 
-        log::trace!("ENC CLI: {:#02x}", (result >> 8u16) as u8);
+        log::trace!("ENC CLI: {:#02x}\n", (result >> 8u16) as u8);
         segment.data.push((result >> 8u16) as u8);
         segment.size += 1u32;
     }
@@ -721,11 +721,11 @@ impl AsmEncoder {
 
         let result: u16 = 0x2400u16 | register_d;
 
-        log::trace!("ENC CLR: {:#02x}", (result >> 0u16) as u8);
+        log::trace!("ENC CLR: {:#02x}\n", (result >> 0u16) as u8);
         segment.data.push((result >> 0u16) as u8);
         segment.size += 1u32;
 
-        log::trace!("ENC CLR: {:#02x}", (result >> 8u16) as u8);
+        log::trace!("ENC CLR: {:#02x}\n", (result >> 8u16) as u8);
         segment.data.push((result >> 8u16) as u8);
         segment.size += 1u32;
     }
@@ -737,11 +737,11 @@ impl AsmEncoder {
         let register: u16 = register_d;
         let result: u16 = 0x940Au16 | (register << 4u16);
 
-        log::trace!("ENC DEC: {:#02x}", (result >> 0u16) as u8);
+        log::trace!("ENC DEC: {:#02x}\n", (result >> 0u16) as u8);
         segment.data.push((result >> 0u16) as u8);
         segment.size += 1u32;
 
-        log::trace!("ENC DEC: {:#02x}", (result >> 8u16) as u8);
+        log::trace!("ENC DEC: {:#02x}\n", (result >> 8u16) as u8);
         segment.data.push((result >> 8u16) as u8);
         segment.size += 1u32;
     }
@@ -760,11 +760,11 @@ impl AsmEncoder {
 
         let result: u16 = 0x2400u16 | ((register_r >> 4u16) << 9u16)| (register_d << 4u16);
 
-        log::trace!("ENC EOR: {:#02x}", (result >> 0u16) as u8);
+        log::trace!("ENC EOR: {:#02x}\n", (result >> 0u16) as u8);
         segment.data.push((result >> 0u16) as u8);
         segment.size += 1u32;
 
-        log::trace!("ENC EOR: {:#02x}", (result >> 8u16) as u8);
+        log::trace!("ENC EOR: {:#02x}\n", (result >> 8u16) as u8);
         segment.data.push((result >> 8u16) as u8);
         segment.size += 1u32;
     }
@@ -1154,11 +1154,11 @@ impl AsmEncoder {
     fn encode_nop(&self, segment: &mut Segment) {
         let result: u16 = 0x00;
 
-        log::info!("ENC NOP: {:#02x}", (result >> 0u16) as u8);
+        log::trace!("ENC NOP: {:#02x}\n", (result >> 0u16) as u8);
         segment.data.push((result >> 0u16) as u8);
         segment.size += 1u32;
 
-        log::info!("ENC NOP: {:#02x}", (result >> 8u16) as u8);
+        log::trace!("ENC NOP: {:#02x}\n", (result >> 8u16) as u8);
         segment.data.push((result >> 8u16) as u8);
         segment.size += 1u32;
     }
@@ -1180,11 +1180,11 @@ impl AsmEncoder {
 
         let result: u16 = 0x6000u16 | k_mask | (register << 4u16);
 
-        log::trace!("ENC ORI: {:#02x}", (result >> 0u16) as u8);
+        log::trace!("ENC ORI: {:#02x}\n", (result >> 0u16) as u8);
         segment.data.push((result >> 0u16) as u8);
         segment.size += 1u32;
 
-        log::trace!("ENC ORI: {:#02x}", (result >> 8u16) as u8);
+        log::trace!("ENC ORI: {:#02x}\n", (result >> 8u16) as u8);
         segment.data.push((result >> 8u16) as u8);
         segment.size += 1u32;
     }

@@ -105,6 +105,16 @@ fn enter_asm_instrinsic_instruction(&mut self, _ctx: &Asm_instrinsic_instruction
  */
 fn exit_asm_instrinsic_instruction(&mut self, _ctx: &Asm_instrinsic_instructionContext<'input>) { }
 /**
+ * Enter a parse tree produced by {@link assemblerParser#byte_csv}.
+ * @param ctx the parse tree
+ */
+fn enter_byte_csv(&mut self, _ctx: &Byte_csvContext<'input>) { }
+/**
+ * Exit a parse tree produced by {@link assemblerParser#byte_csv}.
+ * @param ctx the parse tree
+ */
+fn exit_byte_csv(&mut self, _ctx: &Byte_csvContext<'input>) { }
+/**
  * Enter a parse tree produced by {@link assemblerParser#asm_intrinsic_usage}.
  * @param ctx the parse tree
  */
