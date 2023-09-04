@@ -1,0 +1,52 @@
+= Toolchain =
+
+== The .DSEG directive ==
+
+https://electronics.stackexchange.com/questions/129528/avr-microcontrollers-who-initilizes-assembly-data-segment-and-what-is-the-pur
+
+When using this code in an assembler like the Microchip Studio 7 (Assembler Project Type) for example:
+
+```
+.DSEG ; Start data segment (SRAM)
+.ORG 0x120 ; Set SRAM address to hex 120 
+consts_dseg: .DB 1, 2, 3, 4, 5
+```
+
+and after compilation running this assembler program on the simulator, the data segment (SRAM) will not
+contain the bytes 1, 2, 3, 4, 5 as defined here!
+
+Is this a bug? No it is not a bug!
+
+When using .DB inside the .CSEG (code segment, flash memory) then .ORG and .DB will work without
+the linker. The reason is that the assembler will just generate a code segment that contains the
+constants as if they where encoded instructions. The code segment is then placed into flash 
+memory during application upload (flashing the flash memory with the code segments) and from 
+thereon, the constants are available in the code segment.
+
+When using the .DB and .ORG assemble instructions inside the data segment (SRAM) then the 
+situation is completely different. The SRAM block is not flashed by the uploader! SRAM
+is only accessed by the Microcontroller and not by the flasher hardware (such as AVR-MKII for example!)
+This means SRAM is only manipulated after the application has been flashed and is run by the
+microcontroller. Hence SRAM is completely empty after start!
+
+The .DSEG and .ORG statements as well as the .DB instruction are not immediately converted into 
+statements by the assembler! Therefore the microcontroller will not execute any statements! 
+The defined constants will not magically appear in SRAM when the system starts! Someone has to 
+copy the values into SRAM so that the SRAM is initialized!
+
+Therefore .DSEG, .ORG and .DB instructions are metadata for the toolchain, specifically for
+the linker. The linker has to generate stub code and link that stub code into the application binary.
+The purpose of the stub code is to contain instructions that will actually cause the microcontroller
+to load the constants from the application binary into the data segment (SRAM)! Basically the stub
+code will read the constants temporarily stored in FLASH and write them into SRAM!
+
+But the Assembler Project Type in Microchip Studio does not execute a full pipeline! It does
+not execute a linker so there is no stub code! The Assembler outputs object files (.obj).
+A toolchain now has to furhter process those object files using a linker! 
+
+So in Assembler Project Type in Microchip Studio, .CSEG constants will work but .DSEG constants
+will not work!
+
+
+
+

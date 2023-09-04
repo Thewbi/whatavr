@@ -40,13 +40,17 @@ ldi r16, 0x1B
 st X+, r16
 
 ; set stack pointer
-ldi r16, 0x0D ; LOW(RAMEND)
+;ldi r16, 0x0D ; LOW(RAMEND)
+ldi r16, LOW(RAMEND)
 out SPL, r16
-ldi r16, 0x07 ; HIGH(RAMEND)
+;ldi r16, 0x07 ; HIGH(RAMEND)
+ldi r16, HIGH(RAMEND)
 out SPH, r16
 
 ; This instruction loads register Rd with a byte from the STACK. 
 ; The Stack Pointer is pre-incremented by 1
 ; PRE-INCREMENTED! before the POP.
+push r17
+push r16
 pop r16
 pop r17

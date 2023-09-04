@@ -1,3 +1,5 @@
+use regex::Regex;
+
 pub fn is_number_literal_u16(data: &String) -> bool {
 
     if data.to_lowercase().starts_with("0b")
@@ -197,4 +199,40 @@ pub fn number_literal_to_i16(data: &String) -> i16 {
 
     return data.parse::<i16>().unwrap();
 
+}
+
+pub fn is_char_literal(input: &String) -> bool
+{
+    let trimmed_input = input.trim();
+    let re = Regex::new("^'.'$").unwrap();
+    re.is_match(trimmed_input)
+}
+
+pub fn char_literal_to_u16(input: &String) -> u16
+{
+    let trimmed_input = input.trim();
+    let central_character: char = trimmed_input.chars().nth(1).unwrap();
+
+    central_character as u16
+}
+
+#[cfg(test)]
+mod char_literal_tests {
+
+    use super::*;
+
+    #[test]
+    fn is_char_literal_zero_test() {
+        assert!(!is_char_literal(&"0".to_string()));
+    }
+
+    #[test]
+    fn is_char_literal_space_test() {
+        assert!(is_char_literal(&"' '".to_string()));
+    }
+
+    #[test]
+    fn char_literal_to_u16_space_test() {
+        assert_eq!(0x20, char_literal_to_u16(&"' '".to_string()));
+    }
 }

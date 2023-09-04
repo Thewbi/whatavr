@@ -8,6 +8,8 @@ use std::rc::Rc;
 
 use crate::assembler::asm_record::AsmRecord;
 use crate::common::common_constants::RAMEND;
+use crate::common::number_literal_parser::char_literal_to_u16;
+use crate::common::number_literal_parser::is_char_literal;
 use crate::common::number_literal_parser::is_number_literal_i16;
 use crate::common::number_literal_parser::is_number_literal_u16;
 use crate::common::number_literal_parser::number_literal_to_i16;
@@ -103,7 +105,7 @@ impl<'i> NewAssemblerVisitor {
     }
 
     // cr: ["st", "X", "+", "r17"]
-    fn process_st(&mut self, ctx: &InstructionContext<'i>,
+    fn process_st(&mut self, /*ctx: &InstructionContext<'i>,*/
         visit_children_result: &<NewAssemblerVisitor as ParseTreeVisitorCompat>::Return,
         asm_record: &mut AsmRecord)
     {
@@ -173,7 +175,7 @@ impl<'i> NewAssemblerVisitor {
 
     // cr: ["ld", "r0", "X"]
     // cr: ["ld", "r25", "Z"]
-    fn process_ld(&mut self, _ctx: &InstructionContext<'i>,
+    fn process_ld(&mut self, /*_ctx: &InstructionContext<'i>,*/
         visit_children_result: &<NewAssemblerVisitor as ParseTreeVisitorCompat>::Return,
         asm_record: &mut AsmRecord)
     {
@@ -247,7 +249,7 @@ impl<'i> NewAssemblerVisitor {
     /// cr: ["lpm"]
     /// cr: ["lpm", "r16", "Z"]
     /// cr: ["lpm", "r24", "Z", "+"]
-    fn process_lpm(&mut self, _ctx: &InstructionContext<'i>,
+    fn process_lpm(&mut self, /*_ctx: &InstructionContext<'i>,*/
         visit_children_result: &<NewAssemblerVisitor as ParseTreeVisitorCompat>::Return,
         asm_record: &mut AsmRecord)
     {
@@ -425,18 +427,213 @@ impl<'i> NewAssemblerVisitor {
     {
         log::trace!("cr: {:?}", visit_children_result);
 
-        let joined = visit_children_result.join("");
+        let var_name = &visit_children_result[2];
 
-        if "LOW(RAMEND)" == joined {
-            let low_ramend: u16 = crate::LOW!(RAMEND);
-            return vec![low_ramend.to_string().clone()];
+        let mut cseg_map = CSEG_HASHMAP.lock().unwrap();
+        if cseg_map.contains_key(var_name)
+        {
+            let var_value = cseg_map.get(var_name).unwrap();
+
+            let var_as_u16:u16 = number_literal_to_u16(var_value);
+
+            match visit_children_result[0].as_str() {
+                "LOW" => {
+                    let low_value: u16 = crate::LOW!(var_as_u16);
+                    return vec![low_value.to_string().clone()];
+                }
+                "HIGH" => {
+                    let high_value: u16 = crate::HIGH!(var_as_u16);
+                    return vec![high_value.to_string().clone()];
+                }
+                _ => panic!("Unknown!"),
+            }
         }
-        if "HIGH(RAMEND)" == joined {
-            let high_ramend: u16 = HIGH!(RAMEND);
-            return vec![high_ramend.to_string().clone()];
+
+        let mut dseg_map = DSEG_HASHMAP.lock().unwrap();
+        if dseg_map.contains_key(var_name)
+        {
+            let var_value = dseg_map.get(var_name).unwrap();
+            match visit_children_result[0].as_str() {
+                "LOW" => {
+                    let low_value: u16 = crate::LOW!(var_value);
+                    return vec![low_value.to_string().clone()];
+                }
+                "HIGH" => {
+                    let high_value: u16 = crate::HIGH!(var_value);
+                    return vec![high_value.to_string().clone()];
+                }
+                _ => panic!("Unknown!"),
+            }
         }
+
+        // let joined = visit_children_result.join("");
+
+        // if "LOW(RAMEND)" == joined {
+        //     let low_ramend: u16 = crate::LOW!(RAMEND);
+        //     return vec![low_ramend.to_string().clone()];
+        // }
+        // if "HIGH(RAMEND)" == joined {
+        //     let high_ramend: u16 = HIGH!(RAMEND);
+        //     return vec![high_ramend.to_string().clone()];
+        // }
 
         visit_children_result
+    }
+
+    pub fn process_instruction(&mut self, visit_children_result: &Vec<String>) //-> Vec<String>
+    {
+        log::info!("cr: {:?}\n", visit_children_result);
+
+        let mut asm_record: AsmRecord = AsmRecord::default();
+
+        let mnemonic: &String = &visit_children_result[0];
+
+        if mnemonic.to_uppercase().eq("ST")
+        {
+            self.process_st(&visit_children_result, &mut asm_record);
+        }
+        else if mnemonic.to_uppercase().eq("LD")
+        {
+            self.process_ld(&visit_children_result, &mut asm_record);
+        }
+        else if mnemonic.to_uppercase().eq("LPM")
+        {
+            self.process_lpm(&visit_children_result, &mut asm_record);
+        }
+        else if (
+                mnemonic.to_uppercase().eq("BREQ") ||
+                mnemonic.to_uppercase().eq("CALL") || 
+                mnemonic.to_uppercase().eq("RJMP") ||
+                mnemonic.to_uppercase().eq("JMP") 
+            ) && is_number_literal_i16(&visit_children_result[1])
+        {
+            log::trace!("{:?}", visit_children_result);
+            asm_record.target_address = number_literal_to_i16(&visit_children_result[1]) as i16;
+            asm_record.instruction_type = InstructionType::from_string(mnemonic.as_str());
+        }
+        else
+        {
+            asm_record.instruction_type = InstructionType::from_string(mnemonic.as_str());
+
+            if visit_children_result.len() > 1 {
+
+                let param_1: &String = &visit_children_result[1];
+                let param_1_as_number: u16;
+
+                if is_register_name(param_1)
+                {
+                    param_1_as_number = register_name_to_u16(param_1);
+                    asm_record.reg_1 = param_1_as_number;
+                }
+                else if is_number_literal_u16(param_1)
+                {
+                    param_1_as_number = number_literal_to_u16(&param_1);
+                    asm_record.reg_1 = param_1_as_number;
+                }
+                else
+                {
+                    let param_as_string = param_1.to_string();
+
+                    // try to resolve constants
+                    let map = CSEG_HASHMAP.lock().unwrap();
+                    if map.contains_key(&param_as_string)
+                    {
+                        let constant_value = map.get(&param_as_string).unwrap();
+                        if is_number_literal_u16(constant_value)
+                        {
+                            asm_record.reg_1 = number_literal_to_u16(constant_value);
+                        }
+                        else if is_register_name(constant_value)
+                        {
+                            asm_record.reg_1 = register_name_to_u16(constant_value);
+                        } 
+                    }
+                    else
+                    {
+                        asm_record.target_label = param_as_string;
+                    }
+                }
+            }
+
+            if visit_children_result.len() > 2 {
+
+                let param_2: &String = &visit_children_result[2];
+                let param_2_as_number: u16;
+
+                if is_register_name(param_2)
+                {
+                    param_2_as_number = register_name_to_u16(param_2);
+                    asm_record.reg_2 = param_2_as_number;
+                }
+                else if is_number_literal_u16(param_2)
+                {
+                    param_2_as_number = number_literal_to_u16(&param_2);
+                    asm_record.data = param_2_as_number;
+                }
+                else if is_char_literal(param_2)
+                {
+                    param_2_as_number = char_literal_to_u16(&param_2);
+                    asm_record.data = param_2_as_number;
+                }
+                else
+                {
+                    let param_as_string = param_2.to_string();
+
+                    log::trace!("param_2: {}", param_as_string);
+
+                    // ldi XH, HIGH(BUFFER)
+                    // ldi r16, LOW(RAMEND)
+
+                    // try to resolve constants
+                    let cseg_map = CSEG_HASHMAP.lock().unwrap();
+                    let dseg_map = DSEG_HASHMAP.lock().unwrap();
+
+                    log::trace!("dseg_map: {:?}", dseg_map);
+
+                    if cseg_map.contains_key(&param_as_string)
+                    {
+                        let constant_value = cseg_map.get(&param_as_string).unwrap();
+
+                        if is_number_literal_u16(constant_value)
+                        {
+                            asm_record.reg_2 = number_literal_to_u16(constant_value);
+                        }
+                        else if is_register_name(constant_value)
+                        {
+                            asm_record.reg_2 = register_name_to_u16(constant_value);
+                        }
+                    }
+                    else if dseg_map.contains_key(&param_as_string)
+                    {
+                        let constant_value = dseg_map.get(&param_as_string).unwrap();
+                        asm_record.reg_2 = constant_value.clone();
+
+                        // if is_number_literal_u16(constant_value)
+                        // {
+                        //     asm_record.reg_2 = number_literal_to_u16(constant_value);
+                        // }
+                        // else if is_register_name(constant_value)
+                        // {
+                        //     asm_record.reg_2 = register_name_to_u16(constant_value);
+                        // }
+                    }
+                    else
+                    {
+                        asm_record.target_label = param_as_string;
+                    }
+                }
+            }
+        }
+
+        if !self.label.is_empty()
+        {
+            asm_record.label = self.label.clone();
+            self.label = String::default();
+        }
+
+        self.records.push(asm_record);
+
+        //visit_children_result
     }
 }
 
@@ -518,128 +715,7 @@ impl<'i> assemblerVisitorCompat<'i> for NewAssemblerVisitor {
         let visit_children_result = self.visit_children(ctx);
         self.ascend_ident();
 
-        log::info!("cr: {:?}\n", visit_children_result);
-
-        let mut asm_record: AsmRecord = AsmRecord::default();
-
-        let mnemonic: &String = &visit_children_result[0];
-
-        if mnemonic.to_uppercase().eq("ST")
-        {
-            self.process_st(ctx, &visit_children_result, &mut asm_record);
-        }
-        else if mnemonic.to_uppercase().eq("LD")
-        {
-            self.process_ld(ctx, &visit_children_result, &mut asm_record);
-        }
-        else if mnemonic.to_uppercase().eq("LPM")
-        {
-            self.process_lpm(ctx, &visit_children_result, &mut asm_record);
-        }
-        else if (
-                mnemonic.to_uppercase().eq("BREQ") ||
-                mnemonic.to_uppercase().eq("CALL") || 
-                mnemonic.to_uppercase().eq("RJMP") ||
-                mnemonic.to_uppercase().eq("JMP") 
-            ) && is_number_literal_i16(&visit_children_result[1])
-        {
-            log::trace!("{:?}", visit_children_result);
-            asm_record.target_address = number_literal_to_i16(&visit_children_result[1]) as i16;
-            asm_record.instruction_type = InstructionType::from_string(mnemonic.as_str());
-        }
-        else
-        {
-            asm_record.instruction_type = InstructionType::from_string(mnemonic.as_str());
-
-            if visit_children_result.len() > 1 {
-
-                let param_1: &String = &visit_children_result[1];
-                let param_1_as_number: u16;
-
-                if is_register_name(param_1)
-                {
-                    param_1_as_number = register_name_to_u16(param_1);
-                    asm_record.reg_1 = param_1_as_number;
-                }
-                else if is_number_literal_u16(param_1)
-                {
-                    param_1_as_number = number_literal_to_u16(&param_1);
-                    asm_record.reg_1 = param_1_as_number;
-                }
-                else
-                {
-                    let param_as_string = param_1.to_string();
-
-                    // try to resolve constants
-                    let map = CSEG_HASHMAP.lock().unwrap();
-                    if map.contains_key(&param_as_string)
-                    {
-                        let constant_value = map.get(&param_as_string).unwrap();
-                        if is_number_literal_u16(constant_value)
-                        {
-                            asm_record.reg_1 = number_literal_to_u16(constant_value);
-                        }
-                        else if is_register_name(constant_value)
-                        {
-                            asm_record.reg_1 = register_name_to_u16(constant_value);
-                        } 
-                    }
-                    else
-                    {
-                        asm_record.target_label = param_as_string;
-                    }
-                }
-            }
-
-            if visit_children_result.len() > 2 {
-
-                let param_2: &String = &visit_children_result[2];
-                let param_2_as_number: u16;
-
-                if is_register_name(param_2)
-                {
-                    param_2_as_number = register_name_to_u16(param_2);
-                    asm_record.reg_2 = param_2_as_number;
-                }
-                else if is_number_literal_u16(param_2)
-                {
-                    param_2_as_number = number_literal_to_u16(&param_2);
-                    asm_record.data = param_2_as_number;
-                }
-                else
-                {
-                    let param_as_string = param_2.to_string();
-
-                    // try to resolve constants
-                    let map = CSEG_HASHMAP.lock().unwrap();
-                    if map.contains_key(&param_as_string)
-                    {
-                        let constant_value = map.get(&param_as_string).unwrap();
-
-                        if is_number_literal_u16(constant_value)
-                        {
-                            asm_record.reg_2 = number_literal_to_u16(constant_value);
-                        }
-                        else if is_register_name(constant_value)
-                        {
-                            asm_record.reg_2 = register_name_to_u16(constant_value);
-                        }
-                    }
-                    else
-                    {
-                        asm_record.target_label = param_as_string;
-                    }
-                }
-            }
-        }
-
-        if !self.label.is_empty()
-        {
-            asm_record.label = self.label.clone();
-            self.label = String::default();
-        }
-
-        self.records.push(asm_record);
+        self.process_instruction(&visit_children_result);
 
         visit_children_result
     }
@@ -772,9 +848,9 @@ impl<'i> assemblerVisitorCompat<'i> for NewAssemblerVisitor {
 #[cfg(test)]
 mod tests {
 
-    use std::marker::PhantomData;
+    // use std::marker::PhantomData;
 
-    use crate::parser::assemblerparser::{InstructionContextExt, Asm_intrinsic_usageContext, Asm_intrinsic_usageContextExt};
+    // use crate::parser::assemblerparser::{InstructionContextExt, Asm_intrinsic_usageContext, Asm_intrinsic_usageContextExt};
 
     use super::*;
 
@@ -784,18 +860,18 @@ mod tests {
         // Arrange
 
         let mut new_assembler_visitor: NewAssemblerVisitor = NewAssemblerVisitor::default();
-        let parent_ctx = None;
-        let invoking_state: isize = 0isize;
-        let instr_ctx: InstructionContextExt<'_> = InstructionContextExt{
-            ph:PhantomData
-        };
-        let ctx: InstructionContext = InstructionContext::new_parser_ctx(parent_ctx, invoking_state, instr_ctx);
+        // let parent_ctx = None;
+        // let invoking_state: isize = 0isize;
+        // let instr_ctx: InstructionContextExt<'_> = InstructionContextExt{
+        //     ph:PhantomData
+        // };
+        // let ctx: InstructionContext = InstructionContext::new_parser_ctx(parent_ctx, invoking_state, instr_ctx);
         let mut asm_record: AsmRecord = AsmRecord::default();
         let visit_children_result = vec!["ld".to_string(), "r25".to_string(), "Z".to_string()];
 
         // Act
 
-        new_assembler_visitor.process_ld(&ctx, &visit_children_result, &mut asm_record);
+        new_assembler_visitor.process_ld(/*&ctx,*/ &visit_children_result, &mut asm_record);
 
         // Assert
 
@@ -805,9 +881,45 @@ mod tests {
     }
 
     #[test]
+    fn process_ldi_xh_high_buffer_test() {
+
+        // Arrange
+
+        {
+            let mut dseg_map = DSEG_HASHMAP.lock().unwrap();
+            dseg_map.insert("BUFFER".to_string(), 0x0160);
+        }
+
+        let mut new_assembler_visitor: NewAssemblerVisitor = NewAssemblerVisitor::default();
+
+        // ldi XH, HIGH(BUFFER)     
+        //let visit_children_result = vec!["ldi".to_string(), "XH".to_string(), "HIGH".to_string(), "(".to_string(), "BUFFER".to_string(), ")".to_string()];
+        
+        // ldi r16, LOW(RAMEND)
+        let visit_children_result = vec!["ldi".to_string(), "r16".to_string(), "LOW".to_string(), "(".to_string(), "RAMEND".to_string(), ")".to_string()];
+        
+        // Act
+
+        new_assembler_visitor.process_instruction(&visit_children_result);
+
+        // Assert
+
+        let asm_record: &AsmRecord = &new_assembler_visitor.records[0];
+
+        assert_eq!(InstructionType::LDI, asm_record.instruction_type);
+        assert_eq!(16, asm_record.reg_1);
+
+    }
+
+    #[test]
     fn visit_asm_intrinsic_usage_low_ramend_test() {
 
         // Arrange
+
+        {
+            let mut cseg_map = CSEG_HASHMAP.lock().unwrap();
+            cseg_map.insert("RAMEND".to_string(), "0x08ff".to_string());
+        }
 
         let mut new_assembler_visitor: NewAssemblerVisitor = NewAssemblerVisitor::default();
         let visit_children_result = vec!["LOW".to_string(), "(".to_string(), "RAMEND".to_string(), ")".to_string()];
@@ -825,6 +937,11 @@ mod tests {
     fn visit_asm_intrinsic_usage_high_ramend_test() {
 
         // Arrange
+
+        {
+            let mut cseg_map = CSEG_HASHMAP.lock().unwrap();
+            cseg_map.insert("RAMEND".to_string(), "0x08ff".to_string());
+        }
 
         let mut new_assembler_visitor: NewAssemblerVisitor = NewAssemblerVisitor::default();
         let visit_children_result = vec!["HIGH".to_string(), "(".to_string(), "RAMEND".to_string(), ")".to_string()];

@@ -90,11 +90,11 @@ fn main() -> io::Result<()> {
     // this is cseg the code segment
     let mut segments: Vec<Segment> = Vec::new();
 
-    // asm source code
-    load_segment_from_asm_source_code(&mut segments);
+    // // asm source code
+    // load_segment_from_asm_source_code(&mut segments);
 
-    // // hex
-    // load_segment_from_hex_file(&mut segments);
+    // hex
+    load_segment_from_hex_file(&mut segments);
 
     // // listing (lss) file (from C-SourceCode)
     // load_segment_from_listing_file(&mut segments);
@@ -411,7 +411,8 @@ fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>)
     //asm_file_path.push_str("test_resources/sample_files/asm/call_test.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/call_test_2.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/def_assembler_directive.asm");
-    asm_file_path.push_str("test_resources/sample_files/asm/dseg.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/dseg.asm");
+    asm_file_path.push_str("test_resources/sample_files/asm/excercise.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/expression.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/inc.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/intrinsic.asm");
@@ -459,6 +460,7 @@ fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>)
     //asm_file_path.push_str("test_resources/sample_files/asm/brlt.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/call.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/cbi.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/cpi.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/dec.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/inc.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/ld.asm");
@@ -502,7 +504,8 @@ fn load_segment_from_hex_file(segments: &mut Vec<Segment>) -> io::Result<()>
     //hex_file_path.push_str("test_resources/sample_files/GccApplication2/GccApplication1.hex");
     //hex_file_path.push_str("test_resources/sample_files/arduboy/Ardynia/ardynia.hex");
     //hex_file_path.push_str("test_resources/sample_files/GccApplication2/GccApplication1.hex");
-    hex_file_path.push_str("test_resources/sample_files/hex/ExcerciseSheet2.hex");
+    //hex_file_path.push_str("test_resources/sample_files/hex/ExcerciseSheet2.hex");
+    hex_file_path.push_str("test_resources/sample_files/hex/SegmentByteTest.hex");
 
     // split into segments
     // each segment has to have a segment_start and a segment_size

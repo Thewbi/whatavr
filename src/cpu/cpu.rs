@@ -127,7 +127,6 @@ pub struct CPU {
 
     // special function register
     pub sfr: [u8; 255usize],
-
 }
 
 impl Default for CPU {
@@ -706,6 +705,21 @@ impl CPU {
                 }
             }
 
+            /*  17 */
+            // The BREAK instruction is used by the On-chip Debug system, and is normally not used in the application
+            // software. When the BREAK instruction is executed, the AVR CPU is set in the Stopped Mode. This gives
+            // the On-chip Debugger access to internal resources.
+            // If any Lock bits are set, or either the JTAGEN or OCDEN Fuses are unprogrammed, the CPU will treat
+            // the BREAK instruction as a NOP and will not enter the Stopped mode.
+            // This instruction is not available in all devices. Refer to the device specific instruction set summary.
+            InstructionType::BREAK => {
+                log::trace!("[BREAK]\n");
+
+                // nop
+
+                cpu.pc += 2i32;
+            }
+
             // /*  18 */
             // InstructionType::BREQ => {
             //     log::info!("[BREQ]");
@@ -715,7 +729,7 @@ impl CPU {
 
             /*  27 */
             InstructionType::BRNE => {
-                log::info!("[BRNE]\n");
+                log::trace!("[BRNE]\n");
 
                 let offset: i32 = value_storage[&'k'] as i32;
 
@@ -738,6 +752,8 @@ impl CPU {
                 cpu.pc += 2;
                 let k_val_i32: i32 = cpu.read_next_four_byte(segment, &k_val);
 
+                os.push_str(&format!("stack pointer (before): {} {} | ", cpu.stack_info_high(), cpu.stack_info_low()));
+
                 // push return address onto the stack
                 let mut data: i32 = cpu.pc;
 
@@ -759,8 +775,8 @@ impl CPU {
                 // jump to address
                 cpu.pc = k_val_i32 * 2;
 
-                //log::info!("call cpu.pc: {:#06x}\n", cpu.pc);
                 os.push_str(&format!("call cpu.pc: {:#06x}", cpu.pc));
+                os.push_str(&format!(" | stack pointer (after): {} {}", cpu.stack_info_high(), cpu.stack_info_low()));
                 log::info!("{}\n", os);
             }
 
@@ -807,6 +823,43 @@ impl CPU {
                 cpu.pc += 2i32;
             }
 
+            /*  51 */
+            // CPI Rd,K This instruction performs a compare between register Rd and a constant. The register is not changed. All
+            // conditional branches can be used after this instruction.
+            InstructionType::CPI => {
+                log::trace!("[CPI]\n");
+
+                let d_val: u16 = value_storage[&'d'];
+                let k: u16 = value_storage[&'K'];
+
+                //log::trace!("Clearing register d: {:#06x}\n", d);
+
+                //log::info!("clr {}\n", d);
+                os.push_str(&format!("cpi r{}, {}", d_val, k));
+                log::info!("{}\n", os);
+
+                // To compute the register to use, add the offset 16 to the parsed value
+                let register: u16 = d_val + 16u16;
+
+                let register_value: u8 = cpu.register_file[register as usize];
+
+                // todo compute Rd - K as specified in the datasheet and set all other bits correctly
+                if register_value == (k as u8)
+                {
+                    cpu.z = true;
+                }
+
+                // cpu.register_file[d as usize] = 0x00;
+
+                // // updating flags
+                // cpu.s = false;
+                // cpu.v = false;
+                // cpu.n = false;
+                // cpu.z = true;
+
+                cpu.pc += 2i32;
+            }
+
             /*  53 */
             InstructionType::DEC => {
                 log::trace!("[DEC]\n");
@@ -836,7 +889,7 @@ impl CPU {
 
             /*  64 */
             InstructionType::IN => {
-                log::info!("[IN]\n");
+                log::trace!("[IN]\n");
 
                 let register_d: u16 = value_storage[&'d'];
                 let address: u16 = value_storage[&'A'];
@@ -926,7 +979,7 @@ impl CPU {
 
             /*  70 */
             InstructionType::LD_LDD_X_1 => {
-                log::info!("[LD_LDD_X_1]\n");
+                log::trace!("[LD_LDD_X_1]\n");
 
                 // retrieved the encoded value for the d register
                 let d_val: u16 = value_storage[&'d'];
@@ -954,15 +1007,15 @@ impl CPU {
                 cpu.pc += 2i32;
             }
             InstructionType::LD_LDD_X_2 => {
-                log::info!("[LD_LDD_X_2]\n");
+                log::trace!("[LD_LDD_X_2]\n");
 
                 // retrieved the encoded value for the d register
                 let d_val: u16 = value_storage[&'d'];
-                log::info!("d: {d_val:#b} {d_val:#x} {d_val}\n");
+                log::trace!("d: {d_val:#b} {d_val:#x} {d_val}\n");
 
                 // retrieve the data (address) stored inside X
                 let mut value_x: u16 = cpu.get_x();
-                log::info!("X: {value_x:#b} {value_x:#x} {value_x}\n");
+                log::trace!("X: {value_x:#b} {value_x:#x} {value_x}\n");
 
                 // store data into memory (data space) at the address stored in X
                 // (data space != I/O space (for I/O space, use the OUT instruction))
@@ -1103,7 +1156,7 @@ impl CPU {
 
             /*  79 */
             InstructionType::MOV => {
-                log::info!("[MOV]\n");
+                log::trace!("[MOV]\n");
 
                 let r_register: u16 = value_storage[&'r'];
                 log::trace!("K: {r_register:#b} {r_register:#x}\n");
@@ -1212,10 +1265,16 @@ impl CPU {
                 cpu.pc += 2i32;
 
                 let data: u8 = cpu.register_file[d_val as usize];
+
+                // stack pointer before
+                os.push_str(&format!("stack pointer (before): {} {} | ", cpu.stack_info_high(), cpu.stack_info_low()));
+
                 push_to_stack_u8(&mut cpu, data);
 
-                //log::info!("push {data:#x}\n");
                 os.push_str(&format!("push {data:#x}"));
+
+                // stack pointer after
+                os.push_str(&format!(" | stack pointer (after): {} {}", cpu.stack_info_high(), cpu.stack_info_low()));
                 log::info!("{}\n", os);
 
                 log::trace!("stack pointer: {} {}\n", cpu.stack_info_high(), cpu.stack_info_low());
@@ -1223,22 +1282,22 @@ impl CPU {
 
             /* 91 */
             InstructionType::RCALL => {
-                log::info!("[RCALL]\n");
+                log::trace!("[RCALL]\n");
 
                 // get the first 16 bit
                 let mut k: u16 = value_storage[&'k'] as u16;
 
-                log::info!("k: {:04x} {:016b}\n", k, k);
+                log::trace!("k: {:04x} {:016b}\n", k, k);
 
                 // sign extend (800 decimal = 1000 0000 0000 binary)
                 if k >= 800 {
                     k |= 0xF000;
                 }
-                log::info!("k: {:04x} {:016b} {}\n", k as i16, k as i16, k as i16);
+                log::trace!("k: {:04x} {:016b} {}\n", k as i16, k as i16, k as i16);
 
                 let kk: i16 = k as i16;
 
-                log::info!("kk: {:04x} {:016b} {}\n", kk, kk, kk);
+                log::trace!("kk: {:04x} {:016b} {}\n", kk, kk, kk);
 
                 // push return address onto the stack
                 let mut data: i32 = cpu.pc;
@@ -1248,7 +1307,7 @@ impl CPU {
 
                 push_to_stack_i16(&mut cpu, data as i16);
 
-                log::info!("stack pointer: {} {}\n", cpu.stack_info_high(), cpu.stack_info_low());
+                log::trace!("stack pointer: {} {}\n", cpu.stack_info_high(), cpu.stack_info_low());
 
                 // jump to address
                 cpu.pc += kk as i32;
@@ -1402,7 +1461,7 @@ impl CPU {
             InstructionType::ST_STD_X_1 => {
 
                 // Z: Post incremented
-                log::info!("[ST_STD_X_1]\n");
+                log::trace!("[ST_STD_X_1]\n");
 
                 // retrieved the encoded value for the r register
                 let r_val: u16 = value_storage[&'r'];
@@ -1461,7 +1520,7 @@ impl CPU {
             InstructionType::ST_STD_X_3 => {
 
                 // X: Post incremented
-                log::info!("[ST_STD_X_3]\n");
+                log::trace!("[ST_STD_X_3]\n");
 
                 // retrieved the encoded value for the r register
                 let r_val: u16 = value_storage[&'r'];
@@ -1493,7 +1552,7 @@ impl CPU {
             InstructionType::ST_STD_Y_1 => {
 
                 // Y: Post incremented
-                log::info!("[ST_STD_Y_1]\n");
+                log::trace!("[ST_STD_Y_1]\n");
 
                 // retrieved the encoded value for the r register
                 let r_val: u16 = value_storage[&'r'];
@@ -1521,7 +1580,7 @@ impl CPU {
             InstructionType::ST_STD_Y_2 => {
 
                 // Y: Post incremented
-                log::info!("[ST_STD_Y_2]\n");
+                log::trace!("[ST_STD_Y_2]\n");
 
                 // retrieved the encoded value for the r register
                 let r_val: u16 = value_storage[&'r'];
@@ -1549,7 +1608,7 @@ impl CPU {
             InstructionType::ST_STD_Y_3 => {
 
                 // Y: Post incremented
-                log::info!("[ST_STD_Y_3]\n");
+                log::trace!("[ST_STD_Y_3]\n");
 
                 // retrieved the encoded value for the r register
                 let r_val: u16 = value_storage[&'r'];
@@ -1612,7 +1671,7 @@ impl CPU {
             InstructionType::ST_STD_Z_2 => {
 
                 // Z: Post incremented
-                log::info!("[ST_STD_Z_2]\n");
+                log::trace!("[ST_STD_Z_2]\n");
 
                 // retrieved the encoded value for the r register
                 let r_val: u16 = value_storage[&'r'];
@@ -1639,7 +1698,7 @@ impl CPU {
             InstructionType::ST_STD_Z_3 => {
 
                 // Z: Post incremented
-                log::info!("[ST_STD_Z_3]\n");
+                log::trace!("[ST_STD_Z_3]\n");
 
                 // retrieved the encoded value for the r register
                 let r_val: u16 = value_storage[&'r'];
@@ -1667,7 +1726,7 @@ impl CPU {
             /* 120 */
             // Stores one byte from a Register to the data space
             InstructionType::STS => {
-                log::info!("[STS] 32 bit version\n");
+                log::trace!("[STS] 32 bit version\n");
 
                 log::info!("value_storage: {:?}\n", value_storage);
 
@@ -1684,6 +1743,48 @@ impl CPU {
                 cpu.store_to_data_space(address as usize, register_value);
 
                 cpu.pc += 4i32;
+            }
+
+            // 124. SUBI – Subtract Immediate
+            // Rd ← Rd - K
+            // Subtracts a register and a constant, and places the result in the destination register Rd. This instruction is
+            // working on Register R16 to R31 and is very well suited for operations on the X, Y, and Z-pointers.
+            InstructionType::SUBI => {
+                log::trace!("[SUBI]\n");
+
+                let d_val: u16 = value_storage[&'d'];
+                let k: i16 = value_storage[&'K'] as i16;
+
+                //log::trace!("Clearing register d: {:#06x}\n", d);
+
+                //log::info!("clr {}\n", d);
+                os.push_str(&format!("cpi r{}, {}", d_val, k));
+                log::info!("{}\n", os);
+
+                // To compute the register to use, add the offset 16 to the parsed value
+                let register: u16 = d_val + 16u16;
+
+                let register_value: i16 = cpu.register_file[register as usize] as i16;
+
+                let temp_result: i16 = register_value - k;
+
+                cpu.register_file[register as usize] = temp_result as u8;
+
+                // todo compute Rd - K as specified in the datasheet and set all other bits correctly
+                if temp_result == 0x00
+                {
+                    cpu.z = true;
+                }
+
+                // cpu.register_file[d as usize] = 0x00;
+
+                // // updating flags
+                // cpu.s = false;
+                // cpu.v = false;
+                // cpu.n = false;
+                // cpu.z = true;
+
+                cpu.pc += 2i32;
             }
 
             InstructionType::UNKNOWN => {

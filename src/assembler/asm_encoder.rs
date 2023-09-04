@@ -237,6 +237,10 @@ impl AsmEncoder {
             InstructionType::CLR => {
                 Self::encode_clr(&self, segment, asm_record.reg_1);
             }
+            /*  51 */
+            InstructionType::CPI => {
+                Self::encode_cpi(&self, segment, asm_record.reg_1, asm_record.data);
+            }
             /*  53 */
             InstructionType::DEC => {
                 Self::encode_dec(&self, segment, asm_record.reg_1);
@@ -409,6 +413,11 @@ impl AsmEncoder {
             /* 122 */
             InstructionType::STS_16bit => {
                 Self::encode_sts_16bit(&self, segment, asm_record.reg_2, asm_record.data);
+            }
+
+            /* 124 */
+            InstructionType::SUBI => {
+                Self::encode_subi(&self, segment, asm_record.reg_1, asm_record.data);
             }
 
             _ => panic!("Unknown instruction! {:?}", asm_record.instruction_type),
@@ -717,8 +726,8 @@ impl AsmEncoder {
     /// Clears a register. This instruction performs an Exclusive OR between a register and itself. This will clear
     /// all bits in the register
     /// 0010 01dd dddd dddd
-    fn encode_clr(&self, segment: &mut Segment, register_d: u16) {
-
+    fn encode_clr(&self, segment: &mut Segment, register_d: u16)
+    {
         let result: u16 = 0x2400u16 | register_d;
 
         log::trace!("ENC CLR: {:#02x}\n", (result >> 0u16) as u8);
@@ -730,9 +739,23 @@ impl AsmEncoder {
         segment.size += 1u32;
     }
 
+    fn encode_cpi(&self, segment: &mut Segment, register_d: u16, constant: u16) 
+    {
+        let result: u16 = 0x3000 | ((constant >> 4) << 8) | register_d << 4 | constant & 0x0F;
+
+        log::trace!("ENC CPI: {:#02x}\n", (result >> 0u16) as u8);
+        segment.data.push((result >> 0u16) as u8);
+        segment.size += 1u32;
+
+        log::trace!("ENC CPI: {:#02x}\n", (result >> 8u16) as u8);
+        segment.data.push((result >> 8u16) as u8);
+        segment.size += 1u32;
+    }
+
     /// 53. DEC – Decrement
     /// 1001 010d dddd 1010
-    fn encode_dec(&self, segment: &mut Segment, register_d: u16) {
+    fn encode_dec(&self, segment: &mut Segment, register_d: u16) 
+    {
 
         let register: u16 = register_d;
         let result: u16 = 0x940Au16 | (register << 4u16);
@@ -1704,6 +1727,19 @@ impl AsmEncoder {
         segment.size += 1u32;
 
         log::trace!("ENC STS (16 bit): {:#02x}", (result >> 8u16) as u8);
+        segment.data.push((result >> 8u16) as u8);
+        segment.size += 1u32;
+    }
+
+    fn encode_subi(&self, segment: &mut Segment, register_d: u16, constant: u16) 
+    {
+        let result: u16 = 0x5000 | ((constant >> 4) << 8) | register_d << 4 | constant & 0x0F;
+
+        log::trace!("ENC SUBI: {:#02x}\n", (result >> 0u16) as u8);
+        segment.data.push((result >> 0u16) as u8);
+        segment.size += 1u32;
+
+        log::trace!("ENC SUBI: {:#02x}\n", (result >> 8u16) as u8);
         segment.data.push((result >> 8u16) as u8);
         segment.size += 1u32;
     }
