@@ -292,6 +292,7 @@ fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>) -> [u8; RAMEND
     //asm_file_path.push_str("test_resources/sample_files/asm/count_bits.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/def_assembler_directive.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/dseg.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/define_byte.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/excercise.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/expression.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/inc.asm");
@@ -367,7 +368,7 @@ fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>) -> [u8; RAMEND
     println!("absolute path: {:?}", fs::canonicalize(&srcdir));
 
     let data = fs::read_to_string(&asm_file_path).expect("Unable to read file");
-    log::info!("\n{}", data);
+    log::info!("\n{}\n", data);
 
     let input_stream: InputStream<&str> = InputStream::new(data.as_str());
 

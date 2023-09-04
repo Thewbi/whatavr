@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{ihex_mgmt::ihex_mgmt::Segment, instructions::instruction_type::InstructionType, common::number_literal_parser::number_literal_to_u16};
+use crate::{ihex_mgmt::ihex_mgmt::Segment, instructions::instruction_type::InstructionType, common::number_literal_parser::number_literal_to_u16, CSEG_HASHMAP};
 
 use super::asm_record::AsmRecord;
 
@@ -189,7 +189,23 @@ impl AsmEncoder {
 
     pub fn encode(&mut self, segment: &mut Segment, asm_record: &AsmRecord) {
 
-        log::info!("Encoding: {}\n" , asm_record);
+        log::info!("Enc: {}\n", asm_record);
+
+        if asm_record.direct_data.len() > 0
+        {
+            for cc in &asm_record.direct_data
+            {
+                segment.data.push(*cc);
+                segment.size += 1u32;
+            }
+
+            let mut cseg_map = CSEG_HASHMAP.lock().unwrap();
+            cseg_map.insert(asm_record.label.clone(), asm_record.idx.to_string());
+
+            log::trace!("{:?}\n", cseg_map);
+            
+            return;
+        }
 
         match asm_record.instruction_type {
 

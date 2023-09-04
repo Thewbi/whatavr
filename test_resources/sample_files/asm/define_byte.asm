@@ -1,0 +1,1 @@
+teststring: .db "Hello world", 0

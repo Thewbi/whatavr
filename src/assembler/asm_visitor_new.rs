@@ -309,9 +309,6 @@ impl<'i> NewAssemblerVisitor {
 
         } else if "db".eq(&asm_directive) {
 
-            // ignored
-            //println!("db");
-
             if SegmentMode::DataSegment == self.segment_mode
             {
                 // store the label in the sram (data_segment) hashmap
@@ -335,12 +332,33 @@ impl<'i> NewAssemblerVisitor {
             }
             else 
             {
-                panic!("DB in mode CodeSegment! Not implemented yet!");
+                log::info!("cseg_org_pointer: {}\n", self.cseg_org_pointer);
+
+                let mut asm_record: AsmRecord = AsmRecord::default();
+
+                for i in 2..assembler_directive.len()
+                {
+                    let temp = assembler_directive[i].as_bytes();
+
+                    if temp[0] == b'\"'
+                    {
+                        asm_record.direct_data = [asm_record.direct_data.as_slice(), &temp[1..(temp.len() - 1usize)]].concat();
+                    }
+                    else 
+                    {
+                        asm_record.direct_data = [asm_record.direct_data.as_slice(), &temp].concat();
+                    }
+                }
+
+                asm_record.label = self.label.clone();
+                self.label = String::default();
+
+                self.records.push(asm_record);
             }
 
         } else if "byte".eq(&asm_directive) {
 
-            log::info!("byte");
+            log::info!("byte\n");
 
             if SegmentMode::DataSegment == self.segment_mode
             {
@@ -411,10 +429,10 @@ impl<'i> NewAssemblerVisitor {
             asm_file_path.push_str("test_resources/sample_files/asm/");
             asm_file_path.push_str(unwrapped_name);
 
-            log::info!("Including \"{}\"", &asm_file_path.clone());
+            log::info!("Including \"{}\"\n", &asm_file_path.clone());
 
             let data = fs::read_to_string(asm_file_path).expect("Unable to read file");
-            log::info!("\n{}", data);
+            log::info!("\n{}\n", data);
 
             let input_stream: InputStream<&str> = InputStream::new(data.as_str());
 
@@ -784,11 +802,11 @@ impl<'i> assemblerVisitorCompat<'i> for NewAssemblerVisitor {
         let visit_children_result = self.visit_children(ctx);
         self.ascend_ident();
 
-        log::trace!("cr: {:?}", visit_children_result);
+        log::info!("cr: {:?}\n", visit_children_result);
 
         // look for assembler directives
         // assembler directives are identified via a dot character
-        let assembler_directive = ".".eq(&visit_children_result[0]);
+        let assembler_directive: bool = ".".eq(&visit_children_result[0]);
         if assembler_directive {
             self.parse_assembler_directive(&visit_children_result);
 
@@ -802,6 +820,8 @@ impl<'i> assemblerVisitorCompat<'i> for NewAssemblerVisitor {
         self.descend_ident("visit_asm_intrinsic_usage");
         let visit_children_result = self.visit_children(ctx);
         self.ascend_ident();
+
+        log::info!("cr: {:?}\n", visit_children_result);
 
         self.process_asm_intrinsic_usage(visit_children_result)
     }

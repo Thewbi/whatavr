@@ -37,7 +37,9 @@ expression :
     |
     expression RIGHT_SHIFT expression
     |
-    expression SLASH expression
+    expression ASTERISK expression // multiplication
+    |
+    expression SLASH expression  // division
     |
     expression GT expression
     |
@@ -94,7 +96,7 @@ asm_instrinsic_instruction :
         |
         BYTE expression
         |
-        ORG (HEX_NUMBER | IDENTIFIER)
+        ORG ( HEX_NUMBER | IDENTIFIER )
         | 
         MACRO IDENTIFIER
         | 
@@ -111,13 +113,13 @@ asm_instrinsic_instruction :
     ;
 
 byte_csv :
-    byte_csv COMMA (HEX_NUMBER | NUMBER)
+    byte_csv COMMA ( HEX_NUMBER | NUMBER | STRING )
     |
-    (HEX_NUMBER | NUMBER)
+    ( HEX_NUMBER | NUMBER | STRING )
     ;
 
 asm_intrinsic_usage :
-    IDENTIFIER OPENING_BRACKET ( IDENTIFIER | macro_placeholder ) CLOSEING_BRACKET
+    IDENTIFIER OPENING_BRACKET ( expression | macro_placeholder ) CLOSEING_BRACKET
     ;
 
 preprocessor_directive : 
@@ -404,6 +406,7 @@ ASTERISK : '*' ;
 AT : '@' ;
 
 BYTE : B Y T E ;
+BACKSLASH: '\\' ;
 
 CLOSEING_BRACKET : ')' ;
 COLON : ':' ;

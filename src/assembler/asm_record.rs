@@ -24,6 +24,8 @@ pub struct AsmRecord {
 
     pub idx: u16,
 
+    pub direct_data: Vec<u8>,
+
 }
 
 impl AsmRecord {
@@ -48,6 +50,7 @@ impl AsmRecord {
             target_address: target_address,
             io_dest: io_dest,
             idx: 0u16,
+            direct_data: Vec::default(),
         }
     }
 
@@ -61,6 +64,7 @@ impl AsmRecord {
         self.target_address = 0i16;
         self.io_dest = IoDestination::UNKNOWN;
         self.idx = u16::default();
+        self.direct_data = Vec::default();
     }
 
     pub fn set_idx(&mut self, idx: u16) {
@@ -81,13 +85,14 @@ impl Default for AsmRecord {
             target_address : 0i16,
             io_dest: IoDestination::UNKNOWN,
             idx: u16::default(),
+            direct_data: Vec::default(),
         }
     }
 }
 
 impl fmt::Display for AsmRecord {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "(label:{}, itype:{}, reg_1:{} {:#04x}, reg_2:{} {:#04x}, data:{} {:#04x}, tgt_label:{}, tgt_addr:{})", 
+        write!(f, "(label:{:<10}, itype:{:<5}, reg_1:{:<3} {:#04x}, reg_2:{:<3} {:#04x}, data:{} {:#04x}, tgt_label:{}, tgt_addr:{})", 
             self.label, 
             self.instruction_type.to_string(),
             self.reg_1, self.reg_1,
