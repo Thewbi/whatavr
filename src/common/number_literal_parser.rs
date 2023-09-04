@@ -204,16 +204,28 @@ pub fn number_literal_to_i16(data: &String) -> i16 {
 pub fn is_char_literal(input: &String) -> bool
 {
     let trimmed_input = input.trim();
-    let re = Regex::new("^'.'$").unwrap();
+    //let re = Regex::new("^'.'$").unwrap();
+
+    let re = Regex::new("^'.|\\.'$").unwrap();
+
     re.is_match(trimmed_input)
 }
 
 pub fn char_literal_to_u16(input: &String) -> u16
 {
     let trimmed_input = input.trim();
-    let central_character: char = trimmed_input.chars().nth(1).unwrap();
+    let first_character: char = trimmed_input.chars().nth(1).unwrap();
 
-    central_character as u16
+    if first_character == '\\'
+    {
+        let second_character: char = trimmed_input.chars().nth(2).unwrap();
+        match second_character {
+            'n' => { return 0x0Au16; },
+            _ => panic!("Not implemented!"),
+        }
+    }
+
+    first_character as u16
 }
 
 #[cfg(test)]
@@ -232,7 +244,17 @@ mod char_literal_tests {
     }
 
     #[test]
+    fn is_char_literal_newline_test() {
+        assert!(is_char_literal(&"'\\n'".to_string()));
+    }
+
+    #[test]
     fn char_literal_to_u16_space_test() {
         assert_eq!(0x20, char_literal_to_u16(&"' '".to_string()));
+    }
+
+    #[test]
+    fn char_literal_to_u16_newline_test() {
+        assert_eq!(0x0A, char_literal_to_u16(&"'\\n'".to_string()));
     }
 }

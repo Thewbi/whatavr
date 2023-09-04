@@ -292,6 +292,11 @@ impl<'i> NewAssemblerVisitor {
     fn parse_assembler_directive(&mut self, assembler_directive: &Vec<String>) {
         log::trace!("parse_assembler_directive");
 
+        if assembler_directive.len() == 1
+        {
+            log::info!("test: {:?}\n", assembler_directive);
+        }
+
         let asm_directive = assembler_directive[1].to_lowercase();
 
         if "cseg".eq(&asm_directive) {
@@ -302,14 +307,13 @@ impl<'i> NewAssemblerVisitor {
 
             self.segment_mode = SegmentMode::DataSegment;
 
-        }  else if "db".eq(&asm_directive) {
+        } else if "db".eq(&asm_directive) {
 
             // ignored
             //println!("db");
 
             if SegmentMode::DataSegment == self.segment_mode
             {
-
                 // store the label in the sram (data_segment) hashmap
                 let mut map = DSEG_HASHMAP.lock().unwrap();
                 map.insert(self.label.clone(), self.dseg_org_pointer);
@@ -319,15 +323,53 @@ impl<'i> NewAssemblerVisitor {
                 // copy the bytes into sram (data_segment)
                 for i in 2..assembler_directive.len() 
                 {    
-                    self.sram[self.dseg_org_pointer as usize] = number_literal_to_u8(&assembler_directive[i]);
+                    let temp_data: u8 = number_literal_to_u8(&assembler_directive[i]);
+
+                    log::info!("Storing value {:#04x} into SRAM at address {:#06x}\n", temp_data, self.dseg_org_pointer);
+
+                    self.sram[self.dseg_org_pointer as usize] = temp_data;
                     self.dseg_org_pointer += 1u16;
-                } 
+                }
+
+                self.label = String::default();
             }
             else 
             {
                 panic!("DB in mode CodeSegment! Not implemented yet!");
             }
 
+        } else if "byte".eq(&asm_directive) {
+
+            log::info!("byte");
+
+            if SegmentMode::DataSegment == self.segment_mode
+            {
+                // store the label in the sram (data_segment) hashmap
+                let mut map = DSEG_HASHMAP.lock().unwrap();
+                map.insert(self.label.clone(), self.dseg_org_pointer);
+
+                log::info!("DSEG LABEL: label: {} addr: {:#06x}\n", self.label, self.dseg_org_pointer);
+
+                // log::info!("DSEG_HASHMAP {:?}\n", map);
+
+                // // copy the bytes into sram (data_segment)
+                // for i in 2..assembler_directive.len() 
+                // {    
+                //     let temp_data: u8 = number_literal_to_u8(&assembler_directive[i]);
+
+                //     log::info!("Storing value {:#04x} into SRAM at address {:#06x}\n", temp_data, self.dseg_org_pointer);
+
+                //     self.sram[self.dseg_org_pointer as usize] = temp_data;
+                //     self.dseg_org_pointer += 1u16;
+                // }
+
+                self.label = String::default();
+            }
+            else 
+            {
+                panic!("BYTE in mode CodeSegment! Not implemented yet!");
+            }
+        
         } else if "device".eq(&asm_directive) {
 
             // ignored
@@ -466,17 +508,6 @@ impl<'i> NewAssemblerVisitor {
             }
         }
 
-        // let joined = visit_children_result.join("");
-
-        // if "LOW(RAMEND)" == joined {
-        //     let low_ramend: u16 = crate::LOW!(RAMEND);
-        //     return vec![low_ramend.to_string().clone()];
-        // }
-        // if "HIGH(RAMEND)" == joined {
-        //     let high_ramend: u16 = HIGH!(RAMEND);
-        //     return vec![high_ramend.to_string().clone()];
-        // }
-
         visit_children_result
     }
 
@@ -534,22 +565,48 @@ impl<'i> NewAssemblerVisitor {
                 {
                     let param_as_string = param_1.to_string();
 
+                    let mut label_resolved: bool = false;
+                    
                     // try to resolve constants
-                    let map = CSEG_HASHMAP.lock().unwrap();
-                    if map.contains_key(&param_as_string)
+                    let cseg_map = CSEG_HASHMAP.lock().unwrap();
+                    log::trace!("CSEG_HASHMAP: {:?}\n", cseg_map);
+                    if cseg_map.contains_key(&param_as_string)
                     {
-                        let constant_value = map.get(&param_as_string).unwrap();
+                        let constant_value = cseg_map.get(&param_as_string).unwrap();
                         if is_number_literal_u16(constant_value)
                         {
                             asm_record.reg_1 = number_literal_to_u16(constant_value);
+                            label_resolved = true;
                         }
                         else if is_register_name(constant_value)
                         {
                             asm_record.reg_1 = register_name_to_u16(constant_value);
+                            label_resolved = true;
                         } 
                     }
-                    else
+
+                    let dseg_map = DSEG_HASHMAP.lock().unwrap();
+                    log::trace!("DSEG_HASHMAP: {:?}\n", dseg_map);
+                    if dseg_map.contains_key(&param_as_string)
                     {
+                        let constant_value: &u16 = dseg_map.get(&param_as_string).unwrap();
+                        asm_record.reg_1 = *constant_value;
+                        label_resolved = true;
+                        // if is_number_literal_u16(constant_value)
+                        // {
+                        //     asm_record.reg_1 = number_literal_to_u16(constant_value);
+                        //     label_resolved = true;
+                        // }
+                        // else if is_register_name(constant_value)
+                        // {
+                        //     asm_record.reg_1 = register_name_to_u16(constant_value);
+                        //     label_resolved = true;
+                        // } 
+                    }
+
+                    if !label_resolved
+                    {
+                        log::warn!("Could not resolve label: {}\n", param_as_string);
                         asm_record.target_label = param_as_string;
                     }
                 }
@@ -581,9 +638,6 @@ impl<'i> NewAssemblerVisitor {
 
                     log::trace!("param_2: {}", param_as_string);
 
-                    // ldi XH, HIGH(BUFFER)
-                    // ldi r16, LOW(RAMEND)
-
                     // try to resolve constants
                     let cseg_map = CSEG_HASHMAP.lock().unwrap();
                     let dseg_map = DSEG_HASHMAP.lock().unwrap();
@@ -607,15 +661,6 @@ impl<'i> NewAssemblerVisitor {
                     {
                         let constant_value = dseg_map.get(&param_as_string).unwrap();
                         asm_record.reg_2 = constant_value.clone();
-
-                        // if is_number_literal_u16(constant_value)
-                        // {
-                        //     asm_record.reg_2 = number_literal_to_u16(constant_value);
-                        // }
-                        // else if is_register_name(constant_value)
-                        // {
-                        //     asm_record.reg_2 = register_name_to_u16(constant_value);
-                        // }
                     }
                     else
                     {
@@ -633,7 +678,6 @@ impl<'i> NewAssemblerVisitor {
 
         self.records.push(asm_record);
 
-        //visit_children_result
     }
 }
 
@@ -651,11 +695,6 @@ impl<'i> ParseTreeVisitorCompat<'i> for NewAssemblerVisitor {
     ) -> Self::Return {
         let terminal_text = node.get_text();
         log::trace!("'{}'", terminal_text);
-        // if terminal_text != ":" && terminal_text != "," && terminal_text != "\r\n" {
-        //     if self.last_terminal != terminal_text {
-        //         self.last_terminal.push_str(terminal_text.as_str());
-        //     }
-        // }
 
         if terminal_text.eq(",") {
             return vec![];
@@ -720,7 +759,7 @@ impl<'i> assemblerVisitorCompat<'i> for NewAssemblerVisitor {
         visit_children_result
     }
 
-    /// is the rule that directly selects the TOKEN of an instruction (ADD; CALL, EOR; LDI; ...)
+    // is the rule that directly selects the TOKEN of an instruction (ADD; CALL, EOR; LDI; ...)
     fn visit_mnemonic(
         &mut self,
         ctx: &parser::assemblerparser::MnemonicContext<'i>,
@@ -729,9 +768,6 @@ impl<'i> assemblerVisitorCompat<'i> for NewAssemblerVisitor {
         let visit_children_result = self.visit_children(ctx);
         self.ascend_ident();
 
-        // self.mnemonic = self.last_terminal.clone();
-        // self.last_terminal = String::default();
-
         visit_children_result
     }
 
@@ -739,9 +775,6 @@ impl<'i> assemblerVisitorCompat<'i> for NewAssemblerVisitor {
         self.descend_ident("visit_param");
         let visit_children_result = self.visit_children(ctx);
         self.ascend_ident();
-
-        //let result_join = children_result.join("");
-        //return vec![result_join];
 
         visit_children_result
     }
@@ -837,6 +870,18 @@ impl<'i> assemblerVisitorCompat<'i> for NewAssemblerVisitor {
                 return vec![offset.to_string()];
             }
         }
+
+        visit_children_result
+    }
+
+    fn visit_label_definition(&mut self, ctx: &parser::assemblerparser::Label_definitionContext<'i>) -> Self::Return {
+        self.descend_ident("visit_label_definition");
+        let visit_children_result = self.visit_children(ctx);
+        self.ascend_ident();
+
+        log::info!("cr: {:?}\n", visit_children_result);
+
+        self.label = visit_children_result[0].clone();
 
         visit_children_result
     }

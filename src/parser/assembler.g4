@@ -92,6 +92,8 @@ asm_instrinsic_instruction :
         |
         DB byte_csv
         |
+        BYTE expression
+        |
         ORG (HEX_NUMBER | IDENTIFIER)
         | 
         MACRO IDENTIFIER
@@ -400,6 +402,8 @@ XCH : X C H ;
 
 ASTERISK : '*' ;
 AT : '@' ;
+
+BYTE : B Y T E ;
 
 CLOSEING_BRACKET : ')' ;
 COLON : ':' ;

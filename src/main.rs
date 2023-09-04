@@ -16,6 +16,7 @@ use antlr_rust::common_token_stream::CommonTokenStream;
 use antlr_rust::token_factory::ArenaCommonFactory;
 use antlr_rust::InputStream;
 use antlr_rust::tree::ParseTreeVisitorCompat;
+use common::common_constants::RAMEND;
 use env_logger::{Builder, Target};
 use instructions::instruction_definition::InstructionDefinition;
 use log::LevelFilter;
@@ -90,11 +91,11 @@ fn main() -> io::Result<()> {
     // this is cseg the code segment
     let mut segments: Vec<Segment> = Vec::new();
 
-    // // asm source code
-    // load_segment_from_asm_source_code(&mut segments);
+    // asm source code
+    let sram_content: [u8; RAMEND as usize] = load_segment_from_asm_source_code(&mut segments);
 
-    // hex
-    load_segment_from_hex_file(&mut segments);
+    // // hex
+    // load_segment_from_hex_file(&mut segments);
 
     // // listing (lss) file (from C-SourceCode)
     // load_segment_from_listing_file(&mut segments);
@@ -108,6 +109,7 @@ fn main() -> io::Result<()> {
     log::info!("*************************************************\n");
 
     let mut cpu: CPU = CPU::default();
+    cpu.sram = sram_content;
 
     // main loop that executes the instructions
     let mut done: bool = false;
@@ -137,7 +139,7 @@ fn main() -> io::Result<()> {
 
 }
 
-fn load_segment_from_listing_file(segments: &mut Vec<Segment>) -> io::Result<()>
+fn load_segment_from_listing_file(segments: &mut Vec<Segment>) -> [u8; RAMEND as usize] //-> io::Result<()>
 {
     let mut lss_file_path: String = String::new();
     //lss_file_path.push_str("test_resources/sample_files/lss/ADC_C.lss");
@@ -207,12 +209,203 @@ fn load_segment_from_listing_file(segments: &mut Vec<Segment>) -> io::Result<()>
 
     let input_stream: InputStream<&str> = InputStream::new(string_buffer.as_str());
 
-    parse(segments, input_stream);
+    parse(segments, input_stream)
+
+    //Ok(())
+}
+
+fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>) -> [u8; RAMEND as usize] 
+{
+    //
+    // Phase - load token into a hashmap
+    //
+
+    log::info!("**********************************************\n");
+    log::info!("Phase - load token into a hashmap\n");
+    log::info!("**********************************************\n");
+
+    let mut token_storage: HashMap<isize, String> = HashMap::new();
+    let mut token_value_storage: HashMap<String, isize> = HashMap::new();
+
+    let mut token_file_path: String = String::new();
+    //token_file_path.push_str("src/parser/assembler.tokens");
+    token_file_path.push_str("src/parser/assembler.tokens");
+
+    // open the file in read-only mode (ignoring errors).
+    let file = File::open(token_file_path).unwrap();
+    let reader = BufReader::new(file);
+
+    // read the file line by line using the lines() iterator from std::io::BufRead.
+    for (index, line) in reader.lines().enumerate() {
+
+        // ignore errors.
+        let line = line.unwrap();
+
+        // DEBUG show the line and its number.
+        log::trace!("{}. {}\n", index + 1, line);
+
+        // https://stackoverflow.com/questions/26643688/how-do-i-split-a-string-in-rust
+        let collection: Vec<&str> = line.split('=').collect::<Vec<_>>();
+
+        let token:&str = collection[0];
+        let token_idx:i16 = collection[1].parse::<i16>().unwrap();
+        let token_idx_as_usize:isize = token_idx.into();
+
+        // at the end of the token file, the individual characters are repeated but
+        // the purpose of the token map is to just contain the token labels/names and not
+        // the individual characters so break on the first duplicate
+        if token_storage.contains_key(&token_idx_as_usize) {
+            break;
+        }
+        token_storage.insert(token_idx_as_usize, token.to_string());
+
+        if token_value_storage.contains_key(&token.to_string()) {
+            break;
+        }
+        token_value_storage.insert(token.to_string(), token_idx_as_usize);
+    }
+
+    //
+    // Phase - read the .asm file
+    //
+
+    log::info!("**********************************************\n");
+    log::info!("Phase - Phase - read the .asm file\n");
+    log::info!("**********************************************\n");
+
+    //
+    // read the .asm file which will be the input to the assembler
+    //
+    // check files here: http://lab.antlr.org/
+    // (erase the entire content in the lexer tab, paste the grammar into the parser tab,
+    // use 'asm_file' as a start symbol)
+    //
+
+    let mut asm_file_path: String = String::new();
+    //asm_file_path.push_str("test_resources/sample_files/asm/asm_1.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/asm_2.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/asm_3.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/asm_4.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/call_and_return.asm"); // regression test
+    //asm_file_path.push_str("test_resources/sample_files/asm/call_test.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/call_test_2.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/count_bits.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/def_assembler_directive.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/dseg.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/excercise.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/expression.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/inc.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/intrinsic.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/jmp_instruction.asm"); // problem
+    //asm_file_path.push_str("test_resources/sample_files/asm/jmp.asm"); // good for regression test (will increment r17 until overflow)
+    //asm_file_path.push_str("test_resources/sample_files/asm/preprocessor.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/push_pop.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/ret_test.asm");
+    asm_file_path.push_str("test_resources/sample_files/asm/str_length.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/scratchpad.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/scratchpad_2.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/setup_stack.asm"); // regression test
+    //asm_file_path.push_str("test_resources/sample_files/asm/timer_polling_example.asm");
+    //asm_file_path.push_str("C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/avrasm/inc/m328Pdef.inc");
+    //asm_file_path.push_str("test_resources/sample_files/asm/hwnp_excercise_1.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/st_std_test.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/stack_test.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/pin_change_interrupt_demo.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/pin_change_interrupt_demo.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/rjh_coding_avr-asm-add-16.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/include_test.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/timer1.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/twos_complement_overflow.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/sts.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/timebase.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/out.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/store_to_flash.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/store_to_flash_2.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/store_load_flash.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/store_load_sram.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/odd_even_test.asm");
+
+    // ld, st, call, ret, push, pop, mov, movw, and, inc, dec, andi, add, adc, adiw, ldi, lsr,
+    // lsl, brne, brbc, breq, brsh, brge, brlt, rol, ror, sbi, cbi, sbc, subi
+
+    //asm_file_path.push_str("test_resources/sample_files/asm/andi.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/add.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/adc.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/adiw.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/and.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/brbc.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/brne.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/breq.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/brsh.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/brge.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/brlt.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/call.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/cbi.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/cpi.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/dec.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/inc.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/ld.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/ld_z.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/ldi.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/lpm.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/lsr.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/lsl.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/mov.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/movw.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/push.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/pop.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/ret.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/rjmp.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/rol.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/ror.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/sbi.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/sbc.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/subi.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/st.asm");
+
+    let srcdir = PathBuf::from(&asm_file_path);
+    println!("absolute path: {:?}", fs::canonicalize(&srcdir));
+
+    let data = fs::read_to_string(&asm_file_path).expect("Unable to read file");
+    log::info!("\n{}", data);
+
+    let input_stream: InputStream<&str> = InputStream::new(data.as_str());
+
+    parse(segments, input_stream)
+
+}
+
+fn load_segment_from_hex_file(segments: &mut Vec<Segment>) -> io::Result<()>
+{
+    // load hex file
+    let mut hex_file_path: String = String::new();
+    //hex_file_path.push_str("C:/aaa_se/rust/rust_blt_2/test_resources/output_bank1.hex");
+    //hex_file_path.push_str("C:/aaa_se/rust/rust_blt_2/test_resources/output_bank2.hex") {
+    //hex_file_path.push_str("test_resources/sample_files/GccApplication1/GccApplication1.hex");
+    //hex_file_path.push_str("test_resources/sample_files/GccApplication2/GccApplication1.hex");
+    //hex_file_path.push_str("test_resources/sample_files/arduboy/Ardynia/ardynia.hex");
+    //hex_file_path.push_str("test_resources/sample_files/GccApplication2/GccApplication1.hex");
+    //hex_file_path.push_str("test_resources/sample_files/hex/ExcerciseSheet2.hex");
+    hex_file_path.push_str("test_resources/sample_files/hex/SegmentByteTest.hex");
+
+    // split into segments
+    // each segment has to have a segment_start and a segment_size
+
+    match parse_hex_file(segments, &hex_file_path) {
+        Ok(_name) => log::info!("File read"),
+        Err(err) => {
+            log::error!("An error occured while retrieving the peername: {:?}\n", err);
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                "Error at load hex file!",
+            ));
+        }
+    }
 
     Ok(())
 }
 
-fn parse(segments: &mut Vec<Segment>, input_stream: InputStream<&str>)
+fn parse(segments: &mut Vec<Segment>, input_stream: InputStream<&str>) -> [u8; RAMEND as usize] 
 {
     //
     // Phase - AST Creation (Grammar Lexing and Parsing)
@@ -333,195 +526,8 @@ fn parse(segments: &mut Vec<Segment>, input_stream: InputStream<&str>)
     if !asm_encoder.encoding_success {
         panic!("Encoding failed!");
     }
-}
 
-fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>)
-{
-    //
-    // Phase - load token into a hashmap
-    //
-
-    log::info!("**********************************************\n");
-    log::info!("Phase - load token into a hashmap\n");
-    log::info!("**********************************************\n");
-
-    let mut token_storage: HashMap<isize, String> = HashMap::new();
-    let mut token_value_storage: HashMap<String, isize> = HashMap::new();
-
-    let mut token_file_path: String = String::new();
-    //token_file_path.push_str("src/parser/assembler.tokens");
-    token_file_path.push_str("src/parser/assembler.tokens");
-
-    // open the file in read-only mode (ignoring errors).
-    let file = File::open(token_file_path).unwrap();
-    let reader = BufReader::new(file);
-
-    // read the file line by line using the lines() iterator from std::io::BufRead.
-    for (index, line) in reader.lines().enumerate() {
-
-        // ignore errors.
-        let line = line.unwrap();
-
-        // DEBUG show the line and its number.
-        log::trace!("{}. {}\n", index + 1, line);
-
-        // https://stackoverflow.com/questions/26643688/how-do-i-split-a-string-in-rust
-        let collection: Vec<&str> = line.split('=').collect::<Vec<_>>();
-
-        let token:&str = collection[0];
-        let token_idx:i16 = collection[1].parse::<i16>().unwrap();
-        let token_idx_as_usize:isize = token_idx.into();
-
-        // at the end of the token file, the individual characters are repeated but
-        // the purpose of the token map is to just contain the token labels/names and not
-        // the individual characters so break on the first duplicate
-        if token_storage.contains_key(&token_idx_as_usize) {
-            break;
-        }
-        token_storage.insert(token_idx_as_usize, token.to_string());
-
-        if token_value_storage.contains_key(&token.to_string()) {
-            break;
-        }
-        token_value_storage.insert(token.to_string(), token_idx_as_usize);
-    }
-
-    //
-    // Phase - read the .asm file
-    //
-
-    log::info!("**********************************************\n");
-    log::info!("Phase - Phase - read the .asm file\n");
-    log::info!("**********************************************\n");
-
-    //
-    // read the .asm file which will be the input to the assembler
-    //
-    // check files here: http://lab.antlr.org/
-    // (erase the entire content in the lexer tab, paste the grammar into the parser tab,
-    // use 'asm_file' as a start symbol)
-    //
-
-    let mut asm_file_path: String = String::new();
-    //asm_file_path.push_str("test_resources/sample_files/asm/asm_1.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/asm_2.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/asm_3.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/asm_4.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/call_and_return.asm"); // regression test
-    //asm_file_path.push_str("test_resources/sample_files/asm/call_test.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/call_test_2.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/def_assembler_directive.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/dseg.asm");
-    asm_file_path.push_str("test_resources/sample_files/asm/excercise.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/expression.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/inc.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/intrinsic.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/jmp_instruction.asm"); // problem
-    //asm_file_path.push_str("test_resources/sample_files/asm/jmp.asm"); // good for regression test (will increment r17 until overflow)
-    //asm_file_path.push_str("test_resources/sample_files/asm/preprocessor.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/push_pop.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/ret_test.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/scratchpad.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/scratchpad_2.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/setup_stack.asm"); // regression test
-    //asm_file_path.push_str("test_resources/sample_files/asm/timer_polling_example.asm");
-    //asm_file_path.push_str("C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/avrasm/inc/m328Pdef.inc");
-    //asm_file_path.push_str("test_resources/sample_files/asm/hwnp_excercise_1.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/st_std_test.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/stack_test.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/pin_change_interrupt_demo.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/pin_change_interrupt_demo.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/rjh_coding_avr-asm-add-16.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/include_test.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/timer1.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/twos_complement_overflow.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/sts.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/timebase.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/out.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/store_to_flash.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/store_to_flash_2.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/store_load_flash.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/store_load_sram.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/odd_even_test.asm");
-
-    // ld, st, call, ret, push, pop, mov, movw, and, inc, dec, andi, add, adc, adiw, ldi, lsr,
-    // lsl, brne, brbc, breq, brsh, brge, brlt, rol, ror, sbi, cbi, sbc, subi
-
-    //asm_file_path.push_str("test_resources/sample_files/asm/andi.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/add.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/adc.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/adiw.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/and.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/brbc.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/brne.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/breq.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/brsh.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/brge.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/brlt.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/call.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/cbi.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/cpi.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/dec.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/inc.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/ld.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/ld_z.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/ldi.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/lpm.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/lsr.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/lsl.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/mov.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/movw.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/push.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/pop.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/ret.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/rjmp.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/rol.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/ror.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/sbi.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/sbc.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/subi.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/st.asm");
-
-    let srcdir = PathBuf::from(&asm_file_path);
-    println!("absolute path: {:?}", fs::canonicalize(&srcdir));
-
-    let data = fs::read_to_string(&asm_file_path).expect("Unable to read file");
-    log::info!("\n{}", data);
-
-    let input_stream: InputStream<&str> = InputStream::new(data.as_str());
-
-    parse(segments, input_stream);
-
-}
-
-fn load_segment_from_hex_file(segments: &mut Vec<Segment>) -> io::Result<()>
-{
-    // load hex file
-    let mut hex_file_path: String = String::new();
-    //hex_file_path.push_str("C:/aaa_se/rust/rust_blt_2/test_resources/output_bank1.hex");
-    //hex_file_path.push_str("C:/aaa_se/rust/rust_blt_2/test_resources/output_bank2.hex") {
-    //hex_file_path.push_str("test_resources/sample_files/GccApplication1/GccApplication1.hex");
-    //hex_file_path.push_str("test_resources/sample_files/GccApplication2/GccApplication1.hex");
-    //hex_file_path.push_str("test_resources/sample_files/arduboy/Ardynia/ardynia.hex");
-    //hex_file_path.push_str("test_resources/sample_files/GccApplication2/GccApplication1.hex");
-    //hex_file_path.push_str("test_resources/sample_files/hex/ExcerciseSheet2.hex");
-    hex_file_path.push_str("test_resources/sample_files/hex/SegmentByteTest.hex");
-
-    // split into segments
-    // each segment has to have a segment_start and a segment_size
-
-    match parse_hex_file(segments, &hex_file_path) {
-        Ok(_name) => log::info!("File read"),
-        Err(err) => {
-            log::error!("An error occured while retrieving the peername: {:?}\n", err);
-            return Err(std::io::Error::new(
-                std::io::ErrorKind::Other,
-                "Error at load hex file!",
-            ));
-        }
-    }
-
-    Ok(())
+    visitor.sram
 }
 
 fn init_logging() {

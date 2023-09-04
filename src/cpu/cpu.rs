@@ -716,6 +716,7 @@ impl CPU {
                 log::trace!("[BREAK]\n");
 
                 // nop
+                panic!("Break reached");
 
                 cpu.pc += 2i32;
             }
@@ -732,6 +733,9 @@ impl CPU {
                 log::trace!("[BRNE]\n");
 
                 let offset: i32 = value_storage[&'k'] as i32;
+
+                os.push_str(&format!("brne relative_offset:{}", offset));
+                log::info!("{}\n", os);
 
                 // check the Z-flag
                 if cpu.z {
@@ -832,14 +836,11 @@ impl CPU {
                 let d_val: u16 = value_storage[&'d'];
                 let k: u16 = value_storage[&'K'];
 
-                //log::trace!("Clearing register d: {:#06x}\n", d);
-
-                //log::info!("clr {}\n", d);
-                os.push_str(&format!("cpi r{}, {}", d_val, k));
-                log::info!("{}\n", os);
-
                 // To compute the register to use, add the offset 16 to the parsed value
                 let register: u16 = d_val + 16u16;
+
+                os.push_str(&format!("cpi r{}, {:#04x}", register, k));
+                log::info!("{}\n", os);
 
                 let register_value: u8 = cpu.register_file[register as usize];
 
@@ -923,6 +924,9 @@ impl CPU {
                     register_d,
                     cpu.register_file[register_d as usize]
                 );
+
+                os.push_str(&format!("inc r{}", register_d));
+                log::info!("{}\n", os);
 
                 let mut val: u8 = cpu.register_file[register_d as usize];
                 //todo: handle overflow panic and set the zero (and all other relevant) flags in this case!
@@ -1020,6 +1024,9 @@ impl CPU {
                 // store data into memory (data space) at the address stored in X
                 // (data space != I/O space (for I/O space, use the OUT instruction))
                 let value: u8 = cpu.load_from_data_space(value_x as usize);
+
+                os.push_str(&format!("ld r{}, X+", d_val));
+                log::info!("{}\n", os);
 
                 // store the loaded value into the r register
                 cpu.register_file[d_val as usize] = value;
@@ -1154,6 +1161,46 @@ impl CPU {
                 cpu.pc += 2i32;
             }
 
+            /*  78 */
+            // 78. LSR – Logical Shift Right
+            // Shifts all bits in Rd one place to the right. Bit 7 is cleared. Bit 0 is loaded into the C Flag of the SREG.
+            // This operation effectively divides an unsigned value by two. The C Flag can be used to round the result.
+            InstructionType::LSR => {
+                log::trace!("[LSR]\n");
+
+                let d_register: u16 = value_storage[&'d'];
+                log::trace!("d: {d_register:#b} {d_register:#x}\n");
+
+                os.push_str(&format!("lsr r{:?}", d_register));
+                log::info!("{}\n", os);
+
+                let mut d_val: u8 = cpu.register_file[d_register as usize];
+
+                log::info!("Before: {}\n", d_val);
+
+                // Bit 0 is loaded into the C Flag of the SREG
+                cpu.c = false;
+                if d_val % 2u8 == 1
+                {
+                    cpu.c = true;
+                }
+
+                d_val /= 2u8;
+
+                // set zero flag
+                cpu.z = false;
+                if d_val == 0
+                {
+                    cpu.z = true;
+                }
+
+                cpu.register_file[d_register as usize] = d_val;
+
+                log::info!("After: {}\n", d_val);
+
+                cpu.pc += 2i32;
+            }
+
             /*  79 */
             InstructionType::MOV => {
                 log::trace!("[MOV]\n");
@@ -1175,6 +1222,7 @@ impl CPU {
                 log::trace!("[NOP]\n");
 
                 log::info!("nop\n");
+
                 cpu.pc += 2i32;
             }
 
@@ -1262,8 +1310,6 @@ impl CPU {
                 let d_val: u16 = value_storage[&'d'];
                 log::trace!("d: {d_val:#b} {d_val:#x} {d_val}\n");
 
-                cpu.pc += 2i32;
-
                 let data: u8 = cpu.register_file[d_val as usize];
 
                 // stack pointer before
@@ -1278,6 +1324,8 @@ impl CPU {
                 log::info!("{}\n", os);
 
                 log::trace!("stack pointer: {} {}\n", cpu.stack_info_high(), cpu.stack_info_low());
+
+                cpu.pc += 2i32;
             }
 
             /* 91 */
@@ -1376,7 +1424,6 @@ impl CPU {
                   panic!("endless loop detected!\n");
                 }
 
-                //cpu.pc += (offset * 2i32);
                 cpu.pc += offset * 2i32;
             }
 
@@ -1422,6 +1469,38 @@ impl CPU {
                 cpu.pc += 2i32;
             }
 
+            /* 104 */
+            // 104. SBRC – Skip if Bit in Register is Cleared
+            // 1111 110r rrrr 0bbb
+            InstructionType::SBRC => {
+
+                log::trace!("[SBRC]\n");
+
+                let r_val: u16 = value_storage[&'r'];
+                log::trace!("r: {r_val:#b} {r_val:#x} {r_val}\n");
+
+                let b_val: u16 = value_storage[&'b'];
+                log::trace!("b: {b_val:#b} {b_val:#x} {b_val}\n");
+
+                log::trace!("[SBRC]\n");
+
+                os.push_str(&format!("sbrc r{} bit{}", r_val, b_val));
+                log::info!("{}\n", os);
+
+                // retrieve the current value from the r register
+                let data: u8 = cpu.register_file[r_val as usize];
+
+                log::info!("{} {:#04x} {:#10b}\n", data, data, data);
+
+                if (data & (1u8 << b_val as u8)) == 0u8
+                {
+                    // this will skip the next instruction
+                    cpu.pc += 2i32;
+                }
+
+                cpu.pc += 2i32;
+            }
+
             /* 105 */
             // 105. SBRS – Skip if Bit in Register is Set
             // 1111 111r rrrr 0bbb
@@ -1439,8 +1518,6 @@ impl CPU {
 
                 log::trace!("[SBRS]\n");
 
-                //log::info!("sbrs r{} bit{}", r_val, b_val);
-
                 os.push_str(&format!("sbrs r{} bit{}", r_val, b_val));
                 log::info!("{}\n", os);
 
@@ -1449,6 +1526,7 @@ impl CPU {
 
                 if (data & (1u8 << b_val as u8)) > 0u8
                 {
+                    // this will skip the next instruction
                     cpu.pc += 2i32;
                 }
 
@@ -1477,12 +1555,6 @@ impl CPU {
                 // store data into memory (data space) at the address stored in X
                 // (data space != I/O space (for I/O space, use the OUT instruction))
                 cpu.store_to_data_space(value_x as usize, data);
-
-                // // (post) increment X
-                // value_x = value_x + 1;
-
-                // // write back Z
-                // cpu.set_z(value_z);
 
                 cpu.pc += 2i32;
             }
@@ -1569,12 +1641,6 @@ impl CPU {
                 // (data space != I/O space (for I/O space, use the OUT instruction))
                 cpu.store_to_data_space(value_y as usize, data);
 
-                // // (post) increment Z
-                // value_z = value_z + 1;
-
-                // // write back Z
-                // cpu.set_z(value_z);
-
                 cpu.pc += 2i32;
             }
             InstructionType::ST_STD_Y_2 => {
@@ -1660,12 +1726,6 @@ impl CPU {
                 // (data space != I/O space (for I/O space, use the OUT instruction))
                 cpu.store_to_data_space(value_z as usize, data);
 
-                // // (post) increment Z
-                // value_z = value_z + 1;
-
-                // // write back Z
-                // cpu.set_z(value_z);
-
                 cpu.pc += 2i32;
             }
             InstructionType::ST_STD_Z_2 => {
@@ -1725,6 +1785,8 @@ impl CPU {
 
             /* 120 */
             // Stores one byte from a Register to the data space
+            // 1001 001d dddd 0000
+            // kkkk kkkk kkkk kkkk
             InstructionType::STS => {
                 log::trace!("[STS] 32 bit version\n");
 
@@ -1734,15 +1796,20 @@ impl CPU {
                 let register: u16 = value_storage[&'d'];
                 log::info!("d: {register:#b} {register:#x} {register}\n");
 
-                // retrieve the current value from the r register
-                let register_value: u8 = cpu.register_file[register as usize];
+                cpu.pc += 2i32;
 
                 // read the address from the next two bytes in memory
                 let address: u16 = cpu.read_next_two_byte(segment);
 
+                os.push_str(&format!("sts addr:{:#06x}, r{}", address, register));
+                log::info!("{}\n", os);
+
+                // retrieve the current value from the r register
+                let register_value: u8 = cpu.register_file[register as usize];
+
                 cpu.store_to_data_space(address as usize, register_value);
 
-                cpu.pc += 4i32;
+                cpu.pc += 2i32;
             }
 
             // 124. SUBI – Subtract Immediate

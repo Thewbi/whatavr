@@ -306,6 +306,12 @@ impl AsmEncoder {
                 Self::encode_lpm_3(&self, segment, asm_record.reg_1);
             }
 
+            /*  78 */
+            // 78. LSR – Logical Shift Right
+            InstructionType::LSR => {
+                Self::encode_lsr(&self, segment, asm_record.reg_1);
+            }
+
             /*  79 */
             InstructionType::MOV => {
                 Self::encode_mov(&self, segment, asm_record.reg_1, asm_record.reg_2);
@@ -362,13 +368,21 @@ impl AsmEncoder {
                 //Self::encode_sbi(&self, segment, &asm_record.idx, asm_record.reg_1, asm_record.data);
                 //Self::encode_sbi(&self, segment, &asm_record.idx, asm_record.reg_1, asm_record.reg_2);
             }
-            /*  105 */
+            /* 104 */
+            // SBRC – Skip if Bit in Register is Cleared
+            // 1111 110r rrrr 0bbb
+            InstructionType::SBRC => {
+                let param2_value: u16;
+                if asm_record.reg_2 == 255 { param2_value = asm_record.data; } else { param2_value = asm_record.reg_2; }
+                Self::encode_sbrc(&self, segment, &asm_record.idx, asm_record.reg_1, param2_value);
+            }
+            /* 105 */
             InstructionType::SBRS => {
                 let param2_value: u16;
                 if asm_record.reg_2 == 255 { param2_value = asm_record.data; } else { param2_value = asm_record.reg_2; }
                 Self::encode_sbrs(&self, segment, &asm_record.idx, asm_record.reg_1, param2_value);
             }
-            /*  108 */
+            /* 108 */
             InstructionType::SEI => {
                 Self::encode_sei(&self, segment, &asm_record.idx);
             }
@@ -408,7 +422,7 @@ impl AsmEncoder {
 
             /* 121 */
             InstructionType::STS => {
-                Self::encode_sts(&self, segment, asm_record.reg_2, asm_record.reg_1);
+                Self::encode_sts(&self, segment, asm_record.reg_1, asm_record.reg_2);
             }
             /* 122 */
             InstructionType::STS_16bit => {
@@ -605,11 +619,6 @@ impl AsmEncoder {
     /// 1111 01kk kkkk k001
     fn encode_brne(&self, segment: &mut Segment, idx: &u16, label: &String) {
 
-        //let mut offset_k: u16 = self.labels[label] as u16;
-
-        // why do I need this? is this correct?
-        //offset_k = offset_k * 2;
-
         let label_address: i32 = self.labels[label] as i32;
         let offset_k: i32 = label_address - (*idx as i32);
 
@@ -741,7 +750,13 @@ impl AsmEncoder {
 
     fn encode_cpi(&self, segment: &mut Segment, register_d: u16, constant: u16) 
     {
-        let result: u16 = 0x3000 | ((constant >> 4) << 8) | register_d << 4 | constant & 0x0F;
+        if register_d < 15 || register_d > 31 {
+            panic!("Invalid register for CPI! Only registers [r16, r31] are allowed")
+        }
+        // register is decreased by 16 to arrive at the register id
+        let register: u16 = register_d - 16u16;
+
+        let result: u16 = 0x3000 | ((constant >> 4) << 8) | register << 4 | constant & 0x0F;
 
         log::trace!("ENC CPI: {:#02x}\n", (result >> 0u16) as u8);
         segment.data.push((result >> 0u16) as u8);
@@ -841,38 +856,6 @@ impl AsmEncoder {
     //fn encode_jmp(&mut self, segment: &mut Segment, idx: &usize, label_or_immediate: &String) {
     fn encode_jmp(&mut self, segment: &mut Segment, idx: &u16, label: &String, address: i16) {
 
-        // if 0x00 == address && label.is_empty() {
-        //     panic!("No label or address found for call instruction!");
-        // }
-
-        // if label_or_immediate.is_empty() {
-        //     log::error!("Encoding JMP instruction but the label/immediate is missing!");
-        //     self.encoding_success = false;
-        //     return
-        // }
-
-        // let mut offset_k: i32;
-
-        // if self.labels.contains_key(label_or_immediate) {
-
-        //     let label_address: i32 = self.labels[label_or_immediate] as i32;
-        //     offset_k = label_address - (*idx as i32);
-
-        // } else {
-
-        //     offset_k = number_literal_to_u16(label_or_immediate) as i32;
-
-        // }
-        // // else {
-
-        // //     log::error!("Encoding JMP instruction but there is no immediate and label \"{}\" is not defined!", label_or_immediate);
-        // //     self.encoding_success = false;
-        // //     return
-
-        // // }
-        // // convert from bytes to words
-        // offset_k /= 2i32;
-
         let target_address: i32;
         if !label.is_empty()
         {
@@ -917,7 +900,6 @@ impl AsmEncoder {
         segment.data.push((result >> 8u16) as u8);
         segment.size += 1u32;
 
-        //log::info!("result: {:#026b}", result);
     }
 
     fn encode_ld_ldd_x_1(&self, segment: &mut Segment, register_d: u16)
@@ -1147,8 +1129,29 @@ impl AsmEncoder {
         segment.size += 1u32;
     }
 
-    /// 79. MOV – Copy Register
-    /// 0010 11rd dddd rrrr
+    // 78. LSR – Logical Shift Right
+    // 1001 010d dddd 0110
+    fn encode_lsr(&self, segment: &mut Segment, register_d: u16)
+    {
+        if register_d > 31 {
+            panic!("Invalid register d for LSR! Only registers [r00, r31] are allowed")
+        }
+
+        let result: u16 = 0x9406u16 | ((register_d & 0x1Fu16) << 4u16);
+
+        log::trace!("ENC LSR: {:b}\n", result);
+
+        log::trace!("ENC LSR: {:#02x}\n", (result >> 0u16) as u8);
+        segment.data.push((result >> 0u16) as u8);
+        segment.size += 1u32;
+
+        log::trace!("ENC LSR: {:#02x}\n", (result >> 8u16) as u8);
+        segment.data.push((result >> 8u16) as u8);
+        segment.size += 1u32;
+    }
+
+    // 79. MOV – Copy Register
+    // 0010 11rd dddd rrrr
     fn encode_mov(&self, segment: &mut Segment, register_d: u16, register_r: u16) {
         if register_d > 31 {
             panic!("Invalid register d for MOV! Only registers [r00, r31] are allowed")
@@ -1158,16 +1161,17 @@ impl AsmEncoder {
         }
         let result: u16 = (0b0010110000000000u16
             | ((register_r >> 4u16) << 9u16)
-            | ((register_d << 4u16) & 0x1Fu16)
+            //| ((register_d << 4u16) & 0x1Fu16)
+            | ((register_d & 0x1Fu16) << 4u16) 
             | (register_r << 0x04u16)) as u16;
 
-        log::info!("ENC MOV: {:b}", result);
+        log::trace!("ENC MOV: {:b}", result);
 
-        log::info!("ENC MOV: {:#02x}", (result >> 0u16) as u8);
+        log::trace!("ENC MOV: {:#02x}", (result >> 0u16) as u8);
         segment.data.push((result >> 0u16) as u8);
         segment.size += 1u32;
 
-        log::info!("ENC MOV: {:#02x}", (result >> 8u16) as u8);
+        log::trace!("ENC MOV: {:#02x}", (result >> 8u16) as u8);
         segment.data.push((result >> 8u16) as u8);
         segment.size += 1u32;
     }
@@ -1345,18 +1349,6 @@ impl AsmEncoder {
     #[allow(dead_code)]
     fn encode_rjmp(&self, segment: &mut Segment, idx: &u16, label: &String, address: i16) {
 
-        // let label_address: i16 = self.labels[label] as i16;
-        // log::trace!("label_address: {:#06x}", label_address);
-
-        // let mut offset_k: i16 = label_address - (*idx as i16);
-        // log::trace!("offset_k: {:#06x} {}", offset_k, offset_k);
-
-        // offset_k &= 0b0000111111111111i16;
-        // log::trace!("offset_k: {:#06x} {}", offset_k, offset_k);
-
-        // // convert from bytes to words
-        // offset_k /= 2i16;
-
         let target_address: i16;
         if !label.is_empty()
         {
@@ -1367,12 +1359,6 @@ impl AsmEncoder {
             target_address = address as i16;
         }
 
-        // convert from bytes to words
-        //let offset_k: i16 = target_address / 2i16;
-
-        // absolute offset
-        //let offset_k: i16 = target_address;
-
         // relative offset
         let idx_isize: i16 = *idx as i16;
         let offset_k: i16 = target_address - idx_isize;
@@ -1380,17 +1366,8 @@ impl AsmEncoder {
         log::trace!("offset_k (in words): {:#06x}", offset_k);
         log::trace!("offset_k (in words): {:#06x}", offset_k as u32);
 
-        //offset_k &= 0b0000 0000 0011 1111 1111 1111 1111 1111i32;
-
-        // ff cf == 1111 1111 1100 1111
-        // cf ff  == 1100 1111 1111 1111 
-
-        // 1100 kkkk kkkk kkkk
-
         let result: u16 = 0xC000u16 | ((offset_k as u16) & 0b111111111111);
-        //let result: u16 = 0xC000u16;
         log::trace!("result: {:#34b}\n", result);
-        //log::info!("result: {:#026b}", result);
 
         log::trace!("ENC RJMP: {:#02x}\n", (result >> 0u16) as u8);
         segment.data.push((result >> 0u16) as u8);
@@ -1425,8 +1402,28 @@ impl AsmEncoder {
         segment.size += 1u32;
     }
 
-    /// 105. SBRS – Skip if Bit in Register is Set
-    /// 1111 111r rrrr 0bbb
+    fn encode_sbrc(&self, segment: &mut Segment, _idx: &u16, register_r: u16, bit_to_set: u16) {
+
+        if register_r > 31 {
+            panic!("Invalid register for SBRC! Only registers [0, 31] are allowed!")
+        }
+        if bit_to_set > 8 {
+            panic!("Invalid bit for SBRC! Only bits [0, 7] are allowed!")
+        }
+
+        let result: u16 = 0xFC00u16 | register_r << 4usize | bit_to_set;
+
+        log::trace!("ENC SBRS: {:#02x}", (result >> 0u16) as u8);
+        segment.data.push((result >> 0u16) as u8);
+        segment.size += 1u32;
+
+        log::trace!("ENC SBRS: {:#02x}", (result >> 8u16) as u8);
+        segment.data.push((result >> 8u16) as u8);
+        segment.size += 1u32;
+    }
+
+    // 105. SBRS – Skip if Bit in Register is Set
+    // 1111 111r rrrr 0bbb
     #[allow(dead_code)]
     fn encode_sbrs(&self, segment: &mut Segment, _idx: &u16, register_r: u16, bit_to_set: u16) {
 
@@ -1510,8 +1507,8 @@ impl AsmEncoder {
 
         log::trace!("result: {:#026b}", result);
     }
-    /// ST -X, Rr
-    /// 1001 001r rrrr 1110
+    // ST -X, Rr
+    // 1001 001r rrrr 1110
     fn encode_st_std_x_3(&self, segment: &mut Segment, register_r: u16) {
 
         if register_r > 31 {
@@ -1533,10 +1530,10 @@ impl AsmEncoder {
         log::trace!("result: {:#026b}", result);
     }
 
-    /// 119. ST (STD) – Store Indirect From Register to Data Space using Index Y
-    /// Stores one byte indirect with or without displacement from a register to data space.
-    /// ST Y, Rr
-    /// 1000 001r rrrr 1000
+    // 119. ST (STD) – Store Indirect From Register to Data Space using Index Y
+    // Stores one byte indirect with or without displacement from a register to data space.
+    // ST Y, Rr
+    // 1000 001r rrrr 1000
     fn encode_st_std_y_1(&self, segment: &mut Segment, register_r: u16) {
 
         if register_r > 31 {
@@ -1557,8 +1554,8 @@ impl AsmEncoder {
 
         log::trace!("result: {:#026b}", result);
     }
-    /// ST X+, Rr
-    /// 1001 001r rrrr 1101
+    // ST X+, Rr
+    // 1001 001r rrrr 1101
     fn encode_st_std_y_2(&self, segment: &mut Segment, register_r: u16) {
 
         if register_r > 31 {
@@ -1579,8 +1576,8 @@ impl AsmEncoder {
 
         log::trace!("result: {:#026b}", result);
     }
-    /// ST -X, Rr
-    /// 1001 001r rrrr 1110
+    // ST -X, Rr
+    // 1001 001r rrrr 1110
     fn encode_st_std_y_3(&self, segment: &mut Segment, register_r: u16) {
 
         if register_r > 31 {
@@ -1602,10 +1599,10 @@ impl AsmEncoder {
         log::trace!("result: {:#026b}", result);
     }
 
-    /// 120. ST (STD) – Store Indirect From Register to Data Space using Index Z
-    /// Stores one byte indirect with or without displacement from a register to data space.
-    /// ST Z, Rr
-    /// 1000 001r rrrr 0000
+    // 120. ST (STD) – Store Indirect From Register to Data Space using Index Z
+    // Stores one byte indirect with or without displacement from a register to data space.
+    // ST Z, Rr
+    // 1000 001r rrrr 0000
     fn encode_st_std_z_1(&self, segment: &mut Segment, register_r: u16) {
 
         if register_r > 31 {
@@ -1626,8 +1623,8 @@ impl AsmEncoder {
 
         log::trace!("result: {:#026b}", result);
     }
-    /// ST Z+, Rr
-    /// 1001 001r rrrr 0001
+    // ST Z+, Rr
+    // 1001 001r rrrr 0001
     fn encode_st_std_z_2(&self, segment: &mut Segment, register_r: u16) {
 
         if register_r > 31 {
@@ -1648,8 +1645,8 @@ impl AsmEncoder {
 
         log::trace!("result: {:#026b}", result);
     }
-    /// ST -Z, Rr
-    /// 1001 001r rrrr 0010
+    // ST -Z, Rr
+    // 1001 001r rrrr 0010
     fn encode_st_std_z_3(&self, segment: &mut Segment, register_r: u16) {
 
         if register_r > 31 {
@@ -1671,11 +1668,11 @@ impl AsmEncoder {
         log::trace!("result: {:#026b}", result);
     }
 
-    /// 121. STS – Store Direct to Data Space
-    /// This is the 32 bit variant of the STS command. There is also a 16 variant (122. STS 16bit)
-    /// 1001 001d dddd 0000
-    /// kkkk kkkk kkkk kkkk
-    fn encode_sts(&self, segment: &mut Segment, register_d: u16, imm_value_k: u16) {
+    // 121. STS – Store Direct to Data Space
+    // This is the 32 bit variant of the STS command. There is also a 16 variant (122. STS 16bit)
+    // 1001 001d dddd 0000
+    // kkkk kkkk kkkk kkkk
+    fn encode_sts(&self, segment: &mut Segment, target_addr: u16, register_d: u16) {
 
         if register_d > 31 {
             panic!("Invalid register for STS (32bit)! Only registers [r0, r31] are allowed")
@@ -1683,23 +1680,24 @@ impl AsmEncoder {
 
         let result: u32 = (0b1001001u32 << 25)
             | ((register_d as u32) << 20)
-            | (imm_value_k as u32);
+            | (target_addr as u32);
 
-        log::trace!("result: {:#32b}", result);
+        log::info!("result: {:#10x}\n", result);
+        log::trace!("result: {:#32b}\n", result);
 
-        log::trace!("ENC STS (32bit): {:#02x}", (result >> 16u16) as u8);
+        log::trace!("ENC STS (32bit): {:#02x}\n", (result >> 16u16) as u8);
         segment.data.push((result >> 16u16) as u8);
         segment.size += 1u32;
 
-        log::trace!("ENC STS (32bit): {:#02x}", (result >> 24u16) as u8);
+        log::trace!("ENC STS (32bit): {:#02x}\n", (result >> 24u16) as u8);
         segment.data.push((result >> 24u16) as u8);
         segment.size += 1u32;
 
-        log::trace!("ENC STS (32bit): {:#02x}", (result >> 0u16) as u8);
+        log::trace!("ENC STS (32bit): {:#02x}\n", (result >> 0u16) as u8);
         segment.data.push((result >> 0u16) as u8);
         segment.size += 1u32;
 
-        log::trace!("ENC STS (32bit): {:#02x}", (result >> 8u16) as u8);
+        log::trace!("ENC STS (32bit): {:#02x}\n", (result >> 8u16) as u8);
         segment.data.push((result >> 8u16) as u8);
         segment.size += 1u32;
     }
