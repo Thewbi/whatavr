@@ -33,6 +33,12 @@ pub trait assemblerVisitor<'input>: ParseTreeVisitor<'input,assemblerParserConte
 	fn visit_param(&mut self, ctx: &ParamContext<'input>) { self.visit_children(ctx) }
 
 	/**
+	 * Visit a parse tree produced by {@link assemblerParser#register_pair}.
+	 * @param ctx the parse tree
+	 */
+	fn visit_register_pair(&mut self, ctx: &Register_pairContext<'input>) { self.visit_children(ctx) }
+
+	/**
 	 * Visit a parse tree produced by {@link assemblerParser#macro_usage}.
 	 * @param ctx the parse tree
 	 */
@@ -232,6 +238,14 @@ pub trait assemblerVisitorCompat<'input>:ParseTreeVisitorCompat<'input, Node= as
 	 * @param ctx the parse tree
 	 */
 		fn visit_param(&mut self, ctx: &ParamContext<'input>) -> Self::Return {
+			self.visit_children(ctx)
+		}
+
+	/**
+	 * Visit a parse tree produced by {@link assemblerParser#register_pair}.
+	 * @param ctx the parse tree
+	 */
+		fn visit_register_pair(&mut self, ctx: &Register_pairContext<'input>) -> Self::Return {
 			self.visit_children(ctx)
 		}
 
@@ -482,6 +496,11 @@ where
 
 	fn visit_param(&mut self, ctx: &ParamContext<'input>){
 		let result = <Self as assemblerVisitorCompat>::visit_param(self, ctx);
+        *<Self as ParseTreeVisitorCompat>::temp_result(self) = result;
+	}
+
+	fn visit_register_pair(&mut self, ctx: &Register_pairContext<'input>){
+		let result = <Self as assemblerVisitorCompat>::visit_register_pair(self, ctx);
         *<Self as ParseTreeVisitorCompat>::temp_result(self) = result;
 	}
 

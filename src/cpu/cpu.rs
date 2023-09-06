@@ -1469,6 +1469,43 @@ impl CPU {
                 cpu.pc += 2i32;
             }
 
+            /* 102 */
+            // 102. SBIW – Subtract Immediate from Word
+            // 1001 0111 KKdd KKKK
+            InstructionType::SBIW => {
+                log::trace!("[SBIW]\n");
+
+                let d_val: u16 = value_storage[&'d'];
+                let k: i16 = value_storage[&'K'] as i16;
+
+                // determine the register pair
+                let register: u8;
+                match d_val {
+                    0b00 => { register = 24u8; },
+                    0b01 => { register = 26u8; },
+                    0b10 => { register = 28u8; },
+                    0b11 => { register = 30u8; },
+                    _ => { panic!("Not a valid register Rd {} for SBIW instruction!", d_val)},
+                }
+
+                // build a u16 value from the register pair
+                let reg_low: u8 = cpu.register_file[register as usize];
+                let reg_high: u8 = cpu.register_file[(register + 1u8) as usize];
+                let mut value: i16 = ((reg_high << 8u16) + reg_low) as i16;
+
+                // subtract Immediate from Word
+                value = value - k;
+
+                // update the register
+                let reg_low_output: u8 = (value & 0xFF) as u8;
+                let reg_high_output: u8 = (value >> 8i8 & 0xFF) as u8;
+
+                cpu.register_file[register as usize] = reg_low_output;
+                cpu.register_file[(register + 1u8) as usize] = reg_high_output;
+
+                cpu.pc += 2i32;
+            }
+
             /* 104 */
             // 104. SBRC – Skip if Bit in Register is Cleared
             // 1111 110r rrrr 0bbb

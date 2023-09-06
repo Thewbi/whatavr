@@ -47,6 +47,7 @@ pub struct NewAssemblerVisitor {
 
     // label
     pub label: String,
+    pub labels: Vec<String>,
 
     // data segment as opposed to the code segment which is filled from the AsmRecords
     pub sram: [u8; RAMEND as usize],
@@ -69,6 +70,7 @@ impl Default for NewAssemblerVisitor {
             return_val: Vec::new(),
 
             label: String::default(),
+            labels: Vec::new(),
 
             sram: [0; RAMEND as usize],
 
@@ -289,6 +291,42 @@ impl<'i> NewAssemblerVisitor {
         }
     }
 
+    fn process_adiw_sbiw(&mut self,
+        instruction_type: InstructionType,
+        visit_children_result: &<NewAssemblerVisitor as ParseTreeVisitorCompat>::Return,
+        asm_record: &mut AsmRecord) {
+        log::info!("cr: {:?}\n", visit_children_result);
+
+        if 3usize == visit_children_result.len()
+        {
+            if is_register_name(&visit_children_result[1usize])
+            {
+                asm_record.reg_2 = register_name_to_u16(&visit_children_result[1usize]);
+                asm_record.reg_1 = asm_record.reg_2 + 1;
+            }
+            asm_record.data = number_literal_to_u16(&visit_children_result[2usize]);
+        }
+        else if 5usize == visit_children_result.len() 
+        {
+            if is_register_name(&visit_children_result[1usize])
+            {
+                asm_record.reg_1 = register_name_to_u16(&visit_children_result[1usize]);
+            }
+            if is_register_name(&visit_children_result[3usize])
+            {
+                asm_record.reg_2 = register_name_to_u16(&visit_children_result[3usize]);
+            }
+            asm_record.data = number_literal_to_u16(&visit_children_result[4usize]);
+        }
+        else 
+        {
+            panic!("Invalid input for ADIW/SBIW instruction! {:?}", visit_children_result);
+        }
+
+        //asm_record.instruction_type = InstructionType::ADIW;
+        asm_record.instruction_type = instruction_type;
+    }
+
     fn parse_assembler_directive(&mut self, assembler_directive: &Vec<String>) {
         log::trace!("parse_assembler_directive");
 
@@ -402,6 +440,8 @@ impl<'i> NewAssemblerVisitor {
             let mut map = CSEG_HASHMAP.lock().unwrap();
             map.insert(assembler_directive[2].to_string(), assembler_directive[4].to_string());
 
+            log::info!("CSEG setting {} to {}\n", assembler_directive[2], assembler_directive[4]);
+
         } else if "equ".eq(&asm_directive) {
 
             // Set a symbol equal to an expression.
@@ -432,7 +472,7 @@ impl<'i> NewAssemblerVisitor {
             log::info!("Including \"{}\"\n", &asm_file_path.clone());
 
             let data = fs::read_to_string(asm_file_path).expect("Unable to read file");
-            log::info!("\n{}\n", data);
+            log::trace!("\n{}\n", data);
 
             let input_stream: InputStream<&str> = InputStream::new(data.as_str());
 
@@ -485,7 +525,7 @@ impl<'i> NewAssemblerVisitor {
 
     fn process_asm_intrinsic_usage(&mut self, visit_children_result: Vec<String>) -> Vec<String>
     {
-        log::trace!("cr: {:?}", visit_children_result);
+        log::info!("cr: {:?}\n", visit_children_result);
 
         let var_name = &visit_children_result[2];
 
@@ -526,6 +566,8 @@ impl<'i> NewAssemblerVisitor {
             }
         }
 
+        panic!("Unresolved symbol in AST visiting phase: {:?}", visit_children_result);
+
         visit_children_result
     }
 
@@ -548,6 +590,14 @@ impl<'i> NewAssemblerVisitor {
         else if mnemonic.to_uppercase().eq("LPM")
         {
             self.process_lpm(&visit_children_result, &mut asm_record);
+        }
+        else if mnemonic.to_uppercase().eq("ADIW")
+        {
+            self.process_adiw_sbiw(InstructionType::ADIW, &visit_children_result, &mut asm_record);
+        }
+        else if mnemonic.to_uppercase().eq("SBIW")
+        {
+            self.process_adiw_sbiw(InstructionType::SBIW, &visit_children_result, &mut asm_record);
         }
         else if (
                 mnemonic.to_uppercase().eq("BREQ") ||
@@ -622,10 +672,17 @@ impl<'i> NewAssemblerVisitor {
                         // } 
                     }
 
+                    if self.labels.contains(&param_as_string)
+                    {
+                        asm_record.target_label = param_as_string.clone();
+                        label_resolved = true;
+                    }
+
                     if !label_resolved
                     {
-                        log::warn!("Could not resolve label: {}\n", param_as_string);
-                        asm_record.target_label = param_as_string;
+                        // log::warn!("Could not resolve label: {}\n", param_as_string);
+                        //asm_record.target_label = param_as_string;
+                        panic!("Could not resolve label: {}\n", param_as_string.clone());
                     }
                 }
             }
@@ -751,7 +808,6 @@ impl<'i> ParseTreeVisitorCompat<'i> for NewAssemblerVisitor {
 impl<'i> assemblerVisitorCompat<'i> for NewAssemblerVisitor {
 
     fn visit_row(&mut self, ctx: &parser::assemblerparser::RowContext<'i>) -> Self::Return {
-
         self.descend_ident("visit_row");
         let children_result = self.visit_children(ctx);
         self.ascend_ident();
@@ -767,7 +823,6 @@ impl<'i> assemblerVisitorCompat<'i> for NewAssemblerVisitor {
     }
 
     fn visit_instruction(&mut self, ctx: &InstructionContext<'i>) -> Self::Return {
-
         self.descend_ident("visit_instruction");
         let visit_children_result = self.visit_children(ctx);
         self.ascend_ident();
@@ -777,11 +832,7 @@ impl<'i> assemblerVisitorCompat<'i> for NewAssemblerVisitor {
         visit_children_result
     }
 
-    // is the rule that directly selects the TOKEN of an instruction (ADD; CALL, EOR; LDI; ...)
-    fn visit_mnemonic(
-        &mut self,
-        ctx: &parser::assemblerparser::MnemonicContext<'i>,
-    ) -> Self::Return {
+    fn visit_mnemonic(&mut self, ctx: &parser::assemblerparser::MnemonicContext<'i>) -> Self::Return {
         self.descend_ident("visit_mnemonic");
         let visit_children_result = self.visit_children(ctx);
         self.ascend_ident();
@@ -802,7 +853,7 @@ impl<'i> assemblerVisitorCompat<'i> for NewAssemblerVisitor {
         let visit_children_result = self.visit_children(ctx);
         self.ascend_ident();
 
-        log::info!("cr: {:?}\n", visit_children_result);
+        log::trace!("cr: {:?}\n", visit_children_result);
 
         // look for assembler directives
         // assembler directives are identified via a dot character
@@ -902,6 +953,8 @@ impl<'i> assemblerVisitorCompat<'i> for NewAssemblerVisitor {
         log::info!("cr: {:?}\n", visit_children_result);
 
         self.label = visit_children_result[0].clone();
+
+        self.labels.push(self.label.clone());
 
         visit_children_result
     }

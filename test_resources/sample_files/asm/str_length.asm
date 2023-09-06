@@ -4,6 +4,8 @@
 
 .org 0x0000                         ; Einsprung nach Reset ...
 
+    ;teststring: .db "Hello world", 0
+
     ldi r16, HIGH(RAMEND)           ; Stackpointer wird initialsiert ...
 	out SPH, r16
 	ldi r16, LOW(RAMEND)

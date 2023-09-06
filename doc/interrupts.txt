@@ -1,0 +1,28 @@
+//next steps
+        // // check the interrupt queue for a interrupt
+        // // but only if the CPU has not executed an interrupt right before.
+        // // The CPU has to execute at least one normal instruction before
+        // // going into the next interrupt
+        // if !force_normal_instruction_execution && is_global_interrupt_flag_enabled {
+
+        //     // get next interrupt from the interrupt queue
+        //     // the entry contains the type of interrupt and the address in the global interrupt vector table
+
+        //     // check if this particular interrupt is enabled in the particular periphery register
+        //     // if the specific interrupt is disabled, skip the event and check the next interrupt in the queue
+
+        //     // turn of global interrupt enable flag
+
+        //     // push the current PC onto the stack
+
+        //     // disable global interrupt flag
+
+        //     // disable the flag of the periphery specific interrupt in the specific interrupt register
+
+        //     // execute the interrupt handler stored in the global interrupt vector at the address of the interrupt
+
+        //     // enable the specific interrupt
+
+        //     // enable the global interrupt flag
+
+        // }

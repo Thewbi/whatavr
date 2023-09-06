@@ -1,0 +1,21 @@
+// // the visitor traverses the AST (Abstract Syntax Tree) and creates
+    // // AsmRecords. It will insert these ARMRecords into the records parameter
+    // let mut visitor = DefaultAssemblerVisitor {
+    //     result_value: String::default(),
+    //     ident: 0u16,
+    //     records: Vec::new(),
+    //     record: AsmRecord::default(),
+    //     text: String::default(),
+    //     last_terminal: String::default(),
+    //     intrinsic_usage: String::default(),
+    //     mnemonic: String::default(),
+    //     reg_1: String::default(),
+    //     reg_2: String::default(),
+    //     data: String::default(),
+    //     label: String::default(),
+    //     target_label: String::default(),
+    //     return_val: Vec::new(),
+    //     preprocessor_directive: bool::default(),
+    //     debug_output: true,
+    // };
+    // visitor.record.clear();

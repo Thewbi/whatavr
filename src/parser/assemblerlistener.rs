@@ -45,6 +45,16 @@ fn enter_param(&mut self, _ctx: &ParamContext<'input>) { }
  */
 fn exit_param(&mut self, _ctx: &ParamContext<'input>) { }
 /**
+ * Enter a parse tree produced by {@link assemblerParser#register_pair}.
+ * @param ctx the parse tree
+ */
+fn enter_register_pair(&mut self, _ctx: &Register_pairContext<'input>) { }
+/**
+ * Exit a parse tree produced by {@link assemblerParser#register_pair}.
+ * @param ctx the parse tree
+ */
+fn exit_register_pair(&mut self, _ctx: &Register_pairContext<'input>) { }
+/**
  * Enter a parse tree produced by {@link assemblerParser#macro_usage}.
  * @param ctx the parse tree
  */

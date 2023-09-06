@@ -286,6 +286,7 @@ fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>) -> [u8; RAMEND
     //asm_file_path.push_str("test_resources/sample_files/asm/asm_2.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/asm_3.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/asm_4.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/blinklicht.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/call_and_return.asm"); // regression test
     //asm_file_path.push_str("test_resources/sample_files/asm/call_test.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/call_test_2.asm");
@@ -348,6 +349,7 @@ fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>) -> [u8; RAMEND
     //asm_file_path.push_str("test_resources/sample_files/asm/ld.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/ld_z.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/ldi.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/ldi_2.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/lpm.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/lsr.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/lsl.asm");
@@ -365,10 +367,10 @@ fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>) -> [u8; RAMEND
     //asm_file_path.push_str("test_resources/sample_files/asm/st.asm");
 
     let srcdir = PathBuf::from(&asm_file_path);
-    println!("absolute path: {:?}", fs::canonicalize(&srcdir));
+    log::info!("absolute path: {:?}\n", fs::canonicalize(&srcdir));
 
     let data = fs::read_to_string(&asm_file_path).expect("Unable to read file");
-    log::info!("\n{}\n", data);
+    log::trace!("\n{}\n", data);
 
     let input_stream: InputStream<&str> = InputStream::new(data.as_str());
 
@@ -428,77 +430,24 @@ fn parse(segments: &mut Vec<Segment>, input_stream: InputStream<&str>) -> [u8; R
     assert!(result.is_ok());
     let root: Rc<Asm_fileContextAll> = result.unwrap();
 
-    //next steps
-        // // check the interrupt queue for a interrupt
-        // // but only if the CPU has not executed an interrupt right before.
-        // // The CPU has to execute at least one normal instruction before
-        // // going into the next interrupt
-        // if !force_normal_instruction_execution && is_global_interrupt_flag_enabled {
-
-        //     // get next interrupt from the interrupt queue
-        //     // the entry contains the type of interrupt and the address in the global interrupt vector table
-
-        //     // check if this particular interrupt is enabled in the particular periphery register
-        //     // if the specific interrupt is disabled, skip the event and check the next interrupt in the queue
-
-        //     // turn of global interrupt enable flag
-
-        //     // push the current PC onto the stack
-
-        //     // disable global interrupt flag
-
-        //     // disable the flag of the periphery specific interrupt in the specific interrupt register
-
-        //     // execute the interrupt handler stored in the global interrupt vector at the address of the interrupt
-
-        //     // enable the specific interrupt
-
-        //     // enable the global interrupt flag
-
-        // }
-
     //
-    // Phase - AST Visiting
+    // Phase - AST Visiting 
+    //
+    // First Phase collects jump label addresses and variable name addresses
+    // Second Phase when all labels and their addresses in the flash memory are known
     //
 
     log::info!("*************************************************\n");
-    log::info!("Phase - AST Visiting\n");
+    log::info!("Phase - AST Visiting - First Phase - Collecting jump label and variable name addresses\n");
     log::info!("*************************************************\n");
 
-    // // the visitor traverses the AST (Abstract Syntax Tree) and creates
-    // // AsmRecords. It will insert these ARMRecords into the records parameter
-    // let mut visitor = DefaultAssemblerVisitor {
-    //     result_value: String::default(),
-    //     ident: 0u16,
-    //     records: Vec::new(),
-    //     record: AsmRecord::default(),
-    //     text: String::default(),
-    //     last_terminal: String::default(),
-    //     intrinsic_usage: String::default(),
-    //     mnemonic: String::default(),
-    //     reg_1: String::default(),
-    //     reg_2: String::default(),
-    //     data: String::default(),
-    //     label: String::default(),
-    //     target_label: String::default(),
-    //     return_val: Vec::new(),
-    //     preprocessor_directive: bool::default(),
-    //     debug_output: true,
-    // };
-    // visitor.record.clear();
+    // todo
+
+    log::info!("*************************************************\n");
+    log::info!("Phase - AST Visiting - Second Phase - Collecting instruction paramters\n");
+    log::info!("*************************************************\n");
 
     // new visitor
-    // let mut visitor: NewAssemblerVisitor = NewAssemblerVisitor {
-    //     records: Vec::new(),
-    //     record: AsmRecord::default(),
-
-    //     ident: 0u16,
-    //     debug_output: true,
-
-    //     return_val: Vec::new(),
-
-    //     label: String::default(),
-    // };
     let mut visitor: NewAssemblerVisitor = NewAssemblerVisitor::default();
     visitor.record.clear();
 
@@ -528,7 +477,12 @@ fn parse(segments: &mut Vec<Segment>, input_stream: InputStream<&str>) -> [u8; R
         panic!("Encoding failed!");
     }
 
+    // return SRAM because this emulator has actually placed variables into SRAM
+    // without generating STUB code! The CPU has to load the SRAM that this
+    // function returns for the application source code to function properly
+    // because the application expects the variables to be present in SRAM
     visitor.sram
+
 }
 
 fn init_logging() {

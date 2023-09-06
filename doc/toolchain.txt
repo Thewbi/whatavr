@@ -1,6 +1,6 @@
 = Toolchain =
 
-== The .DSEG directive ==
+== The .DSEG directive and stubs that load variables into SRAM ==
 
 https://electronics.stackexchange.com/questions/129528/avr-microcontrollers-who-initilizes-assembly-data-segment-and-what-is-the-pur
 

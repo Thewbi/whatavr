@@ -22,7 +22,9 @@ row :
 
 instruction : mnemonic ( param ( COMMA param )? )? ;
 
-param : ( ( MINUS )? IDENTIFIER ( PLUS )? ) | expression | asm_intrinsic_usage | macro_placeholder ;
+param : ( ( MINUS )? IDENTIFIER ( PLUS )? ) | expression | asm_intrinsic_usage | macro_placeholder | register_pair ;
+
+register_pair : IDENTIFIER COLON IDENTIFIER ;
 
 macro_usage : IDENTIFIER ( expression )* ;
 

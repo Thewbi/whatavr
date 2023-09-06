@@ -217,6 +217,10 @@ impl AsmEncoder {
             InstructionType::ADD => {
                 Self::encode_add(&self, segment, asm_record.reg_1, asm_record.reg_2);
             }
+            /*   7 */
+            InstructionType::ADIW => {
+                Self::encode_adiw(&self, segment, asm_record.reg_1, asm_record.reg_2, asm_record.data);
+            }
             /*   8 */
             InstructionType::AND => {
                 Self::encode_and(&self, segment, asm_record.reg_1, asm_record.reg_2);
@@ -342,14 +346,6 @@ impl AsmEncoder {
             }
             /*  88 */
             InstructionType::OUT => {
-                // let mut param_1: u16 = asm_record.reg_1;
-                // let mut param_2: u16 = asm_record.reg_2;
-                // if param_2 == 0xFF {
-                //     param_1 = number_literal_to_u16(&asm_record.target_label);
-                //     param_2 = asm_record.reg_1;
-                // }
-                //Self::encode_out(self, segment, param_1, param_2);
-
                 Self::encode_out(self, segment, asm_record.reg_1, asm_record.reg_2);
             }
             /*  89 */
@@ -381,8 +377,11 @@ impl AsmEncoder {
                 let param2_value: u16;
                 if asm_record.reg_2 == 255 { param2_value = asm_record.data; } else { param2_value = asm_record.reg_2; }
                 Self::encode_sbi(&self, segment, &asm_record.idx, asm_record.reg_1, param2_value);
-                //Self::encode_sbi(&self, segment, &asm_record.idx, asm_record.reg_1, asm_record.data);
-                //Self::encode_sbi(&self, segment, &asm_record.idx, asm_record.reg_1, asm_record.reg_2);
+            }
+            /* 102 */
+            // 102. SBIW – Subtract Immediate from Word
+            InstructionType::SBIW => {
+                Self::encode_sbiw(&self, segment, &asm_record.idx, asm_record.reg_1, asm_record.reg_2, asm_record.data);
             }
             /* 104 */
             // SBRC – Skip if Bit in Register is Cleared
@@ -450,6 +449,11 @@ impl AsmEncoder {
                 Self::encode_subi(&self, segment, asm_record.reg_1, asm_record.data);
             }
 
+            /* 126 */
+            InstructionType::TST => {
+                Self::encode_tst(&self, segment, asm_record.reg_1);
+            }
+
             _ => panic!("Unknown instruction! {:?}", asm_record.instruction_type),
         }
     }
@@ -501,13 +505,42 @@ impl AsmEncoder {
         segment.size += 1u32;
     }
 
+    // 7. ADIW – Add Immediate to Word
+    // 1001 0110 KKdd KKKK
+    fn encode_adiw(&self, segment: &mut Segment, register_d_plus: u16, register_d: u16, imm_value_k: u16)
+    {
+        if imm_value_k > 63u16 {
+            panic!("No valid immediate value {} for ADIW instruction!", imm_value_k);
+        }
+
+        if register_d != (register_d_plus - 1u16) {
+            panic!("Invalid register pair {} {} for ADIW instruction!", register_d_plus, register_d);
+        }
+
+        let reg: u8;
+        match register_d {
+            24u16 => { reg = 0b00u8; }
+            26u16 => { reg = 0b01u8; }
+            28u16 => { reg = 0b10u8; }
+            30u16 => { reg = 0b11u8; }
+            _ => { panic!("Not a valid register Rd {} for ADIW instruction!", register_d)}
+        }
+
+        let result: u16 = 0x9600u16 | (imm_value_k >> 4u16) << 6u16 | (register_d & 0b11) << 4u16 | (imm_value_k & 0b1111u16);
+
+        log::trace!("ENC ADIW: {:#02x}", (result >> 0u16) as u8);
+        segment.data.push((result >> 0u16) as u8);
+        segment.size += 1u32;
+
+        log::trace!("ENC ADIW: {:#02x}", (result >> 8u16) as u8);
+        segment.data.push((result >> 8u16) as u8);
+        segment.size += 1u32;
+    }
+
     /// 8. AND – Logical AND
     /// (Rd ← Rd • Rr)
     /// 0010 00rd dddd rrrr
     fn encode_and(&self, segment: &mut Segment, register_d: u16, register_r: u16) {
-
-        // let register_d_offset: u16 = register_d;
-        // let register_r_offset: u16 = register_r;
 
         let r_mask: u16 = ((register_r >> 4u16) << 9u16) | (register_r & 0x0Fu16);
 
@@ -606,8 +639,8 @@ impl AsmEncoder {
         // convert from bytes to words
         let offset_k: i16 = target_address / 2i16;
         
-        log::trace!("offset_k (in words): {:#06x}", offset_k);
-        log::trace!("offset_k (in words): {:#06x}", offset_k as u32);
+        log::trace!("offset_k (in words): {:#06x}\n", offset_k);
+        log::trace!("offset_k (in words): {:#06x}\n", offset_k as u32);
 
         //offset_k &= 0b0000 0000 0011 1111 1111 1111 1111 1111i32;
 
@@ -617,16 +650,16 @@ impl AsmEncoder {
         // 1100 kkkk kkkk kkkk
 
         let result: u16 = 0xF001u16 | (((offset_k << 3) as u16) & 0b1111111000);
-        log::info!("result: {:#34b}", result);
-        log::info!("result: {:#06x}", result);
+        log::trace!("result: {:#34b}\n", result);
+        log::trace!("result: {:#06x}\n", result);
 
         //let result: u16 = 0xF001u16 | ((k as u16) << 3u16);
 
-        log::info!("ENC BREQ: {:#02x}", (result >> 0u16) as u8);
+        log::trace!("ENC BREQ: {:#02x}\n", (result >> 0u16) as u8);
         segment.data.push((result >> 0u16) as u8);
         segment.size += 1u32;
 
-        log::info!("ENC BREQ: {:#02x}", (result >> 8u16) as u8);
+        log::trace!("ENC BREQ: {:#02x}\n", (result >> 8u16) as u8);
         segment.data.push((result >> 8u16) as u8);
         segment.size += 1u32;
     }
@@ -1418,6 +1451,42 @@ impl AsmEncoder {
         segment.size += 1u32;
     }
 
+    // 102. SBIW – Subtract Immediate from Word
+    // 1001 0111 KKdd KKKK
+    fn encode_sbiw(&self, segment: &mut Segment, _idx: &u16, register_d_plus: u16, register_d: u16, imm_value_k: u16) {
+
+        if imm_value_k > 63u16 {
+            panic!("No valid immediate value {} for SBIW instruction!", imm_value_k);
+        }
+
+        if register_d != (register_d_plus - 1u16) {
+            panic!("Invalid register pair {} {} for SBIW instruction!", register_d_plus, register_d);
+        }
+
+        let reg: u8;
+        match register_d {
+
+            24u16 => { reg = 0b00u8; }
+            26u16 => { reg = 0b01u8; }
+            28u16 => { reg = 0b10u8; }
+            30u16 => { reg = 0b11u8; }
+
+            _ => { panic!("Not a valid register Rd {} for SBIW instruction!", register_d)}
+        }
+
+        let result: u16 = 0x9700u16 | (imm_value_k >> 4u16) << 6u16 | (register_d & 0b11) << 4u16 | (imm_value_k & 0b1111u16);
+
+        log::trace!("ENC SBIW: {:#02x}", (result >> 0u16) as u8);
+        segment.data.push((result >> 0u16) as u8);
+        segment.size += 1u32;
+
+        log::trace!("ENC SBIW: {:#02x}", (result >> 8u16) as u8);
+        segment.data.push((result >> 8u16) as u8);
+        segment.size += 1u32;
+
+    }
+
+    // 104. SBRC – Skip if Bit in Register is Cleared
     fn encode_sbrc(&self, segment: &mut Segment, _idx: &u16, register_r: u16, bit_to_set: u16) {
 
         if register_r > 31 {
@@ -1745,6 +1814,10 @@ impl AsmEncoder {
         segment.size += 1u32;
     }
 
+    // 124. SUBI – Subtract Immediate
+    // Subtracts a register and a constant, and places the result in the destination register Rd. This instruction is
+    // working on Register R16 to R31 and is very well suited for operations on the X, Y, and Z-pointers.
+    // 0101 KKKK dddd KKKK
     fn encode_subi(&self, segment: &mut Segment, register_d: u16, constant: u16) 
     {
         let result: u16 = 0x5000 | ((constant >> 4) << 8) | register_d << 4 | constant & 0x0F;
@@ -1757,4 +1830,22 @@ impl AsmEncoder {
         segment.data.push((result >> 8u16) as u8);
         segment.size += 1u32;
     }
+
+    // 126. TST – Test for Zero or Minus
+    // Tests if a register is zero or negative. Performs a logical AND between a register and itself. The register
+    // will remain unchanged.
+    // 0010 00dd dddd dddd
+    fn encode_tst(&self, segment: &mut Segment, register_d: u16) 
+    {
+        let result: u16 = 0x2000 | (register_d & 0x1F) << 5 | register_d & 0x1F;
+
+        log::trace!("ENC TST: {:#02x}\n", (result >> 0u16) as u8);
+        segment.data.push((result >> 0u16) as u8);
+        segment.size += 1u32;
+
+        log::trace!("ENC TST: {:#02x}\n", (result >> 8u16) as u8);
+        segment.data.push((result >> 8u16) as u8);
+        segment.size += 1u32;
+    }
+
 }

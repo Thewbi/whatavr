@@ -1,0 +1,69 @@
+= Handling Labels in Code =
+
+
+
+== Which Phases exist and what is their purpose ?==
+
+Phase 1. The asm file is loaded from disk
+Phase 2. The lexer and parser are used to build an AST from the asm file
+Phase 3. The Assembler Phase 1 finds jump-label addresses and variable name addresses
+Phase 4. The Assembler phase 2 builds AsmRecords. AsmRecords already contain resolved addresses
+         No jump-labels and variables exist any more. All expressions are resolved to hard numbers.
+Phase 5. Encoding. AsmRecords are turned into bytes according to the Microcontrollers datasheet.
+         The bytes are written into the segment.
+Phase 6. Execution of the bytes in the segment by the emulated CPU
+
+
+
+== Description of the Problem with Variable Names ==
+
+Check the example str_length.asm.
+
+The zero-terminated string is accessed via it's label/variable name "teststring" 
+a few lines before it is defined.
+
+```
+ldi ZH, HIGH(teststring * 2)
+ldi ZL, LOW(teststring * 2)
+```
+
+Then, the zero-terminated string is defined at the end of the application and it
+is defined inside the .cseg (code section, flash memory).
+
+```
+teststring: .db "Hello world", 0
+```
+
+This means that the string data is placed inside the code segment along with 
+all the bytes from the encoded statements.
+
+The task of assembly phase 1 is to resolve each (jump-) label and variable name
+into an address to the flash memory.
+
+For each label / variable name the address has to be determined by the assembler
+so that this address can be handed over to the next phase (phase 2) of assembling as a 
+number constant! Phase 2 is responsible of collecting all parameters to instructions
+and to create a list of AsmRecords, that describe each line. The list of
+AsmRecords is then the input to the encoding phase where the mnemonic and the parameters
+to the mnemonic are turned into instruction bytes that can be directly placed into the
+segment of a ihex file or directly into the code segment for the cpu to execute.
+
+
+== Why is a single phase not enough ==
+
+In a single phase, the variable name "teststring" is encountered and it's address is
+required right then and there because there is no second phase. 
+
+But The address is only
+known after all instructions have been analysed because for each instruction, the size
+in bytes can be known (because the sizes are fixed and pre-determined). So the assembler
+has to got down that source code through each instruction sum up their sizes in bytes
+until it detects the variable definition and it's variable name and at that point it
+can accumulate all the byte sizes before that point to find the address of the variable
+in flash memory.
+
+This is impossible to do in a single pass!
+
+Once the variables address is known, this value can be used to resolve the expression
+into a hard address number that can be written in to the AsmRecord that is then the 
+input to encoding.

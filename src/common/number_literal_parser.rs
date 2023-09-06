@@ -204,7 +204,6 @@ pub fn number_literal_to_i16(data: &String) -> i16 {
 pub fn is_char_literal(input: &String) -> bool
 {
     let trimmed_input = input.trim();
-    //let re = Regex::new("^'.'$").unwrap();
 
     let re = Regex::new("^'.|\\.'$").unwrap();
 
