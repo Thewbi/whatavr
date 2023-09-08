@@ -1,13 +1,17 @@
-;.cseg bzw. .text
-.include "m328Pdef.inc" ; useful definitions ...
+    .cseg                   ; .cseg bzw. .text
+    .include "m328Pdef.inc" ; useful definitions ...
 
-    ldi r16, LOW(RAMEND)
-    out SPL, r16
-    ldi r16, HIGH(RAMEND)
-    out SPH, r16
+    ;ldi r16, LOW(RAMEND)
+    ;out SPL, r16
+    ;ldi r16, HIGH(RAMEND)
+    ;out SPH, r16
+    
+    .org 0x0082
 
     call UP             ; 0082 0E94 0000 
-    break               ; 0086 9895 
+    break               ; 0086 9895
+
+    .org 0x0120
 UP:
     push ZH             ; 0120 FF93 
     push ZL             ; 0122 EF93 
@@ -30,3 +34,10 @@ ende:
     pop ZL              ; 0140 EF91
     pop ZH              ; 0142 FF91
     ret                 ; 0144 0895
+
+
+
+    .dseg						; data segment == data memory (sram): 0x0000 - 0x08FF
+    ;.org 0x0120					; 0x0120
+;BUFFER: .db $33, $20, $31, $42, $43, $00, $66, $b2, $c2, $e4, $d3, $09, $22, $56, $91, $3e
+BUFFER: .db $32, $33, $34, $00, $ff, $ff, $ff, $ff, $ff, $23, $66, $b2, $20, $40, $30, $90 

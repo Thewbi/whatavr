@@ -256,6 +256,7 @@ impl<'i> assemblerVisitorCompat<'i> for DefaultAssemblerVisitor {
 
             // create a new record
             let asm_record: AsmRecord = AsmRecord::new(
+                super::asm_record_type::AsmRecordType::UNKNOWN,
                 self.label.clone(), 
                 InstructionType::NOP, 
                 0xFF, 
@@ -400,6 +401,7 @@ impl<'i> assemblerVisitorCompat<'i> for DefaultAssemblerVisitor {
 
             // create an AsmRecord so it can be added to the application code
             let rec = AsmRecord::new(
+                super::asm_record_type::AsmRecordType::UNKNOWN,
                 self.label.clone(), 
                 instruction_type, 
                 self.record.reg_1, 
@@ -433,6 +435,7 @@ impl<'i> assemblerVisitorCompat<'i> for DefaultAssemblerVisitor {
 
             // create an AsmRecord so it can be added to the application code
             let rec = AsmRecord::new(
+                super::asm_record_type::AsmRecordType::UNKNOWN,
                 self.label.clone(), 
                 instruction_type, 
                 self.record.reg_1, 
@@ -483,6 +486,7 @@ impl<'i> assemblerVisitorCompat<'i> for DefaultAssemblerVisitor {
 
             // create an AsmRecord so it can be added to the application code
             let rec = AsmRecord::new(
+                super::asm_record_type::AsmRecordType::UNKNOWN,
                 self.label.clone(), 
                 instruction_type, 
                 self.record.reg_1, 
@@ -497,6 +501,7 @@ impl<'i> assemblerVisitorCompat<'i> for DefaultAssemblerVisitor {
 
             // create an AsmRecord so it can be added to the application code
             let rec = AsmRecord::new(
+                super::asm_record_type::AsmRecordType::UNKNOWN,
                 self.label.clone(), 
                 InstructionType::from_string(&self.mnemonic.as_str()), 
                 self.record.reg_1, 

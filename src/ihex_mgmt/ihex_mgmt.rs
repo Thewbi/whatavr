@@ -6,7 +6,8 @@ use ihex::Record;
 pub struct Segment {
     pub address: u16,
     pub size: u32,
-    pub data: Vec<u8>,
+    //pub data: Vec<u8>,
+    pub data: [u8; 0xFFFF],
 }
 
 impl Segment {
@@ -14,7 +15,8 @@ impl Segment {
         Segment {
             address: 0x00,
             size: 0u32,
-            data: Vec::new(),
+            //data: Vec::new(),
+            data: [0; 0xFFFF],
         }
     }
 }
@@ -59,8 +61,11 @@ pub fn parse_hex_file(
                         }
 
                         if let Record::Data { offset: _, value } = record {
+                            let mut index: usize = 0;
                             for temp_data in &value {
-                                segments[idx - 1].data.push(temp_data.clone());
+                                //segments[idx - 1].data.push(temp_data.clone());
+                                segments[idx - 1].data[index] = temp_data.clone();
+                                index = index + 1;
                             }
                         }
                     }

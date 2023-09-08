@@ -7,6 +7,7 @@ use std::fs;
 use std::rc::Rc;
 
 use crate::assembler::asm_record::AsmRecord;
+use crate::assembler::asm_record_type::AsmRecordType;
 use crate::common::common_constants::RAMEND;
 use crate::common::number_literal_parser::char_literal_to_u16;
 use crate::common::number_literal_parser::is_char_literal;
@@ -29,7 +30,6 @@ use crate::CSEG_HASHMAP;
 use crate::HIGH;
 use antlr_rust::tree::ParseTree;
 
-use super::segment_mode;
 use super::segment_mode::SegmentMode;
 
 pub struct NewAssemblerVisitor {
@@ -323,7 +323,6 @@ impl<'i> NewAssemblerVisitor {
             panic!("Invalid input for ADIW/SBIW instruction! {:?}", visit_children_result);
         }
 
-        //asm_record.instruction_type = InstructionType::ADIW;
         asm_record.instruction_type = instruction_type;
     }
 
@@ -440,7 +439,7 @@ impl<'i> NewAssemblerVisitor {
             let mut map = CSEG_HASHMAP.lock().unwrap();
             map.insert(assembler_directive[2].to_string(), assembler_directive[4].to_string());
 
-            log::info!("CSEG setting {} to {}\n", assembler_directive[2], assembler_directive[4]);
+            log::trace!("CSEG setting {} to {}\n", assembler_directive[2], assembler_directive[4]);
 
         } else if "equ".eq(&asm_directive) {
 
@@ -507,6 +506,18 @@ impl<'i> NewAssemblerVisitor {
             {
                 SegmentMode::CodeSegment => {
                     self.cseg_org_pointer = number_literal_to_u16(&assembler_directive[2]);
+
+                    // create a dummy AsmRecord that is used to carry this new .org location
+                    // to the encoder, so the encoder can reset the position to where it encodes
+                    // instructions in the code segment
+                    let mut asm_record: AsmRecord = AsmRecord::default();
+                    asm_record.set_idx(self.cseg_org_pointer as u32);
+                    asm_record.record_type = AsmRecordType::ORG;
+
+                    log::info!("{}\n", asm_record);
+
+                    self.records.push(asm_record);
+
                 }
                 SegmentMode::DataSegment => {
                     self.dseg_org_pointer = number_literal_to_u16(&assembler_directive[2]);
@@ -680,9 +691,13 @@ impl<'i> NewAssemblerVisitor {
 
                     if !label_resolved
                     {
-                        // log::warn!("Could not resolve label: {}\n", param_as_string);
-                        //asm_record.target_label = param_as_string;
-                        panic!("Could not resolve label: {}\n", param_as_string.clone());
+                        log::warn!("Could not resolve label: {}\n", param_as_string);
+                        asm_record.target_label = param_as_string;
+                        
+                        // TODO: activate this panic once the analysis phase is implemented,
+                        // which determines the addresses of jump labels and variable names in the
+                        // first pass
+                        //panic!("Could not resolve label: {}\n", param_as_string.clone());
                     }
                 }
             }

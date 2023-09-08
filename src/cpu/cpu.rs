@@ -151,10 +151,19 @@ impl Default for CPU {
 impl std::fmt::Display for CPU {
 
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "r16: {:02X?}", self.register_file[16])?;
+
+        write!(f, "\npc: {:04X?}", self.pc)?;
+
+        let stack_pointer: u16 = ((self.get_sph() as u16) << 8u16) | self.get_spl() as u16;
+        write!(f, "\nsp: {:04X?}", stack_pointer)?;
+
+        //write!(f, "\ncseg_org_pointer: {:04X?}", self.cseg_org_pointer)?;
+
+        write!(f, "\nr16: {:02X?}", self.register_file[16])?;
         write!(f, "\nr17: {:02X?}", self.register_file[17])?;
         write!(f, "\nr18: {:02X?}", self.register_file[18])?;
-        write!(f, "\nr19: {:02X?}", self.register_file[19])
+        write!(f, "\nr19: {:02X?}", self.register_file[19])?;
+        write!(f, "\n")
     }
 
 }
@@ -188,7 +197,7 @@ impl CPU {
     }
 
     // https://stackoverflow.com/questions/35390615/writing-getter-setter-properties-in-rust
-    fn sph(&mut self) -> &mut u8 {
+    pub fn sph(&mut self) -> &mut u8 {
 
         let map = CSEG_HASHMAP.lock().unwrap();
         let value_as_string = map.get("SPH").unwrap();
@@ -204,7 +213,7 @@ impl CPU {
         // return &mut self.sfr[0x3E];
     }
 
-    fn spl(&mut self) -> &mut u8 {
+    pub fn spl(&mut self) -> &mut u8 {
 
         let map = CSEG_HASHMAP.lock().unwrap();
         let value_as_string = map.get("SPL").unwrap();
@@ -284,36 +293,36 @@ impl CPU {
         self.h
     }
 
-    fn get_x(&mut self) -> u16 {
+    pub fn get_x(&mut self) -> u16 {
         //((self.register_file[26] as u16) << 8u16) | self.register_file[27] as u16
         ((self.register_file[27] as u16) << 8u16) | self.register_file[26] as u16
     }
 
-    fn set_x(&mut self, value: u16) {
+    pub fn set_x(&mut self, value: u16) {
         // self.register_file[26] = HIGH_U16!(value);
         // self.register_file[27] = LOW_U16!(value);
         self.register_file[26] = LOW_U16!(value);
         self.register_file[27] = HIGH_U16!(value);
     }
 
-    fn get_y(&mut self) -> u16 {
+    pub fn get_y(&mut self) -> u16 {
         //((self.register_file[28] as u16) << 8u16) | self.register_file[29] as u16
         ((self.register_file[29] as u16) << 8u16) | self.register_file[28] as u16
     }
 
-    fn set_y(&mut self, value: u16) {
+    pub fn set_y(&mut self, value: u16) {
         // self.register_file[28] = HIGH_U16!(value);
         // self.register_file[29] = LOW_U16!(value);
         self.register_file[28] = LOW_U16!(value);
         self.register_file[29] = HIGH_U16!(value);
     }
 
-    fn get_z(&mut self) -> u16 {
+    pub fn get_z(&mut self) -> u16 {
         //((self.register_file[30] as u16) << 8u16) | self.register_file[31] as u16
         ((self.register_file[31] as u16) << 8u16) | self.register_file[30] as u16
     }
 
-    fn set_z(&mut self, value: u16) {
+    pub fn set_z(&mut self, value: u16) {
         // self.register_file[30] = HIGH_U16!(value);
         // self.register_file[31] = LOW_U16!(value);
         self.register_file[30] = LOW_U16!(value);
@@ -388,29 +397,6 @@ impl CPU {
     }
 
     fn read_next_four_byte(&mut self, segment: &Segment, k_hi: &u32) -> i32 {
-
-        // // get the first 16 bit
-        // let k_hi: u32 = value_storage[&'k'].into();
-
-        // // get the next 16 stored at the pc since the JMP command is encoded using 32 bit (4 byte)
-        // let temp_pc: i32 = cpu.pc;
-
-        // let word_hi: u16 = segment.data[(temp_pc + 1i32) as usize] as u16;
-        // log::trace!("READ: {:#02x}", word_hi as u8);
-
-        // let word_lo: u16 = segment.data[temp_pc as usize] as u16;
-        // log::trace!("READ: {:#02x}", word_lo as u8);
-
-        // let k_lo: u32 = ((word_hi << 8u8) + word_lo).into();
-
-        // // assemble the parameter k
-        // let k_val: i16 = ((k_hi << 16u8) + k_lo) as i16;
-
-        // // extend to i32
-        // let k_val_i32: i32 = k_val as i32;
-
-        // get the first 16 bit
-        //let k_hi: u32 = self.value_storage[&'k'].into();
 
         let k_lo: u32 = self.read_next_two_byte(segment) as u32;
 
@@ -496,7 +482,10 @@ impl CPU {
                 // DEBUG
                 log::trace!("[ADC] result value: {}\n", cpu.register_file[d_value]);
 
-                log::info!("adc r{}, d{} - carry: {}\n", r_value, d_value, cpu.c);
+                log::trace!("adc r{}, d{} - carry: {}\n", r_value, d_value, cpu.c);
+
+                os.push_str(&format!("adc r{}, d{} - carry: {}", r_value, d_value, cpu.c));
+                log::info!("{}\n", os);
 
                 cpu.pc += 2i32;
             }
@@ -871,6 +860,7 @@ impl CPU {
                 cpu.register_file[d as usize] -= 0x01u8;
 
                 // set the z flag
+                cpu.z = false;
                 if cpu.register_file[d as usize] == 0x00u8 {
                     cpu.z = true;
                 }
@@ -1489,16 +1479,16 @@ impl CPU {
                 }
 
                 // build a u16 value from the register pair
-                let reg_low: u8 = cpu.register_file[register as usize];
-                let reg_high: u8 = cpu.register_file[(register + 1u8) as usize];
-                let mut value: i16 = ((reg_high << 8u16) + reg_low) as i16;
+                let reg_low: u16 = cpu.register_file[register as usize] as u16;
+                let reg_high: u16 = cpu.register_file[(register + 1u8) as usize] as u16;
+                let mut value: u16 = ((reg_high << 8u8) + reg_low);
 
                 // subtract Immediate from Word
-                value = value - k;
+                let subtracted_value:i16 = (value as i16 - k) as i16;
 
                 // update the register
-                let reg_low_output: u8 = (value & 0xFF) as u8;
-                let reg_high_output: u8 = (value >> 8i8 & 0xFF) as u8;
+                let reg_low_output: u8 = (subtracted_value & 0xFF) as u8;
+                let reg_high_output: u8 = (subtracted_value >> 8i8 & 0xFF) as u8;
 
                 cpu.register_file[register as usize] = reg_low_output;
                 cpu.register_file[(register + 1u8) as usize] = reg_high_output;
@@ -1772,7 +1762,7 @@ impl CPU {
 
                 // retrieved the encoded value for the r register
                 let r_val: u16 = value_storage[&'r'];
-                log::info!("r: {r_val:#b} {r_val:#x} {r_val}\n");
+                log::trace!("r: {r_val:#b} {r_val:#x} {r_val}\n");
 
                 // retrieve the current value from the r register
                 let data: u8 = cpu.register_file[r_val as usize];

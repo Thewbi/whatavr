@@ -853,178 +853,178 @@ impl InstructionType {
         }
     }
 
-    pub const fn words(instruction_type: &InstructionType) -> u16 {
+    pub const fn words(instruction_type: &InstructionType) -> u32 {
 
         match instruction_type {
 
-            /*   5 */ InstructionType::ADC => 2u16,
-            /*   6 */ InstructionType::ADD => 2u16,
-            /*   7 */ InstructionType::ADIW => 2u16,
-            /*   8 */ InstructionType::AND => 2u16,
-            /*   9 */ InstructionType::ANDI => 2u16,
-            /*  10 */ InstructionType::ASR => 2u16,
+            /*   5 */ InstructionType::ADC => 2u32,
+            /*   6 */ InstructionType::ADD => 2u32,
+            /*   7 */ InstructionType::ADIW => 2u32,
+            /*   8 */ InstructionType::AND => 2u32,
+            /*   9 */ InstructionType::ANDI => 2u32,
+            /*  10 */ InstructionType::ASR => 2u32,
 
-            /*  11 */ InstructionType::BCLR => 2u16,
-            /*  12 */ InstructionType::BLD => 2u16,
-            /*  13 */ InstructionType::BRBC => 2u16,
-            /*  14 */ InstructionType::BRBS => 2u16,
-            /*  15 */ InstructionType::BRCC => 2u16,
-            /*  16 */ InstructionType::BRCS => 2u16,
-            /*  17 */ InstructionType::BREAK => 2u16, 
-            /*  18 */ InstructionType::BREQ => 2u16,
-            /*  19 */ InstructionType::BRGE => 2u16,
-            /*  20 */ InstructionType::BRHC => 2u16,
-            /*  21 */ InstructionType::BRHS => 2u16,
-            /*  22 */ InstructionType::BRID => 2u16,
-            /*  23 */ InstructionType::BRIE => 2u16,
-            /*  24 */ InstructionType::BRLO => 2u16,
-            /*  25 */ InstructionType::BRLT => 2u16,
-            /*  26 */ InstructionType::BRMI => 2u16,
-            /*  27 */ InstructionType::BRNE => 2u16,
-            /*  28 */ InstructionType::BRPL => 2u16,
-            /*  29 */ InstructionType::BRSH => 2u16,
-            /*  30 */ InstructionType::BRTC => 2u16,
-            /*  31 */ InstructionType::BRTS => 2u16,
-            /*  32 */ InstructionType::BRVC => 2u16,
-            /*  33 */ InstructionType::BRVS => 2u16,
-            /*  34 */ InstructionType::BSET => 2u16,
-            /*  35 */ InstructionType::BST => 2u16,
+            /*  11 */ InstructionType::BCLR => 2u32,
+            /*  12 */ InstructionType::BLD => 2u32,
+            /*  13 */ InstructionType::BRBC => 2u32,
+            /*  14 */ InstructionType::BRBS => 2u32,
+            /*  15 */ InstructionType::BRCC => 2u32,
+            /*  16 */ InstructionType::BRCS => 2u32,
+            /*  17 */ InstructionType::BREAK => 2u32, 
+            /*  18 */ InstructionType::BREQ => 2u32,
+            /*  19 */ InstructionType::BRGE => 2u32,
+            /*  20 */ InstructionType::BRHC => 2u32,
+            /*  21 */ InstructionType::BRHS => 2u32,
+            /*  22 */ InstructionType::BRID => 2u32,
+            /*  23 */ InstructionType::BRIE => 2u32,
+            /*  24 */ InstructionType::BRLO => 2u32,
+            /*  25 */ InstructionType::BRLT => 2u32,
+            /*  26 */ InstructionType::BRMI => 2u32,
+            /*  27 */ InstructionType::BRNE => 2u32,
+            /*  28 */ InstructionType::BRPL => 2u32,
+            /*  29 */ InstructionType::BRSH => 2u32,
+            /*  30 */ InstructionType::BRTC => 2u32,
+            /*  31 */ InstructionType::BRTS => 2u32,
+            /*  32 */ InstructionType::BRVC => 2u32,
+            /*  33 */ InstructionType::BRVS => 2u32,
+            /*  34 */ InstructionType::BSET => 2u32,
+            /*  35 */ InstructionType::BST => 2u32,
 
-            /*  36 */ InstructionType::CALL => 4u16,
-            /*  37 */ InstructionType::CBI => 2u16, 
-            /*  38 */ InstructionType::CBR => 2u16,
-            /*  39 */ InstructionType::CLC => 2u16,
-            /*  40 */ InstructionType::CLH => 2u16,
-            /*  41 */ InstructionType::CLI => 2u16,
-            /*  42 */ InstructionType::CLN => 2u16,
-            /*  43 */ InstructionType::CLR => 2u16,
-            /*  44 */ InstructionType::CLS => 2u16,
-            /*  45 */ InstructionType::CLT => 2u16,
-            /*  46 */ InstructionType::CLV => 2u16,
-            /*  47 */ InstructionType::CLZ => 2u16,
-            /*  48 */ InstructionType::COM => 2u16,
-            /*  49 */ InstructionType::CP => 2u16,
-            /*  50 */ InstructionType::CPC => 2u16,
-            /*  51 */ InstructionType::CPI => 2u16,
-            /*  52 */ InstructionType::CPSE => 2u16,
+            /*  36 */ InstructionType::CALL => 4u32,
+            /*  37 */ InstructionType::CBI => 2u32, 
+            /*  38 */ InstructionType::CBR => 2u32,
+            /*  39 */ InstructionType::CLC => 2u32,
+            /*  40 */ InstructionType::CLH => 2u32,
+            /*  41 */ InstructionType::CLI => 2u32,
+            /*  42 */ InstructionType::CLN => 2u32,
+            /*  43 */ InstructionType::CLR => 2u32,
+            /*  44 */ InstructionType::CLS => 2u32,
+            /*  45 */ InstructionType::CLT => 2u32,
+            /*  46 */ InstructionType::CLV => 2u32,
+            /*  47 */ InstructionType::CLZ => 2u32,
+            /*  48 */ InstructionType::COM => 2u32,
+            /*  49 */ InstructionType::CP => 2u32,
+            /*  50 */ InstructionType::CPC => 2u32,
+            /*  51 */ InstructionType::CPI => 2u32,
+            /*  52 */ InstructionType::CPSE => 2u32,
 
-            /*  53 */ InstructionType::DEC => 2u16,
-            /*  54 */ InstructionType::DES => 2u16,
+            /*  53 */ InstructionType::DEC => 2u32,
+            /*  54 */ InstructionType::DES => 2u32,
 
-            /*  55 */ InstructionType::EICALL => 2u16,
-            /*  56 */ InstructionType::EIJMP => 2u16,
-            /*  57 */ InstructionType::ELPM => 2u16,
-            /*  58 */ InstructionType::EOR => 2u16,
+            /*  55 */ InstructionType::EICALL => 2u32,
+            /*  56 */ InstructionType::EIJMP => 2u32,
+            /*  57 */ InstructionType::ELPM => 2u32,
+            /*  58 */ InstructionType::EOR => 2u32,
 
-            /*  59 */ InstructionType::FMUL => 2u16,
-            /*  60 */ InstructionType::FMULS => 2u16,
-            /*  61 */ InstructionType::FMULSU => 2u16,
+            /*  59 */ InstructionType::FMUL => 2u32,
+            /*  60 */ InstructionType::FMULS => 2u32,
+            /*  61 */ InstructionType::FMULSU => 2u32,
 
-            /*  62 */ InstructionType::ICALL => 2u16,
-            /*  63 */ InstructionType::IJMP => 2u16,
-            /*  64 */ InstructionType::IN => 2u16,
-            /*  65 */ InstructionType::INC => 2u16,
+            /*  62 */ InstructionType::ICALL => 2u32,
+            /*  63 */ InstructionType::IJMP => 2u32,
+            /*  64 */ InstructionType::IN => 2u32,
+            /*  65 */ InstructionType::INC => 2u32,
 
-            /*  66 */ InstructionType::JMP => 4u16,
+            /*  66 */ InstructionType::JMP => 4u32,
 
-            /*  67 */ InstructionType::LAC => 2u16,
-            /*  68 */ InstructionType::LAS => 2u16,
-            /*  69 */ InstructionType::LAT => 2u16, 
+            /*  67 */ InstructionType::LAC => 2u32,
+            /*  68 */ InstructionType::LAS => 2u32,
+            /*  69 */ InstructionType::LAT => 2u32, 
             /*  70 */ 
-            InstructionType::LD_LDD_X_1 => 2u16,
-            InstructionType::LD_LDD_X_2 => 2u16,
-            InstructionType::LD_LDD_X_3 => 2u16,
+            InstructionType::LD_LDD_X_1 => 2u32,
+            InstructionType::LD_LDD_X_2 => 2u32,
+            InstructionType::LD_LDD_X_3 => 2u32,
             /*  71 */ 
-            InstructionType::LD_LDD_Y_1 => 2u16, 
-            InstructionType::LD_LDD_Y_2 => 2u16, 
-            InstructionType::LD_LDD_Y_3 => 2u16, 
-            InstructionType::LD_LDD_Y_4 => 2u16, 
+            InstructionType::LD_LDD_Y_1 => 2u32, 
+            InstructionType::LD_LDD_Y_2 => 2u32, 
+            InstructionType::LD_LDD_Y_3 => 2u32, 
+            InstructionType::LD_LDD_Y_4 => 2u32, 
             /*  72 */ 
-            InstructionType::LD_LDD_Z_1 => 2u16, 
-            InstructionType::LD_LDD_Z_2 => 2u16,
-            InstructionType::LD_LDD_Z_3 => 2u16,
-            InstructionType::LD_LDD_Z_4 => 2u16,
-            /*  73 */ InstructionType::LDI => 2u16,
-            /*  74 */ InstructionType::LDS => 4u16,
-            /*  75 */ InstructionType::LDS_16bit => 2u16, //  (16-bit) – Load Direct from Data Space......................................................... 117
+            InstructionType::LD_LDD_Z_1 => 2u32, 
+            InstructionType::LD_LDD_Z_2 => 2u32,
+            InstructionType::LD_LDD_Z_3 => 2u32,
+            InstructionType::LD_LDD_Z_4 => 2u32,
+            /*  73 */ InstructionType::LDI => 2u32,
+            /*  74 */ InstructionType::LDS => 4u32,
+            /*  75 */ InstructionType::LDS_16bit => 2u32, //  (16-bit) – Load Direct from Data Space......................................................... 117
             /*  76 */ 
-            InstructionType::LPM_1 => 2u16, //  – Load Program Memory...............................................................................118
-            InstructionType::LPM_2 => 2u16,
-            InstructionType::LPM_3 => 2u16,
-            /*  77 */ InstructionType::LSL => 2u16, //  – Logical Shift Left..........................................................................................120
-            /*  78 */ InstructionType::LSR => 2u16, //  – Logical Shift Right.......................................................................................122
+            InstructionType::LPM_1 => 2u32, //  – Load Program Memory...............................................................................118
+            InstructionType::LPM_2 => 2u32,
+            InstructionType::LPM_3 => 2u32,
+            /*  77 */ InstructionType::LSL => 2u32, //  – Logical Shift Left..........................................................................................120
+            /*  78 */ InstructionType::LSR => 2u32, //  – Logical Shift Right.......................................................................................122
             
-            /*  79 */ InstructionType::MOV => 2u16, //  – Copy Register............................................................................................123
-            /*  80 */ InstructionType::MOVW => 2u16, //  – Copy Register Word...............................................................................124
-            /*  81 */ InstructionType::MUL => 2u16, //  – Multiply Unsigned.......................................................................................125
-            /*  82 */ InstructionType::MULS => 2u16, //  – Multiply Signed........................................................................................ 126
-            /*  83 */ InstructionType::MULSU  => 2u16, // 
+            /*  79 */ InstructionType::MOV => 2u32, //  – Copy Register............................................................................................123
+            /*  80 */ InstructionType::MOVW => 2u32, //  – Copy Register Word...............................................................................124
+            /*  81 */ InstructionType::MUL => 2u32, //  – Multiply Unsigned.......................................................................................125
+            /*  82 */ InstructionType::MULS => 2u32, //  – Multiply Signed........................................................................................ 126
+            /*  83 */ InstructionType::MULSU  => 2u32, // 
             
-            /*  84 */ InstructionType::NEG => 2u16,
-            /*  85 */ InstructionType::NOP => 2u16, 
+            /*  84 */ InstructionType::NEG => 2u32,
+            /*  85 */ InstructionType::NOP => 2u32, 
             
-            /*  86 */ InstructionType::OR => 2u16,
-            /*  87 */ InstructionType::ORI => 2u16,
-            /*  88 */ InstructionType::OUT => 2u16,
+            /*  86 */ InstructionType::OR => 2u32,
+            /*  87 */ InstructionType::ORI => 2u32,
+            /*  88 */ InstructionType::OUT => 2u32,
            
-            /*  89 */ InstructionType::POP => 2u16,
-            /*  90 */ InstructionType::PUSH => 2u16,
+            /*  89 */ InstructionType::POP => 2u32,
+            /*  90 */ InstructionType::PUSH => 2u32,
             
-            /*  91 */ InstructionType::RCALL => 2u16,
-            /*  92 */ InstructionType::RET => 2u16,
-            /*  93 */ InstructionType::RETI => 2u16, 
-            /*  94 */ InstructionType::RJMP => 2u16,
-            /*  95 */ InstructionType::ROL => 2u16,  
-            /*  96 */ InstructionType::ROR => 2u16, //  – Rotate Right through Carry........................................................................145
+            /*  91 */ InstructionType::RCALL => 2u32,
+            /*  92 */ InstructionType::RET => 2u32,
+            /*  93 */ InstructionType::RETI => 2u32, 
+            /*  94 */ InstructionType::RJMP => 2u32,
+            /*  95 */ InstructionType::ROL => 2u32,  
+            /*  96 */ InstructionType::ROR => 2u32, //  – Rotate Right through Carry........................................................................145
             
-            /*  97 */ InstructionType::SBC => 2u16, 
-            /*  98 */ InstructionType::SBCI => 2u16,
-            /*  99 */ InstructionType::SBI => 2u16, //  – Set Bit in I/O Register.................................................................................. 151
-            /*  100 */ InstructionType::SBIC => 2u16, //  – Skip if Bit in I/O Register is Cleared........................................................ 152
-            /*  101 */ InstructionType::SBIS => 2u16, //  – Skip if Bit in I/O Register is Set............................................................... 153
-            /*  102 */ InstructionType::SBIW => 2u16, //  – Subtract Immediate from Word...............................................................154
-            /*  103 */ InstructionType::SBR => 2u16, //  – Set Bits in Register...................................................................................156
-            /*  104 */ InstructionType::SBRC => 2u16, //  – Skip if Bit in Register is Cleared............................................................ 157
-            /*  105 */ InstructionType::SBRS => 2u16, //  – Skip if Bit in Register is Set....................................................................158
-            /*  106 */ InstructionType::SEC => 2u16, //  – Set Carry Flag.......................................................................................... 159
-            /*  107 */ InstructionType::SEH => 2u16, //  – Set Half Carry Flag...................................................................................160
-            /*  108 */ InstructionType::SEI => 2u16, // 
-            /*  109 */ InstructionType::SEN => 2u16, //  – Set Negative Flag.....................................................................................162
-            /*  110 */ InstructionType::SER => 2u16, //  – Set all Bits in Register.............................................................................. 163
-            /*  111 */ InstructionType::SES => 2u16, //  – Set Signed Flag........................................................................................ 164
-            /*  112 */ InstructionType::SET => 2u16, //  – Set T Flag................................................................................................. 165
-            /*  113 */ InstructionType::SEV => 2u16, //  – Set Overflow Flag..................................................................................... 166
-            /*  114 */ InstructionType::SEZ => 2u16, //  – Set Zero Flag............................................................................................ 167
-            /*  115 */ InstructionType::SLEEP => 2u16, // ................................................................................................................. 168
-            /*  116 */ InstructionType::SPM => 2u16, //  – Store Program Memory............................................................................169
-            /*  117 */ InstructionType::SPM_2 => 2u16, //  SPM #2 – Store Program Memory.......................................................................171
+            /*  97 */ InstructionType::SBC => 2u32, 
+            /*  98 */ InstructionType::SBCI => 2u32,
+            /*  99 */ InstructionType::SBI => 2u32, //  – Set Bit in I/O Register.................................................................................. 151
+            /*  100 */ InstructionType::SBIC => 2u32, //  – Skip if Bit in I/O Register is Cleared........................................................ 152
+            /*  101 */ InstructionType::SBIS => 2u32, //  – Skip if Bit in I/O Register is Set............................................................... 153
+            /*  102 */ InstructionType::SBIW => 2u32, //  – Subtract Immediate from Word...............................................................154
+            /*  103 */ InstructionType::SBR => 2u32, //  – Set Bits in Register...................................................................................156
+            /*  104 */ InstructionType::SBRC => 2u32, //  – Skip if Bit in Register is Cleared............................................................ 157
+            /*  105 */ InstructionType::SBRS => 2u32, //  – Skip if Bit in Register is Set....................................................................158
+            /*  106 */ InstructionType::SEC => 2u32, //  – Set Carry Flag.......................................................................................... 159
+            /*  107 */ InstructionType::SEH => 2u32, //  – Set Half Carry Flag...................................................................................160
+            /*  108 */ InstructionType::SEI => 2u32, // 
+            /*  109 */ InstructionType::SEN => 2u32, //  – Set Negative Flag.....................................................................................162
+            /*  110 */ InstructionType::SER => 2u32, //  – Set all Bits in Register.............................................................................. 163
+            /*  111 */ InstructionType::SES => 2u32, //  – Set Signed Flag........................................................................................ 164
+            /*  112 */ InstructionType::SET => 2u32, //  – Set T Flag................................................................................................. 165
+            /*  113 */ InstructionType::SEV => 2u32, //  – Set Overflow Flag..................................................................................... 166
+            /*  114 */ InstructionType::SEZ => 2u32, //  – Set Zero Flag............................................................................................ 167
+            /*  115 */ InstructionType::SLEEP => 2u32, // ................................................................................................................. 168
+            /*  116 */ InstructionType::SPM => 2u32, //  – Store Program Memory............................................................................169
+            /*  117 */ InstructionType::SPM_2 => 2u32, //  SPM #2 – Store Program Memory.......................................................................171
             /*  118 */ 
-            InstructionType::ST_STD_X_1 => 2u16,
-            InstructionType::ST_STD_X_2 => 2u16,
-            InstructionType::ST_STD_X_3 => 2u16,
+            InstructionType::ST_STD_X_1 => 2u32,
+            InstructionType::ST_STD_X_2 => 2u32,
+            InstructionType::ST_STD_X_3 => 2u32,
             /*  119 */ 
-            InstructionType::ST_STD_Y_1 => 2u16, 
-            InstructionType::ST_STD_Y_2 => 2u16, 
-            InstructionType::ST_STD_Y_3 => 2u16, 
-            InstructionType::ST_STD_Y_4 => 2u16, 
+            InstructionType::ST_STD_Y_1 => 2u32, 
+            InstructionType::ST_STD_Y_2 => 2u32, 
+            InstructionType::ST_STD_Y_3 => 2u32, 
+            InstructionType::ST_STD_Y_4 => 2u32, 
             /*  120 */ 
-            InstructionType::ST_STD_Z_1 => 2u16, 
-            InstructionType::ST_STD_Z_2 => 2u16,
-            InstructionType::ST_STD_Z_3 => 2u16,
-            InstructionType::ST_STD_Z_4 => 2u16,
-            /*  121 */ InstructionType::STS => 4u16, //  STS – Store Direct to Data Space.......................................................................179
-            /*  122 */ InstructionType::STS_16bit => 2u16, //  STS (16-bit) – Store Direct to Data Space.......................................................... 180
-            /*  123 */ InstructionType::SUB => 2u16, //  – Subtract Without Carry.............................................................................181
-            /*  124 */ InstructionType::SUBI => 2u16, //  – Subtract Immediate................................................................................. 183
-            /*  125 */ InstructionType::SWAP => 2u16, //  – Swap Nibbles........................................................................................ 185
+            InstructionType::ST_STD_Z_1 => 2u32, 
+            InstructionType::ST_STD_Z_2 => 2u32,
+            InstructionType::ST_STD_Z_3 => 2u32,
+            InstructionType::ST_STD_Z_4 => 2u32,
+            /*  121 */ InstructionType::STS => 4u32, //  STS – Store Direct to Data Space.......................................................................179
+            /*  122 */ InstructionType::STS_16bit => 2u32, //  STS (16-bit) – Store Direct to Data Space.......................................................... 180
+            /*  123 */ InstructionType::SUB => 2u32, //  – Subtract Without Carry.............................................................................181
+            /*  124 */ InstructionType::SUBI => 2u32, //  – Subtract Immediate................................................................................. 183
+            /*  125 */ InstructionType::SWAP => 2u32, //  – Swap Nibbles........................................................................................ 185
             
-            /*  126 */ InstructionType::TST => 2u16, //  – Test for Zero or Minus...............................................................................186
+            /*  126 */ InstructionType::TST => 2u32, //  – Test for Zero or Minus...............................................................................186
             
-            /*  127 */ InstructionType::WDR => 2u16, //  – Watchdog Reset......................................................................................187
+            /*  127 */ InstructionType::WDR => 2u32, //  – Watchdog Reset......................................................................................187
             
-            /*  128 */ InstructionType::XCH => 2u16,
+            /*  128 */ InstructionType::XCH => 2u32,
             
-            _ => 0u16,
+            _ => 0u32,
         }
     }
 

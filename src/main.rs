@@ -111,6 +111,21 @@ fn main() -> io::Result<()> {
     let mut cpu: CPU = CPU::default();
     cpu.sram = sram_content;
 
+    // for excercise only!
+    cpu.pc = 0x0082;
+    //cpu.register_file[30] = 0x01; // ZH
+    cpu.set_z(0x0120);
+
+    cpu.register_file[16] = 0x03; // r16
+    cpu.register_file[17] = 0xFF; // r17
+
+    //*cpu.sph() = 0x10;
+    *cpu.sph() = 0x01;
+    *cpu.spl() = 0xFF;
+
+    // output initial CPU state
+    log::info!("CPU initial: {}", &cpu);
+
     // main loop that executes the instructions
     let mut done: bool = false;
     while !done {
@@ -209,7 +224,7 @@ fn load_segment_from_listing_file(segments: &mut Vec<Segment>) -> [u8; RAMEND as
 
     let input_stream: InputStream<&str> = InputStream::new(string_buffer.as_str());
 
-    parse(segments, input_stream)
+    parse_and_encode(segments, input_stream)
 
     //Ok(())
 }
@@ -303,13 +318,13 @@ fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>) -> [u8; RAMEND
     //asm_file_path.push_str("test_resources/sample_files/asm/preprocessor.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/push_pop.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/ret_test.asm");
-    asm_file_path.push_str("test_resources/sample_files/asm/str_length.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/str_length.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/scratchpad.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/scratchpad_2.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/setup_stack.asm"); // regression test
     //asm_file_path.push_str("test_resources/sample_files/asm/timer_polling_example.asm");
     //asm_file_path.push_str("C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/avrasm/inc/m328Pdef.inc");
-    //asm_file_path.push_str("test_resources/sample_files/asm/hwnp_excercise_1.asm");
+    asm_file_path.push_str("test_resources/sample_files/asm/hwnp_excercise_1.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/st_std_test.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/stack_test.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/pin_change_interrupt_demo.asm");
@@ -366,6 +381,8 @@ fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>) -> [u8; RAMEND
     //asm_file_path.push_str("test_resources/sample_files/asm/subi.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/st.asm");
 
+    //asm_file_path.push_str("test_resources/sample_files/asm/hwnp/excercise_1.asm");
+
     let srcdir = PathBuf::from(&asm_file_path);
     log::info!("absolute path: {:?}\n", fs::canonicalize(&srcdir));
 
@@ -374,7 +391,7 @@ fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>) -> [u8; RAMEND
 
     let input_stream: InputStream<&str> = InputStream::new(data.as_str());
 
-    parse(segments, input_stream)
+    parse_and_encode(segments, input_stream)
 
 }
 
@@ -408,7 +425,7 @@ fn load_segment_from_hex_file(segments: &mut Vec<Segment>) -> io::Result<()>
     Ok(())
 }
 
-fn parse(segments: &mut Vec<Segment>, input_stream: InputStream<&str>) -> [u8; RAMEND as usize] 
+fn parse_and_encode(segments: &mut Vec<Segment>, input_stream: InputStream<&str>) -> [u8; RAMEND as usize] 
 {
     //
     // Phase - AST Creation (Grammar Lexing and Parsing)

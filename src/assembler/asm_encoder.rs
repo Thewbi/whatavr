@@ -2,7 +2,9 @@ use std::collections::HashMap;
 
 use crate::{ihex_mgmt::ihex_mgmt::Segment, instructions::instruction_type::InstructionType, common::number_literal_parser::number_literal_to_u16, CSEG_HASHMAP};
 
-use super::asm_record::AsmRecord;
+use super::{asm_record::AsmRecord, asm_record_type::AsmRecordType};
+
+use std::cmp::max;
 
 #[macro_export]
 macro_rules! HIGH {
@@ -124,7 +126,7 @@ macro_rules! LOW_LOW_I32 {
     };
 }
 
-pub fn create_label(labels: &mut HashMap<String, u16>, label: String, idx: u16) {
+pub fn create_label(labels: &mut HashMap<String, u32>, label: String, idx: u32) {
     labels.insert(label.clone(), idx);
     println!("Label: {} -> idx: {:#04X}", label, idx);
 }
@@ -139,7 +141,7 @@ pub fn create_label(labels: &mut HashMap<String, u16>, label: String, idx: u16) 
 // 1. Add a cycle counter
 pub struct AsmEncoder {
 
-    pub labels: HashMap<String, u16>,
+    pub labels: HashMap<String, u32>,
 
     pub encoding_success: bool,
 
@@ -160,8 +162,14 @@ impl AsmEncoder {
         // phase 1 - scan for labels
         //
 
-        let mut idx: u16 = 0u16;
+        let mut idx: u32 = 0u32;
         for asm_record in asm_records.iter_mut() {
+
+            // for .org instructions, change the idx to encode to another location in the code segment
+            if asm_record.record_type == AsmRecordType::ORG {
+                idx = asm_record.idx;
+                continue;
+            }
 
             // assign the current address to the record
             asm_record.set_idx(idx);
@@ -187,16 +195,30 @@ impl AsmEncoder {
 
     }
 
+    fn insert_into_segment(&self, segment: &mut Segment, address: u32, data: u8)
+    {
+        segment.data[address as usize] = data;
+        segment.size = max(address, segment.size + 1);
+    }
+
     pub fn encode(&mut self, segment: &mut Segment, asm_record: &AsmRecord) {
 
         log::info!("Enc: {}\n", asm_record);
 
+        // for .org instructions, change the idx to encode to another location in the code segment
+        if asm_record.record_type == AsmRecordType::ORG {
+            return;
+        }
+
+        // todo: use AsmRecordType DIRECTDATA
+        // todo: add .org handling
         if asm_record.direct_data.len() > 0
         {
             for cc in &asm_record.direct_data
             {
-                segment.data.push(*cc);
-                segment.size += 1u32;
+                //segment.data.push(*cc);
+                //segment.size += 1u32;
+                self.insert_into_segment(segment, asm_record.idx, *cc as u8);
             }
 
             let mut cseg_map = CSEG_HASHMAP.lock().unwrap();
@@ -211,177 +233,176 @@ impl AsmEncoder {
 
             /*   5 */
             InstructionType::ADC => {
-                Self::encode_adc(&self, segment, asm_record.reg_1, asm_record.reg_2);
+                Self::encode_adc(&self, segment, asm_record.idx, asm_record.reg_1, asm_record.reg_2);
             }
             /*   6 */
             InstructionType::ADD => {
-                Self::encode_add(&self, segment, asm_record.reg_1, asm_record.reg_2);
+                Self::encode_add(&self, segment, asm_record.idx, asm_record.reg_1, asm_record.reg_2);
             }
             /*   7 */
             InstructionType::ADIW => {
-                Self::encode_adiw(&self, segment, asm_record.reg_1, asm_record.reg_2, asm_record.data);
+                Self::encode_adiw(&self, segment, asm_record.idx, asm_record.reg_1, asm_record.reg_2, asm_record.data);
             }
             /*   8 */
             InstructionType::AND => {
-                Self::encode_and(&self, segment, asm_record.reg_1, asm_record.reg_2);
+                Self::encode_and(&self, segment, asm_record.idx, asm_record.reg_1, asm_record.reg_2);
             }
             /*   9 */
             InstructionType::ANDI => {
-                Self::encode_andi(&self, segment, asm_record.reg_1, asm_record.reg_2);
+                Self::encode_andi(&self, segment, asm_record.idx, asm_record.reg_1, asm_record.reg_2);
             }
             /*  17 */
             InstructionType::BREAK => {
-                Self::encode_break(&self, segment);
+                Self::encode_break(&self, segment, asm_record.idx);
             }
             /*  18 */
             InstructionType::BREQ => {
-                Self::encode_breq(&self, segment, &asm_record.idx, &asm_record.target_label, asm_record.target_address);
+                Self::encode_breq(&self, segment, asm_record.idx, &asm_record.target_label, asm_record.target_address);
             }
             /*  27 */
             InstructionType::BRNE => {
-                Self::encode_brne(&self, segment, &asm_record.idx, &asm_record.target_label);
+                Self::encode_brne(&self, segment, asm_record.idx, &asm_record.target_label);
             }
             /*  36 */
             InstructionType::CALL => {
-                Self::encode_call(&self, segment, &asm_record.idx, &asm_record.target_label, asm_record.target_address);
+                Self::encode_call(&self, segment, asm_record.idx, &asm_record.target_label, asm_record.target_address);
             }
             /*  37 */
             InstructionType::CBI => {
-                Self::encode_cbi(&self, segment, asm_record.reg_1, asm_record.reg_2);
+                Self::encode_cbi(&self, segment, asm_record.idx, asm_record.reg_1, asm_record.reg_2);
             }
             /*  41 */
             InstructionType::CLI => {
-                Self::encode_cli(&self, segment);
+                Self::encode_cli(&self, segment, asm_record.idx);
             }
             /*  43 */
             InstructionType::CLR => {
-                Self::encode_clr(&self, segment, asm_record.reg_1);
+                Self::encode_clr(&self, segment, asm_record.idx, asm_record.reg_1);
             }
             /*  51 */
             InstructionType::CPI => {
-                Self::encode_cpi(&self, segment, asm_record.reg_1, asm_record.data);
+                Self::encode_cpi(&self, segment, asm_record.idx, asm_record.reg_1, asm_record.data);
             }
             /*  53 */
             InstructionType::DEC => {
-                Self::encode_dec(&self, segment, asm_record.reg_1);
+                Self::encode_dec(&self, segment, asm_record.idx, asm_record.reg_1);
             }
             /*  58 */
             InstructionType::EOR => {
-                Self::encode_eor(&self, segment, asm_record.reg_1, asm_record.reg_2);
+                Self::encode_eor(&self, segment, asm_record.idx, asm_record.reg_1, asm_record.reg_2);
             }
             /*  64 */
             InstructionType::IN => {
-                Self::encode_in(&self, segment, asm_record.reg_1, asm_record.data);
+                Self::encode_in(&self, segment, asm_record.idx, asm_record.reg_1, asm_record.data);
             }
             /*  65 */
             InstructionType::INC => {
-                Self::encode_inc(&self, segment, asm_record.reg_1);
+                Self::encode_inc(&self, segment, asm_record.idx, asm_record.reg_1);
             }
             /*  66 */
             InstructionType::JMP => {
-                Self::encode_jmp(self, segment, &asm_record.idx, &asm_record.target_label, asm_record.target_address);
+                Self::encode_jmp(self, segment, asm_record.idx, &asm_record.target_label, asm_record.target_address);
             }
 
 
             /*  70 */
             InstructionType::LD_LDD_X_1 => {
-                Self::encode_ld_ldd_x_1(&self, segment, asm_record.reg_1);
+                Self::encode_ld_ldd_x_1(&self, segment, asm_record.idx, asm_record.reg_1);
             }
             InstructionType::LD_LDD_X_2 => {
-                Self::encode_ld_ldd_x_2(&self, segment, asm_record.reg_1);
+                Self::encode_ld_ldd_x_2(&self, segment, asm_record.idx, asm_record.reg_1);
             }
 
             /*  71 */
             InstructionType::LD_LDD_Y_2 => {
-                Self::encode_ld_ldd_y_2(&self, segment, asm_record.reg_1);
+                Self::encode_ld_ldd_y_2(&self, segment, asm_record.idx, asm_record.reg_1);
             }
 
             /*  72 */
             InstructionType::LD_LDD_Z_1 => {
-                Self::encode_ld_ldd_z_1(&self, segment, asm_record.reg_1);
+                Self::encode_ld_ldd_z_1(&self, segment, asm_record.idx, asm_record.reg_1);
             }
-
 
             /*  73 */
             InstructionType::LDI => {
-                Self::encode_ldi(&self, segment, asm_record.reg_1, asm_record.data);
+                Self::encode_ldi(&self, segment, asm_record.idx, asm_record.reg_1, asm_record.data);
             }
             /*  74 */
             InstructionType::LDS => {
-                Self::encode_lds(&self, segment, asm_record.reg_1, asm_record.data);
+                Self::encode_lds(&self, segment, asm_record.idx, asm_record.reg_1, asm_record.data);
             }
             /*  75 */
             InstructionType::LDS_16bit => {
-                Self::encode_lds_16bit(&self, segment, asm_record.reg_1, asm_record.data);
+                Self::encode_lds_16bit(&self, segment, asm_record.idx, asm_record.reg_1, asm_record.data);
             }
 
             /*  76 */
             InstructionType::LPM_1 => {
-                Self::encode_lpm_1(&self, segment);
+                Self::encode_lpm_1(&self, segment, asm_record.idx);
             }
             InstructionType::LPM_2 => {
-                Self::encode_lpm_2(&self, segment, asm_record.reg_1);
+                Self::encode_lpm_2(&self, segment, asm_record.idx, asm_record.reg_1);
             }
             InstructionType::LPM_3 => {
-                Self::encode_lpm_3(&self, segment, asm_record.reg_1);
+                Self::encode_lpm_3(&self, segment, asm_record.idx, asm_record.reg_1);
             }
 
             /*  78 */
             // 78. LSR – Logical Shift Right
             InstructionType::LSR => {
-                Self::encode_lsr(&self, segment, asm_record.reg_1);
+                Self::encode_lsr(&self, segment, asm_record.idx, asm_record.reg_1);
             }
 
             /*  79 */
             InstructionType::MOV => {
-                Self::encode_mov(&self, segment, asm_record.reg_1, asm_record.reg_2);
+                Self::encode_mov(&self, segment, asm_record.idx, asm_record.reg_1, asm_record.reg_2);
             }
             /*  85 */
             InstructionType::NOP => {
-                Self::encode_nop(&self, segment);
+                Self::encode_nop(&self, segment, asm_record.idx);
             }
             /*  87 */
             InstructionType::ORI => {
-                Self::encode_ori(&self, segment, asm_record.reg_1, asm_record.data);
+                Self::encode_ori(&self, segment, asm_record.idx, asm_record.reg_1, asm_record.data);
             }
             /*  88 */
             InstructionType::OUT => {
-                Self::encode_out(self, segment, asm_record.reg_1, asm_record.reg_2);
+                Self::encode_out(self, segment, asm_record.idx, asm_record.reg_1, asm_record.reg_2);
             }
             /*  89 */
             InstructionType::POP => {
-                Self::encode_pop(&self, segment, asm_record.reg_1);
+                Self::encode_pop(&self, segment, asm_record.idx, asm_record.reg_1);
             }
             /*  90 */
             InstructionType::PUSH => {
-                Self::encode_push(&self, segment, asm_record.reg_1);
+                Self::encode_push(&self, segment, asm_record.idx, asm_record.reg_1);
             }
             /*  91 */
             InstructionType::RCALL => {
-                Self::encode_rcall(&self, segment, &asm_record.idx, &asm_record.target_label);
+                Self::encode_rcall(&self, segment, asm_record.idx, &asm_record.target_label);
             }
             /*  92 */
             InstructionType::RET => {
-                Self::encode_ret(&self, segment);
+                Self::encode_ret(&self, segment, asm_record.idx);
             }
             /*  93 */
             InstructionType::RETI => {
-                Self::encode_reti(&self, segment);
+                Self::encode_reti(&self, segment, asm_record.idx);
             }
             /*  94 */
             InstructionType::RJMP => {
-                Self::encode_rjmp(&self, segment, &asm_record.idx, &asm_record.target_label, asm_record.target_address);
+                Self::encode_rjmp(&self, segment, asm_record.idx, &asm_record.target_label, asm_record.target_address);
             }
             /*  99 */
             InstructionType::SBI => {
                 let param2_value: u16;
                 if asm_record.reg_2 == 255 { param2_value = asm_record.data; } else { param2_value = asm_record.reg_2; }
-                Self::encode_sbi(&self, segment, &asm_record.idx, asm_record.reg_1, param2_value);
+                Self::encode_sbi(&self, segment, asm_record.idx, asm_record.reg_1, param2_value);
             }
             /* 102 */
             // 102. SBIW – Subtract Immediate from Word
             InstructionType::SBIW => {
-                Self::encode_sbiw(&self, segment, &asm_record.idx, asm_record.reg_1, asm_record.reg_2, asm_record.data);
+                Self::encode_sbiw(&self, segment, asm_record.idx, asm_record.reg_1, asm_record.reg_2, asm_record.data);
             }
             /* 104 */
             // SBRC – Skip if Bit in Register is Cleared
@@ -389,103 +410,108 @@ impl AsmEncoder {
             InstructionType::SBRC => {
                 let param2_value: u16;
                 if asm_record.reg_2 == 255 { param2_value = asm_record.data; } else { param2_value = asm_record.reg_2; }
-                Self::encode_sbrc(&self, segment, &asm_record.idx, asm_record.reg_1, param2_value);
+                Self::encode_sbrc(&self, segment, asm_record.idx, asm_record.reg_1, param2_value);
             }
             /* 105 */
             InstructionType::SBRS => {
                 let param2_value: u16;
                 if asm_record.reg_2 == 255 { param2_value = asm_record.data; } else { param2_value = asm_record.reg_2; }
-                Self::encode_sbrs(&self, segment, &asm_record.idx, asm_record.reg_1, param2_value);
+                Self::encode_sbrs(&self, segment, asm_record.idx, asm_record.reg_1, param2_value);
             }
             /* 108 */
             InstructionType::SEI => {
-                Self::encode_sei(&self, segment, &asm_record.idx);
+                Self::encode_sei(&self, segment, asm_record.idx);
             }
 
             /* 118 */
             InstructionType::ST_STD_X_1 => {
-                Self::encode_st_std_x_1(&self, segment, asm_record.reg_1);
+                Self::encode_st_std_x_1(&self, segment, asm_record.idx, asm_record.reg_1);
             }
             InstructionType::ST_STD_X_2 => {
-                Self::encode_st_std_x_2(&self, segment, asm_record.reg_1);
+                Self::encode_st_std_x_2(&self, segment, asm_record.idx, asm_record.reg_1);
             }
             InstructionType::ST_STD_X_3 => {
-                Self::encode_st_std_x_3(&self, segment, asm_record.reg_1);
+                Self::encode_st_std_x_3(&self, segment, asm_record.idx, asm_record.reg_1);
             }
 
             /* 119 */
             InstructionType::ST_STD_Y_1 => {
-                Self::encode_st_std_y_1(&self, segment, asm_record.reg_1);
+                Self::encode_st_std_y_1(&self, segment, asm_record.idx, asm_record.reg_1);
             }
             InstructionType::ST_STD_Y_2 => {
-                Self::encode_st_std_y_2(&self, segment, asm_record.reg_1);
+                Self::encode_st_std_y_2(&self, segment, asm_record.idx, asm_record.reg_1);
             }
             InstructionType::ST_STD_Y_3 => {
-                Self::encode_st_std_y_3(&self, segment, asm_record.reg_1);
+                Self::encode_st_std_y_3(&self, segment, asm_record.idx, asm_record.reg_1);
             }
 
             /* 120 */
             InstructionType::ST_STD_Z_1 => {
-                Self::encode_st_std_z_1(&self, segment, asm_record.reg_1);
+                Self::encode_st_std_z_1(&self, segment, asm_record.idx, asm_record.reg_1);
             }
             InstructionType::ST_STD_Z_2 => {
-                Self::encode_st_std_z_2(&self, segment, asm_record.reg_1);
+                Self::encode_st_std_z_2(&self, segment, asm_record.idx, asm_record.reg_1);
             }
             InstructionType::ST_STD_Z_3 => {
-                Self::encode_st_std_z_3(&self, segment, asm_record.reg_1);
+                Self::encode_st_std_z_3(&self, segment, asm_record.idx, asm_record.reg_1);
             }
 
             /* 121 */
             InstructionType::STS => {
-                Self::encode_sts(&self, segment, asm_record.reg_1, asm_record.reg_2);
+                Self::encode_sts(&self, segment, asm_record.idx, asm_record.reg_1, asm_record.reg_2);
             }
             /* 122 */
             InstructionType::STS_16bit => {
-                Self::encode_sts_16bit(&self, segment, asm_record.reg_2, asm_record.data);
+                Self::encode_sts_16bit(&self, segment, asm_record.idx, asm_record.reg_2, asm_record.data);
             }
 
             /* 124 */
             InstructionType::SUBI => {
-                Self::encode_subi(&self, segment, asm_record.reg_1, asm_record.data);
+                Self::encode_subi(&self, segment, asm_record.idx, asm_record.reg_1, asm_record.data);
             }
 
             /* 126 */
             InstructionType::TST => {
-                Self::encode_tst(&self, segment, asm_record.reg_1);
+                Self::encode_tst(&self, segment, asm_record.idx, asm_record.reg_1);
             }
 
             _ => panic!("Unknown instruction! {:?}", asm_record.instruction_type),
         }
     }
 
+
     /// 5. ADC – Add with Carry
     /// adc - Add without carry (Rd ← Rd + Rr)
     /// Adds two registers without the C Flag and places the result in the destination register Rd.
     /// 0000 11rd dddd rrrr
-    fn encode_adc(&self, segment: &mut Segment, register_d: u16, register_r: u16) {
+    fn encode_adc(&self, segment: &mut Segment, address: u32, register_d: u16, register_r: u16) {
 
         let register_d_offset: u16 = register_d;
         let register_r_offset: u16 = register_r;
 
-        let r_mask: u16 = ((register_r_offset >> 4u16) << 9u16) | (register_r_offset & 0x0Fu16);
+        //let r_mask: u16 = ((register_r_offset >> 4u16) << 9u16) | (register_r_offset & 0x0Fu16);
+        //let result: u16 = 0x1C00u16 | (r_mask | register_d_offset << 4u16);
 
-        let result: u16 = 0x1C00u16 | (r_mask | register_d_offset << 4u16);
+        let result: u16 = 0x1C00u16 | (((register_r_offset & 0x1F) >> 4u16) << 9u16) | ((register_d_offset & 0x1F) << 4u16) | (register_r_offset & 0x0F);
 
-        log::trace!("add d{} r{}", register_d_offset, register_r_offset);
+        log::trace!("adc d{} r{}\n", register_d_offset, register_r_offset);
 
-        log::trace!("ENC ADC: {:#02x}", (result >> 0u16) as u8);
-        segment.data.push((result >> 0u16) as u8);
-        segment.size += 1u32;
+        log::trace!("adc {:#04x}\n", result);
 
-        log::trace!("ENC ADC: {:#02x}", (result >> 8u16) as u8);
-        segment.data.push((result >> 8u16) as u8);
-        segment.size += 1u32;
+        let mut temp_addr:u32 = address;
+
+        log::trace!("ENC ADC: {:#02x}\n", (result >> 0u16) as u8);
+        self.insert_into_segment(segment, temp_addr, (result >> 0u16) as u8);
+        temp_addr += 1u32;
+
+        log::trace!("ENC ADC: {:#02x}\n", (result >> 8u16) as u8);
+        self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
     }
 
     /// 6. ADD – Add without Carry
     /// add - Add without carry (Rd ← Rd + Rr)
     /// 0000 11rd dddd rrrr
-    fn encode_add(&self, segment: &mut Segment, register_d: u16, register_r: u16) {
+    fn encode_add(&self, segment: &mut Segment, address: u32, register_d: u16, register_r: u16) {
 
         let register_d_offset: u16 = register_d;
         let register_r_offset: u16 = register_r;
@@ -496,18 +522,24 @@ impl AsmEncoder {
 
         log::trace!("add d{} r{}", register_d_offset, register_r_offset);
 
+        let mut temp_addr:u32 = address;
+
         log::trace!("ENC ADD: {:#02x}", (result >> 0u16) as u8);
-        segment.data.push((result >> 0u16) as u8);
-        segment.size += 1u32;
+        // segment.data.push((result >> 0u16) as u8);
+        // segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 0u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC ADD: {:#02x}", (result >> 8u16) as u8);
-        segment.data.push((result >> 8u16) as u8);
-        segment.size += 1u32;
+        // segment.data.push((result >> 8u16) as u8);
+        // segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
+        // temp_addr += 1u32;
     }
 
     // 7. ADIW – Add Immediate to Word
     // 1001 0110 KKdd KKKK
-    fn encode_adiw(&self, segment: &mut Segment, register_d_plus: u16, register_d: u16, imm_value_k: u16)
+    fn encode_adiw(&self, segment: &mut Segment, address: u32, register_d_plus: u16, register_d: u16, imm_value_k: u16)
     {
         if imm_value_k > 63u16 {
             panic!("No valid immediate value {} for ADIW instruction!", imm_value_k);
@@ -528,19 +560,25 @@ impl AsmEncoder {
 
         let result: u16 = 0x9600u16 | (imm_value_k >> 4u16) << 6u16 | (register_d & 0b11) << 4u16 | (imm_value_k & 0b1111u16);
 
+        let mut temp_addr:u32 = address;
+
         log::trace!("ENC ADIW: {:#02x}", (result >> 0u16) as u8);
-        segment.data.push((result >> 0u16) as u8);
-        segment.size += 1u32;
+        // segment.data.push((result >> 0u16) as u8);
+        // segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 0u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC ADIW: {:#02x}", (result >> 8u16) as u8);
-        segment.data.push((result >> 8u16) as u8);
-        segment.size += 1u32;
+        // segment.data.push((result >> 8u16) as u8);
+        // segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
+        temp_addr += 1u32;
     }
 
     /// 8. AND – Logical AND
     /// (Rd ← Rd • Rr)
     /// 0010 00rd dddd rrrr
-    fn encode_and(&self, segment: &mut Segment, register_d: u16, register_r: u16) {
+    fn encode_and(&self, segment: &mut Segment, address: u32, register_d: u16, register_r: u16) {
 
         let r_mask: u16 = ((register_r >> 4u16) << 9u16) | (register_r & 0x0Fu16);
 
@@ -548,20 +586,26 @@ impl AsmEncoder {
 
         log::trace!("and d{} r{}", register_d, register_r);
 
+        let mut temp_addr:u32 = address;
+
         log::trace!("ENC AND: {:#02x}", (result >> 0u16) as u8);
-        segment.data.push((result >> 0u16) as u8);
-        segment.size += 1u32;
+        // segment.data.push((result >> 0u16) as u8);
+        // segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 0u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC AND: {:#02x}", (result >> 8u16) as u8);
-        segment.data.push((result >> 8u16) as u8);
-        segment.size += 1u32;
+        // segment.data.push((result >> 8u16) as u8);
+        // segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
+        temp_addr += 1u32;
     }
 
     /// 9. ANDI – Logical AND with Immediate
     /// Performs the logical AND between the contents of register Rd and a constant, and places the result in the
     /// destination register Rd. (Rd ← Rd • K)
     /// 0111 KKKK dddd KKKK
-    fn encode_andi(&self, segment: &mut Segment, register_d: u16, imm_value_k: u16) {
+    fn encode_andi(&self, segment: &mut Segment, address: u32, register_d: u16, imm_value_k: u16) {
 
         //let register_d_offset: u16 = register_d;
         //let register_r_offset: u16 = register_r;
@@ -572,13 +616,19 @@ impl AsmEncoder {
 
         let result: u16 = 0x7000u16 | ((imm_value_k & 0b11110000) << 8u16) | (register_d << 4u16) | ((imm_value_k & 0b00001111) << 0u16);
 
+        let mut temp_addr:u32 = address;
+
         log::trace!("ENC ANDI: {:#02x}", (result >> 0u16) as u8);
-        segment.data.push((result >> 0u16) as u8);
-        segment.size += 1u32;
+        // segment.data.push((result >> 0u16) as u8);
+        // segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 0u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC ANDI: {:#02x}", (result >> 8u16) as u8);
-        segment.data.push((result >> 8u16) as u8);
-        segment.size += 1u32;
+        // segment.data.push((result >> 8u16) as u8);
+        // segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
+        temp_addr += 1u32;
     }
 
     /// 17. BREAK
@@ -589,42 +639,29 @@ impl AsmEncoder {
     /// the BREAK instruction as a NOP and will not enter the Stopped mode.
     /// This instruction is not available in all devices. Refer to the device specific instruction set summary
     /// 1001 0101 1001 1000
-    fn encode_break(&self, segment: &mut Segment) {
+    fn encode_break(&self, segment: &mut Segment, address: u32) {
 
         let result: u16 = 0x9598;
 
+        let mut temp_addr:u32 = address;
+
         log::trace!("ENC BREAK: {:#02x}", (result >> 0u16) as u8);
-        segment.data.push((result >> 0u16) as u8);
+        //segment.data.push((result >> 0u16) as u8);
         segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 0u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC BREAK: {:#02x}", (result >> 8u16) as u8);
-        segment.data.push((result >> 8u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 8u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
+        temp_addr += 1u32;
     }
 
     /// 18. BREQ – Branch if Equal
     /// 1111 00kk kkkk k001
     /// 1111 00kk kkkk ksss // BRBS (more general instruction that entails BREQ)
-    fn encode_breq(&self, segment: &mut Segment, idx: &u16, label: &String, address: i16) {
-
-        // asdf
-        // let offset_k: i32;
-        // if !label.is_empty()
-        // {
-        //     let target_address: i32 = self.labels[label] as i32;
-
-        //     // convert from bytes to words
-        //     offset_k = target_address / 2i32;
-        // }
-        // else
-        // {
-        //     // the relative notation is given in bytes not words
-        //     // so do not divide by 2 to convert from byte to wor
-        //     offset_k = address as i32;
-        // }
-
-        // // only seven bits of offset
-        // let k: u32 = offset_k as u32 & 0x7f;
+    fn encode_breq(&self, segment: &mut Segment, address: u32, label: &String, target_address_in: i16) {
 
         let target_address: i16;
         if !label.is_empty()
@@ -633,7 +670,7 @@ impl AsmEncoder {
         }
         else
         {
-            target_address = address as i16;
+            target_address = target_address_in as i16;
         }
 
         // convert from bytes to words
@@ -653,34 +690,44 @@ impl AsmEncoder {
         log::trace!("result: {:#34b}\n", result);
         log::trace!("result: {:#06x}\n", result);
 
-        //let result: u16 = 0xF001u16 | ((k as u16) << 3u16);
+        let mut temp_addr:u32 = address;
 
         log::trace!("ENC BREQ: {:#02x}\n", (result >> 0u16) as u8);
-        segment.data.push((result >> 0u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 0u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 0u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC BREQ: {:#02x}\n", (result >> 8u16) as u8);
-        segment.data.push((result >> 8u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 8u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
+        temp_addr += 1u32;
     }
 
     /// 27. BRNE – Branch if Not Equal
     /// 1111 01kk kkkk k001
-    fn encode_brne(&self, segment: &mut Segment, idx: &u16, label: &String) {
+    fn encode_brne(&self, segment: &mut Segment, address: u32, label: &String) {
 
         let label_address: i32 = self.labels[label] as i32;
-        let offset_k: i32 = label_address - (*idx as i32);
+        let offset_k: i32 = label_address - (address as i32);
 
         // do I need to use some kind of little endian encoding?
         let result: u16 = 0xF401u16 | (((offset_k & 0x3Fi32) as u16) << 3u16);
 
+        let mut temp_addr:u32 = address;
+
         log::trace!("ENC BRNE: {:#02x}", (result >> 0u16) as u8);
-        segment.data.push((result >> 0u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 0u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 0u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC BRNE: {:#02x}", (result >> 8u16) as u8);
-        segment.data.push((result >> 8u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 8u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("{:#18b}\n", result);
     }
@@ -688,9 +735,9 @@ impl AsmEncoder {
     /// 36. CALL – Long Call to a Subroutine
     /// 1001 010k kkkk 111k
     /// kkkk kkkk kkkk kkkk
-    fn encode_call(&self, segment: &mut Segment, idx: &u16, label: &String, address: i16) {
+    fn encode_call(&self, segment: &mut Segment, address: u32, label: &String, target_address_in: i16) {
 
-        if 0x00 == address && label.is_empty() {
+        if 0x00 == target_address_in && label.is_empty() {
             panic!("No label or address found for call instruction!");
         }
 
@@ -701,7 +748,7 @@ impl AsmEncoder {
         }
         else
         {
-            target_address = address as i32;
+            target_address = target_address_in as i32;
         }
         
         // convert from bytes to words
@@ -722,30 +769,30 @@ impl AsmEncoder {
 
         log::trace!("result (in words): {:#32b}\n", result);
 
+        let mut temp_addr:u32 = address;
+
         log::trace!("ENC CALL: {:#02x}", (result >> 16u16) as u8);
-        segment.data.push((result >> 16u16) as u8);
-        segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 16u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC CALL: {:#02x}", (result >> 24u16) as u8);
-        segment.data.push((result >> 24u16) as u8);
-        segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 24u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC CALL: {:#02x}", (result >> 0u16) as u8);
-        segment.data.push((result >> 0u16) as u8);
-        segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 0u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC CALL: {:#02x}", (result >> 8u16) as u8);
-        segment.data.push((result >> 8u16) as u8);
-        segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
 
-        //log::info!("result: {:#026b}", result);
     }
 
     /// 37. CBI – Clear Bit in I/O Register
     /// Clears a specified bit in an I/O register. This instruction operates on the lower 32 I/O registers –
     /// addresses 0-31.
     /// 1001 1000 AAAA Abbb
-    fn encode_cbi(&self, segment: &mut Segment, register_a: u16, bit_to_clear: u16) {
+    fn encode_cbi(&self, segment: &mut Segment, address: u32, register_a: u16, bit_to_clear: u16) {
 
         if register_a > 31 {
             panic!("Invalid register for CBI! Only registers [0, 31] are allowed!")
@@ -756,48 +803,66 @@ impl AsmEncoder {
 
         let result: u16 = 0x9800u16 | register_a << 3usize | bit_to_clear;
 
+        let mut temp_addr:u32 = address;
+
         log::trace!("ENC CBI: {:#02x}\n", (result >> 0u16) as u8);
-        segment.data.push((result >> 0u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 0u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 0u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC CBI: {:#02x}\n", (result >> 8u16) as u8);
-        segment.data.push((result >> 8u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 8u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
+        temp_addr += 1u32;
     }
 
     /// 41. CLI – Clear Global Interrupt Flag
     /// Clears the Global Interrupt Flag (I) in SREG (Status Register).
-    fn encode_cli(&self, segment: &mut Segment) {
+    fn encode_cli(&self, segment: &mut Segment, address: u32) {
 
         let result: u16 = 0x94F8u16;
 
+        let mut temp_addr:u32 = address;
+
         log::trace!("ENC CLI: {:#02x}\n", (result >> 0u16) as u8);
-        segment.data.push((result >> 0u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 0u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 0u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC CLI: {:#02x}\n", (result >> 8u16) as u8);
-        segment.data.push((result >> 8u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 8u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
+        temp_addr += 1u32;
     }
 
     /// 43. CLR – Clear
     /// Clears a register. This instruction performs an Exclusive OR between a register and itself. This will clear
     /// all bits in the register
     /// 0010 01dd dddd dddd
-    fn encode_clr(&self, segment: &mut Segment, register_d: u16)
+    fn encode_clr(&self, segment: &mut Segment, address: u32, register_d: u16)
     {
         let result: u16 = 0x2400u16 | register_d;
 
+        let mut temp_addr:u32 = address;
+
         log::trace!("ENC CLR: {:#02x}\n", (result >> 0u16) as u8);
-        segment.data.push((result >> 0u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 0u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 0u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC CLR: {:#02x}\n", (result >> 8u16) as u8);
-        segment.data.push((result >> 8u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 8u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
+        // temp_addr += 1u32;
     }
 
-    fn encode_cpi(&self, segment: &mut Segment, register_d: u16, constant: u16) 
+    fn encode_cpi(&self, segment: &mut Segment, address: u32, register_d: u16, constant: u16) 
     {
         if register_d < 15 || register_d > 31 {
             panic!("Invalid register for CPI! Only registers [r16, r31] are allowed")
@@ -807,36 +872,48 @@ impl AsmEncoder {
 
         let result: u16 = 0x3000 | ((constant >> 4) << 8) | register << 4 | constant & 0x0F;
 
+        let mut temp_addr:u32 = address;
+
         log::trace!("ENC CPI: {:#02x}\n", (result >> 0u16) as u8);
-        segment.data.push((result >> 0u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 0u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 0u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC CPI: {:#02x}\n", (result >> 8u16) as u8);
-        segment.data.push((result >> 8u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 8u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
+        temp_addr += 1u32;
     }
 
     /// 53. DEC – Decrement
     /// 1001 010d dddd 1010
-    fn encode_dec(&self, segment: &mut Segment, register_d: u16) 
+    fn encode_dec(&self, segment: &mut Segment, address: u32, register_d: u16) 
     {
 
         let register: u16 = register_d;
         let result: u16 = 0x940Au16 | (register << 4u16);
 
+        let mut temp_addr:u32 = address;
+
         log::trace!("ENC DEC: {:#02x}\n", (result >> 0u16) as u8);
-        segment.data.push((result >> 0u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 0u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 0u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC DEC: {:#02x}\n", (result >> 8u16) as u8);
-        segment.data.push((result >> 8u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 8u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
+        temp_addr += 1u32;
     }
 
     /// 58. EOR – Exclusive OR
     /// 0010 01rd dddd rrrr -- EOR - Exclusive OR
     /// 0010 01dd dddd dddd -- CLR – Clear Register
-    fn encode_eor(&self, segment: &mut Segment, register_d: u16, register_r: u16) {
+    fn encode_eor(&self, segment: &mut Segment, address: u32, register_d: u16, register_r: u16) {
 
         if register_d > 31 {
             panic!("Invalid register for EOR! Only registers [r0, r31] are allowed")
@@ -847,41 +924,53 @@ impl AsmEncoder {
 
         let result: u16 = 0x2400u16 | ((register_r >> 4u16) << 9u16)| (register_d << 4u16);
 
+        let mut temp_addr:u32 = address;
+
         log::trace!("ENC EOR: {:#02x}\n", (result >> 0u16) as u8);
-        segment.data.push((result >> 0u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 0u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 0u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC EOR: {:#02x}\n", (result >> 8u16) as u8);
-        segment.data.push((result >> 8u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 8u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
+        temp_addr += 1u32;
     }
 
     /// 64. IN - Load an I/O Location to Register
     /// 1011 0AAd dddd AAAA
-    fn encode_in(&self, segment: &mut Segment, register_d: u16, address: u16) {
+    fn encode_in(&self, segment: &mut Segment, address: u32, register_d: u16, target_address_in: u16) {
 
         if register_d > 31 {
             panic!("Invalid register for IN! Only registers [r0, r31] are allowed")
         }
-        if address > 64 {
+        if target_address_in > 64 {
             panic!("Invalid address for IN! Only address [0, 0x3F] are allowed")
         }
 
         let result: u16 =
-            0xB000u16 | ((address >> 4u16) << 9u16) | ((register_d) << 4u16) | (address & 0x0Fu16);
+            0xB000u16 | ((target_address_in >> 4u16) << 9u16) | ((register_d) << 4u16) | (target_address_in & 0x0Fu16);
+
+        let mut temp_addr:u32 = address;
 
         log::trace!("ENC IN: {:#02x}", (result >> 0u16) as u8);
-        segment.data.push((result >> 0u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 0u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 0u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC IN: {:#02x}", (result >> 8u16) as u8);
-        segment.data.push((result >> 8u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 8u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
+        temp_addr += 1u32;
     }
 
     /// 65. INC - Adds one -1- to the contents of register Rd and places the result in the destination register Rd.
     /// 1001 010d dddd 0011
-    fn encode_inc(&self, segment: &mut Segment, register_d: u16) {
+    fn encode_inc(&self, segment: &mut Segment, address: u32, register_d: u16) {
 
         if register_d > 31 {
             panic!("Invalid register for INC! Only registers [r0, r31] are allowed")
@@ -890,20 +979,25 @@ impl AsmEncoder {
         let result: u16 =
             0x9403u16 | ((register_d) << 4u16);
 
+        let mut temp_addr:u32 = address;
+
         log::trace!("ENC INC: {:#02x}\n", (result >> 0u16) as u8);
-        segment.data.push((result >> 0u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 0u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 0u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC INC: {:#02x}\n", (result >> 8u16) as u8);
-        segment.data.push((result >> 8u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 8u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
+        temp_addr += 1u32;
     }
 
     /// 66. JMP – Jump
     /// 1001 010k kkkk 110k
     /// kkkk kkkk kkkk kkkk
-    //fn encode_jmp(&mut self, segment: &mut Segment, idx: &usize, label_or_immediate: &String) {
-    fn encode_jmp(&mut self, segment: &mut Segment, idx: &u16, label: &String, address: i16) {
+    fn encode_jmp(&mut self, segment: &mut Segment, address: u32, label: &String, target_address_in: i16) {
 
         let target_address: i32;
         if !label.is_empty()
@@ -912,7 +1006,7 @@ impl AsmEncoder {
         }
         else
         {
-            target_address = address as i32;
+            target_address = target_address_in as i32;
         }
 
         // convert from bytes to words
@@ -933,25 +1027,35 @@ impl AsmEncoder {
 
         log::trace!("result: {:#32b}\n", result);
 
+        let mut temp_addr:u32 = address;
+
         log::trace!("ENC JMP: {:#02x}\n", (result >> 16u16) as u8);
-        segment.data.push((result >> 16u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 16u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 16u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC JMP: {:#02x}\n", (result >> 24u16) as u8);
-        segment.data.push((result >> 24u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 24u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 24u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC JMP: {:#02x}\n", (result >> 0u16) as u8);
-        segment.data.push((result >> 0u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 0u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 0u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC JMP: {:#02x}\n", (result >> 8u16) as u8);
-        segment.data.push((result >> 8u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 8u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
+        temp_addr += 1u32;
 
     }
 
-    fn encode_ld_ldd_x_1(&self, segment: &mut Segment, register_d: u16)
+    fn encode_ld_ldd_x_1(&self, segment: &mut Segment, address: u32, register_d: u16)
     {
         if register_d > 31 {
             panic!("Invalid register for encode_ld_ldd_x_1! Only registers [r0, r31] are allowed")
@@ -961,17 +1065,23 @@ impl AsmEncoder {
 
         log::trace!("result: {:#32b}", result);
 
+        let mut temp_addr:u32 = address;
+
         log::trace!("ENC ld_ldd_x_1: {:#02x}", (result >> 0u16) as u8);
-        segment.data.push((result >> 0u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 0u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 0u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC ld_ldd_x_1: {:#02x}", (result >> 8u16) as u8);
-        segment.data.push((result >> 8u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 8u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("result: {:#026b}", result);
     }
-    fn encode_ld_ldd_x_2(&self, segment: &mut Segment, register_d: u16)
+    fn encode_ld_ldd_x_2(&self, segment: &mut Segment, address: u32, register_d: u16)
     {
         if register_d > 31 {
             panic!("Invalid register for encode_ld_ldd_x_2! Only registers [r0, r31] are allowed")
@@ -981,18 +1091,24 @@ impl AsmEncoder {
 
         log::trace!("result: {:#32b}", result);
 
+        let mut temp_addr:u32 = address;
+
         log::trace!("ENC ld_ldd_x_2: {:#02x}", (result >> 0u16) as u8);
-        segment.data.push((result >> 0u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 0u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 0u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC ld_ldd_x_2: {:#02x}", (result >> 8u16) as u8);
-        segment.data.push((result >> 8u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 8u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("result: {:#026b}", result);
     }
 
-    fn encode_ld_ldd_y_2(&self, segment: &mut Segment, register_d: u16)
+    fn encode_ld_ldd_y_2(&self, segment: &mut Segment, address: u32, register_d: u16)
     {
         if register_d > 31 {
             panic!("Invalid register for encode_ld_ldd_y_2! Only registers [r0, r31] are allowed")
@@ -1002,19 +1118,25 @@ impl AsmEncoder {
 
         log::trace!("result: {:#32b}", result);
 
+        let mut temp_addr:u32 = address;
+
         log::trace!("ENC ld_ldd_y_2: {:#02x}", (result >> 0u16) as u8);
-        segment.data.push((result >> 0u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 0u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 0u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC ld_ldd_y_2: {:#02x}", (result >> 8u16) as u8);
-        segment.data.push((result >> 8u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 8u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("result: {:#026b}", result);
     }
 
     /// 72. LD (LDD) – Load Indirect From Data Space to Register using Index Z
-    fn encode_ld_ldd_z_1(&self, segment: &mut Segment, register_d: u16)
+    fn encode_ld_ldd_z_1(&self, segment: &mut Segment, address: u32, register_d: u16)
     {
         if register_d > 31 {
             panic!("Invalid register for encode_ld_ldd_z_1! Only registers [r0, r31] are allowed")
@@ -1024,13 +1146,19 @@ impl AsmEncoder {
 
         log::trace!("result: {:#32b}", result);
 
+        let mut temp_addr:u32 = address;
+
         log::trace!("ENC ld_ldd_z_1: {:#02x}", (result >> 0u16) as u8);
-        segment.data.push((result >> 0u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 0u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 0u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC ld_ldd_z_1: {:#02x}", (result >> 8u16) as u8);
-        segment.data.push((result >> 8u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 8u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("result: {:#026b}", result);
     }
@@ -1041,7 +1169,7 @@ impl AsmEncoder {
     /// NOTE: LDI is only allowed for registers in the range from [r16, r31]
     /// The full 32 regsters cannot be used since there are only 4 bit of space to store the target register.
     /// The register parameter is diminished by 16 so that it fits into the 4 bit space in the instruction word.
-    fn encode_ldi(&self, segment: &mut Segment, register_d: u16, imm_value_k: u16) {
+    fn encode_ldi(&self, segment: &mut Segment, address: u32, register_d: u16, imm_value_k: u16) {
 
         if register_d < 15 || register_d > 31 {
             panic!("Invalid register for LDI! Only registers [r16, r31] are allowed")
@@ -1052,20 +1180,26 @@ impl AsmEncoder {
         let k_mask: u16 = 0xE000u16 | ((imm_value_k >> 4u16) << 8u16) | (imm_value_k & 0x0Fu16);
         let result: u16 = 0xEFFFu16 & (k_mask | (register << 4u16));
 
+        let mut temp_addr:u32 = address;
+
         log::trace!("ENC LDI: {:#02x}", (result >> 0u16) as u8);
-        segment.data.push((result >> 0u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 0u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 0u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC LDI: {:#02x}", (result >> 8u16) as u8);
-        segment.data.push((result >> 8u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 8u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
+        temp_addr += 1u32;
     }
 
     /// 74. LDS – Load Direct from Data Space
     /// This is the 32 bit variant of the LDS command. There is also a 16 variant (75. LDS 16bit)
     /// 1001 000d dddd 0000
     /// kkkk kkkk kkkk kkkk
-    fn encode_lds(&self, segment: &mut Segment, register_d: u16, imm_value_k: u16) {
+    fn encode_lds(&self, segment: &mut Segment, address: u32, register_d: u16, imm_value_k: u16) {
 
         if register_d > 31 {
             panic!("Invalid register for LDS (32bit)! Only registers [r0, r31] are allowed")
@@ -1077,32 +1211,32 @@ impl AsmEncoder {
 
         log::trace!("result: {:#32b}", result);
 
+        let mut temp_addr:u32 = address;
+
         log::trace!("ENC LDS (32bit): {:#02x}", (result >> 16u16) as u8);
-        segment.data.push((result >> 16u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 16u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 16u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC LDS (32bit): {:#02x}", (result >> 24u16) as u8);
-        segment.data.push((result >> 24u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 24u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 24u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC LDS (32bit): {:#02x}", (result >> 0u16) as u8);
-        segment.data.push((result >> 0u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 0u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 0u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC LDS (32bit): {:#02x}", (result >> 8u16) as u8);
-        segment.data.push((result >> 8u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 8u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
+        temp_addr += 1u32;
 
-        // let k_mask: u16 = 0xE000u16 | ((imm_value_k >> 4u16) << 8u16) | (imm_value_k & 0x0Fu16);
-        // let result: u16 = 0xEFFFu16 & (k_mask | (register << 4u16));
-
-        // log::trace!("ENC LDS: {:#02x}", (result >> 0u16) as u8);
-        // segment.data.push((result >> 0u16) as u8);
-        // segment.size += 1u32;
-
-        // log::trace!("ENC LDS: {:#02x}", (result >> 8u16) as u8);
-        // segment.data.push((result >> 8u16) as u8);
-        // segment.size += 1u32;
     }
 
     /// 75. LDS (16-bit) – Load Direct from Data Space
@@ -1111,7 +1245,7 @@ impl AsmEncoder {
     /// NOTE: LDS is only allowed for registers in the range from [r16, r31]
     /// The full 32 regsters cannot be used since there are only 4 bit of space to store the target register.
     /// The register parameter is diminished by 16 so that it fits into the 4 bit space in the instruction word.
-    fn encode_lds_16bit(&self, segment: &mut Segment, register_d: u16, imm_value_k: u16) {
+    fn encode_lds_16bit(&self, segment: &mut Segment, address: u32, register_d: u16, imm_value_k: u16) {
 
         if register_d < 15 || register_d > 31 {
             panic!("Invalid register for LDI 16Bit! Only registers [r16, r31] are allowed")
@@ -1124,63 +1258,87 @@ impl AsmEncoder {
 
         let result: u16 = 0xA000u16 | k_mask | (register << 4u16);
 
+        let mut temp_addr:u32 = address;
+
         log::trace!("ENC LDS (16 bit): {:#02x}", (result >> 0u16) as u8);
-        segment.data.push((result >> 0u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 0u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 0u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC LDS (16 bit): {:#02x}", (result >> 8u16) as u8);
-        segment.data.push((result >> 8u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 8u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
+        temp_addr += 1u32;
     }
 
-    fn encode_lpm_1(&self, segment: &mut Segment)
+    fn encode_lpm_1(&self, segment: &mut Segment, address: u32)
     {
         let result: u16 = 0x95C8u16;
         
         log::trace!("ENC LPM_1: {:b}\n", result);
 
+        let mut temp_addr:u32 = address;
+
         log::trace!("ENC LPM_1: {:#02x}\n", (result >> 0u16) as u8);
-        segment.data.push((result >> 0u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 0u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 0u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC LPM_1: {:#02x}\n", (result >> 8u16) as u8);
-        segment.data.push((result >> 8u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 8u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
+        temp_addr += 1u32;
     }
 
-    fn encode_lpm_2(&self, segment: &mut Segment, register_d: u16)
+    fn encode_lpm_2(&self, segment: &mut Segment, address: u32, register_d: u16)
     {
         let result: u16 = 0x9004u16 | (register_d << 4u16) & 0x1Fu16;
 
         log::trace!("ENC LPM_2: {:b}\n", result);
 
+        let mut temp_addr:u32 = address;
+
         log::trace!("ENC LPM_2: {:#02x}\n", (result >> 0u16) as u8);
-        segment.data.push((result >> 0u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 0u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 0u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC LPM_2: {:#02x}\n", (result >> 8u16) as u8);
-        segment.data.push((result >> 8u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 8u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
+        temp_addr += 1u32;
     }
 
-    fn encode_lpm_3(&self, segment: &mut Segment, register_d: u16)
+    fn encode_lpm_3(&self, segment: &mut Segment, address: u32, register_d: u16)
     {
         let result: u16 = 0x9005u16 | (register_d << 4u16) & 0x1Fu16;
 
         log::trace!("ENC LPM_3: {:b}\n", result);
 
+        let mut temp_addr:u32 = address;
+
         log::trace!("ENC LPM_3: {:#02x}\n", (result >> 0u16) as u8);
-        segment.data.push((result >> 0u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 0u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 0u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC LPM_3: {:#02x}\n", (result >> 8u16) as u8);
-        segment.data.push((result >> 8u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 8u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
+        temp_addr += 1u32;
     }
 
     // 78. LSR – Logical Shift Right
     // 1001 010d dddd 0110
-    fn encode_lsr(&self, segment: &mut Segment, register_d: u16)
+    fn encode_lsr(&self, segment: &mut Segment, address: u32, register_d: u16)
     {
         if register_d > 31 {
             panic!("Invalid register d for LSR! Only registers [r00, r31] are allowed")
@@ -1190,18 +1348,24 @@ impl AsmEncoder {
 
         log::trace!("ENC LSR: {:b}\n", result);
 
+        let mut temp_addr:u32 = address;
+
         log::trace!("ENC LSR: {:#02x}\n", (result >> 0u16) as u8);
-        segment.data.push((result >> 0u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 0u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 0u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC LSR: {:#02x}\n", (result >> 8u16) as u8);
-        segment.data.push((result >> 8u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 8u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
+        temp_addr += 1u32;
     }
 
     // 79. MOV – Copy Register
     // 0010 11rd dddd rrrr
-    fn encode_mov(&self, segment: &mut Segment, register_d: u16, register_r: u16) {
+    fn encode_mov(&self, segment: &mut Segment, address: u32, register_d: u16, register_r: u16) {
         if register_d > 31 {
             panic!("Invalid register d for MOV! Only registers [r00, r31] are allowed")
         }
@@ -1210,40 +1374,51 @@ impl AsmEncoder {
         }
         let result: u16 = (0b0010110000000000u16
             | ((register_r >> 4u16) << 9u16)
-            //| ((register_d << 4u16) & 0x1Fu16)
             | ((register_d & 0x1Fu16) << 4u16) 
             | (register_r << 0x04u16)) as u16;
 
         log::trace!("ENC MOV: {:b}", result);
 
+        let mut temp_addr:u32 = address;
+
         log::trace!("ENC MOV: {:#02x}", (result >> 0u16) as u8);
-        segment.data.push((result >> 0u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 0u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 0u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC MOV: {:#02x}", (result >> 8u16) as u8);
-        segment.data.push((result >> 8u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 8u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
+        temp_addr += 1u32;
     }
 
     /// 85. NOP - No Operation
     /// This instruction performs a single cycle No Operation.
-    fn encode_nop(&self, segment: &mut Segment) {
+    fn encode_nop(&self, segment: &mut Segment, address: u32) {
         let result: u16 = 0x00;
 
+        let mut temp_addr:u32 = address;
+
         log::trace!("ENC NOP: {:#02x}\n", (result >> 0u16) as u8);
-        segment.data.push((result >> 0u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 0u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 0u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC NOP: {:#02x}\n", (result >> 8u16) as u8);
-        segment.data.push((result >> 8u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 8u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
+        temp_addr += 1u32;
     }
 
     /// 87. ORI – Logical OR with Immediate
     /// Performs the logical OR between the contents of register Rd and a constant, and places the result in the
     /// destination register Rd.
     /// 0110 KKKK dddd KKKK
-    fn encode_ori(&self, segment: &mut Segment, register_d: u16, imm_value_k: u16) {
+    fn encode_ori(&self, segment: &mut Segment, address: u32, register_d: u16, imm_value_k: u16) {
 
         if register_d < 15 || register_d > 31 {
             panic!("Invalid register for ORI! Only registers [r16, r31] are allowed")
@@ -1256,19 +1431,25 @@ impl AsmEncoder {
 
         let result: u16 = 0x6000u16 | k_mask | (register << 4u16);
 
+        let mut temp_addr:u32 = address;
+
         log::trace!("ENC ORI: {:#02x}\n", (result >> 0u16) as u8);
-        segment.data.push((result >> 0u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 0u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 0u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC ORI: {:#02x}\n", (result >> 8u16) as u8);
-        segment.data.push((result >> 8u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 8u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
+        temp_addr += 1u32;
     }
 
     /// 88. OUT – Store Register to I/O Location
     /// 1011 1AAr rrrr AAAA
     //fn encode_out(&mut self, segment: &mut Segment, io_dest: IoDestination, register_r: u16) {
-    fn encode_out(&mut self, segment: &mut Segment, register_a: u16, register_r: u16) {
+    fn encode_out(&mut self, segment: &mut Segment, address: u32, register_a: u16, register_r: u16) {
 
         if register_r > 31 {
             log::error!("Invalid register for OUT! Only registers [r0, r31] are allowed");
@@ -1286,60 +1467,74 @@ impl AsmEncoder {
 
         log::trace!("ENC OUT: {:b}", result);
 
+        let mut temp_addr:u32 = address;
+
         log::trace!("ENC OUT: {:#02x}", (result >> 0u16) as u8);
-        segment.data.push((result >> 0u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 0u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 0u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC OUT: {:#02x}", (result >> 8u16) as u8);
-        segment.data.push((result >> 8u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 8u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
+        temp_addr += 1u32;
     }
 
     /// 89. POP – Pop Register from Stack
-    fn encode_pop(&self, segment: &mut Segment, register_d: u16) {
+    fn encode_pop(&self, segment: &mut Segment, address: u32, register_d: u16) {
         if register_d > 31 {
             panic!("Invalid register for PUSH! Only registers [r0, r31] are allowed")
         }
 
         let result: u16 = 0x900Fu16 | (register_d << 4u16);
 
+        let mut temp_addr:u32 = address;
+
         log::trace!("ENC POP: {:#02x}", (result >> 0u16) as u8);
-        segment.data.push((result >> 0u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 0u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 0u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC POP: {:#02x}", (result >> 8u16) as u8);
-        segment.data.push((result >> 8u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 8u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
+        temp_addr += 1u32;
     }
 
     /// 90. PUSH – Push Register on Stack
-    fn encode_push(&self, segment: &mut Segment, register_d: u16) {
+    fn encode_push(&self, segment: &mut Segment, address: u32, register_d: u16) {
 
-        // if register_d > 31 {
-        //     panic!("Invalid register for PUSH! Only registers [r0, r31] are allowed")
-        // }
+        if register_d > 31 {
+            panic!("Invalid register for PUSH! Only registers [r0, r31] are allowed")
+        }
 
         let result: u16 = 0x920Fu16 | (register_d << 4u16);
 
+        let mut temp_addr:u32 = address;
+
         log::trace!("ENC PUSH: {:#02x}", (result >> 0u16) as u8);
-        segment.data.push((result >> 0u16) as u8);
-        segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 0u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC PUSH: {:#02x}", (result >> 8u16) as u8);
-        segment.data.push((result >> 8u16) as u8);
-        segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
+        temp_addr += 1u32;
     }
 
     /// 91. RCALL – Relative Call to Subroutine
     /// 1101 kkkk kkkk kkkk
-    fn encode_rcall(&self, segment: &mut Segment, idx: &u16, label: &String) {
+    fn encode_rcall(&self, segment: &mut Segment, address: u32, label: &String) {
         // THIS CODE HAS BEEN COPIED FROM RJMP
 
         let label_address: i16 = self.labels[label] as i16;
 
         log::info!("label_address: {:#06x}", label_address);
 
-        let mut offset_k: i16 = label_address - (*idx as i16);
+        let mut offset_k: i16 = label_address - (address as i16);
 
         log::info!("offset_k: {:#06x} {}", offset_k, offset_k);
 
@@ -1354,49 +1549,67 @@ impl AsmEncoder {
 
         log::info!("result: {:#32b}", result);
 
+        let mut temp_addr:u32 = address;
+
         log::info!("ENC RCALL: {:#02x}", (result >> 0u16) as u8);
-        segment.data.push((result >> 0u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 0u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 0u16) as u8);
+        temp_addr += 1u32;
 
         log::info!("ENC RCALL: {:#02x}", (result >> 8u16) as u8);
-        segment.data.push((result >> 8u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 8u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
+        temp_addr += 1u32;
 
-        log::info!("result: {:#026b}", result);
+        log::trace!("result: {:#026b}", result);
     }
 
     /// 92. RET – Return from Subroutine
     /// Returns from subroutine. The return address is loaded from the STACK.
     /// The Stack Pointer uses a pre-increment scheme during RET
     /// 1001 0101 0000 1000
-    fn encode_ret(&self, segment: &mut Segment) {
+    fn encode_ret(&self, segment: &mut Segment, address: u32) {
         let result: u16 = 0b1001010100001000u16;
 
-        segment.data.push(LOW!(result) as u8);
-        segment.size += 1u32;
+        let mut temp_addr:u32 = address;
 
-        segment.data.push(HIGH!(result) as u8);
-        segment.size += 1u32;
+        //segment.data.push(LOW!(result) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, LOW!(result) as u8);
+        temp_addr += 1u32;
+
+        //segment.data.push(HIGH!(result) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, HIGH!(result) as u8);
+        temp_addr += 1u32;
     }
 
     /// 93. RETI – Return from Interrupt
     /// Returns from interrupt. The return address is loaded from the STACK and the Global Interrupt Flag is set.
     /// 1001 0101 0001 1000
-    fn encode_reti(&self, segment: &mut Segment) {
+    fn encode_reti(&self, segment: &mut Segment, address: u32) {
 
         let result: u16 = 0b1001010100011000u16;
 
-        segment.data.push(LOW!(result) as u8);
-        segment.size += 1u32;
+        let mut temp_addr:u32 = address;
 
-        segment.data.push(HIGH!(result) as u8);
-        segment.size += 1u32;
+        //segment.data.push(LOW!(result) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 0u16) as u8);
+        temp_addr += 1u32;
+
+        //segment.data.push(HIGH!(result) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
+        temp_addr += 1u32;
     }
 
     /// 94. RJMP – Relative Jump
     /// 1100 kkkk kkkk kkkk
     #[allow(dead_code)]
-    fn encode_rjmp(&self, segment: &mut Segment, idx: &u16, label: &String, address: i16) {
+    fn encode_rjmp(&self, segment: &mut Segment, address: u32, label: &String, target_address_in: i16) {
 
         let target_address: i16;
         if !label.is_empty()
@@ -1405,11 +1618,11 @@ impl AsmEncoder {
         }
         else
         {
-            target_address = address as i16;
+            target_address = target_address_in as i16;
         }
 
         // relative offset
-        let idx_isize: i16 = *idx as i16;
+        let idx_isize: i16 = address as i16;
         let offset_k: i16 = target_address - idx_isize;
         
         log::trace!("offset_k (in words): {:#06x}", offset_k);
@@ -1418,20 +1631,26 @@ impl AsmEncoder {
         let result: u16 = 0xC000u16 | ((offset_k as u16) & 0b111111111111);
         log::trace!("result: {:#34b}\n", result);
 
+        let mut temp_addr:u32 = address;
+
         log::trace!("ENC RJMP: {:#02x}\n", (result >> 0u16) as u8);
-        segment.data.push((result >> 0u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 0u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 0u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC RJMP: {:#02x}\n", (result >> 8u16) as u8);
-        segment.data.push((result >> 8u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 8u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
+        temp_addr += 1u32;
         
     }
 
     /// 99. SBI – Set Bit in I/O Register
     /// 1001 1010 AAAA Abbb
     #[allow(dead_code)]
-    fn encode_sbi(&self, segment: &mut Segment, _idx: &u16, register_a: u16, bit_to_set: u16) {
+    fn encode_sbi(&self, segment: &mut Segment, address: u32, register_a: u16, bit_to_set: u16) {
 
         if register_a > 31 {
             panic!("Invalid register for SBI! Only registers [0, 31] are allowed!")
@@ -1442,18 +1661,24 @@ impl AsmEncoder {
 
         let result: u16 = 0x9A00u16 | register_a << 3usize | bit_to_set;
 
+        let mut temp_addr:u32 = address;
+
         log::trace!("ENC SBI: {:#02x}", (result >> 0u16) as u8);
-        segment.data.push((result >> 0u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 0u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 0u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC SBI: {:#02x}", (result >> 8u16) as u8);
-        segment.data.push((result >> 8u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 8u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
+        temp_addr += 1u32;
     }
 
     // 102. SBIW – Subtract Immediate from Word
     // 1001 0111 KKdd KKKK
-    fn encode_sbiw(&self, segment: &mut Segment, _idx: &u16, register_d_plus: u16, register_d: u16, imm_value_k: u16) {
+    fn encode_sbiw(&self, segment: &mut Segment, address: u32, register_d_plus: u16, register_d: u16, imm_value_k: u16) {
 
         if imm_value_k > 63u16 {
             panic!("No valid immediate value {} for SBIW instruction!", imm_value_k);
@@ -1476,18 +1701,24 @@ impl AsmEncoder {
 
         let result: u16 = 0x9700u16 | (imm_value_k >> 4u16) << 6u16 | (register_d & 0b11) << 4u16 | (imm_value_k & 0b1111u16);
 
+        let mut temp_addr:u32 = address;
+
         log::trace!("ENC SBIW: {:#02x}", (result >> 0u16) as u8);
-        segment.data.push((result >> 0u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 0u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 0u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC SBIW: {:#02x}", (result >> 8u16) as u8);
-        segment.data.push((result >> 8u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 8u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
+        temp_addr += 1u32;
 
     }
 
     // 104. SBRC – Skip if Bit in Register is Cleared
-    fn encode_sbrc(&self, segment: &mut Segment, _idx: &u16, register_r: u16, bit_to_set: u16) {
+    fn encode_sbrc(&self, segment: &mut Segment, address: u32, register_r: u16, bit_to_set: u16) {
 
         if register_r > 31 {
             panic!("Invalid register for SBRC! Only registers [0, 31] are allowed!")
@@ -1498,19 +1729,25 @@ impl AsmEncoder {
 
         let result: u16 = 0xFC00u16 | register_r << 4usize | bit_to_set;
 
+        let mut temp_addr:u32 = address;
+
         log::trace!("ENC SBRS: {:#02x}", (result >> 0u16) as u8);
-        segment.data.push((result >> 0u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 0u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 0u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC SBRS: {:#02x}", (result >> 8u16) as u8);
-        segment.data.push((result >> 8u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 8u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
+        temp_addr += 1u32;
     }
 
     // 105. SBRS – Skip if Bit in Register is Set
     // 1111 111r rrrr 0bbb
     #[allow(dead_code)]
-    fn encode_sbrs(&self, segment: &mut Segment, _idx: &u16, register_r: u16, bit_to_set: u16) {
+    fn encode_sbrs(&self, segment: &mut Segment, address: u32, register_r: u16, bit_to_set: u16) {
 
         if register_r > 31 {
             panic!("Invalid register for SBRS! Only registers [0, 31] are allowed!")
@@ -1521,36 +1758,48 @@ impl AsmEncoder {
 
         let result: u16 = 0xFE00u16 | register_r << 4usize | bit_to_set;
 
+        let mut temp_addr:u32 = address;
+
         log::trace!("ENC SBRS: {:#02x}", (result >> 0u16) as u8);
-        segment.data.push((result >> 0u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 0u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 0u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC SBRS: {:#02x}", (result >> 8u16) as u8);
-        segment.data.push((result >> 8u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 8u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
+        temp_addr += 1u32;
     }
 
     /// 108. SEI – Set Global Interrupt Flag
     /// 1001 0100 0111 1000
     #[allow(dead_code)]
-    fn encode_sei(&self, segment: &mut Segment, _idx: &u16) {
+    fn encode_sei(&self, segment: &mut Segment, address: u32) {
 
         let result: u16 = 0x9478u16;
 
+        let mut temp_addr:u32 = address;
+
         log::trace!("ENC SEI: {:#02x}", (result >> 0u16) as u8);
-        segment.data.push((result >> 0u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 0u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 0u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC SEI: {:#02x}", (result >> 8u16) as u8);
-        segment.data.push((result >> 8u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 8u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
+        temp_addr += 1u32;
     }
 
     /// 118. ST (STD) – Store Indirect From Register to Data Space using Index X
     /// Stores one byte indirect with or without displacement from a register to data space.
     /// ST X, Rr
     /// 1001 001r rrrr 1100
-    fn encode_st_std_x_1(&self, segment: &mut Segment, register_r: u16) {
+    fn encode_st_std_x_1(&self, segment: &mut Segment, address: u32, register_r: u16) {
 
         if register_r > 31 {
             panic!("Invalid register for encode_st_std_x_1! Only registers [r0, r31] are allowed")
@@ -1560,19 +1809,25 @@ impl AsmEncoder {
 
         log::trace!("result: {:#32b}", result);
 
+        let mut temp_addr:u32 = address;
+
         log::trace!("ENC st_std_x_1: {:#02x}", (result >> 0u16) as u8);
-        segment.data.push((result >> 0u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 0u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 0u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC st_std_x_1: {:#02x}", (result >> 8u16) as u8);
-        segment.data.push((result >> 8u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 8u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("result: {:#026b}", result);
     }
     /// ST X+, Rr
     /// 1001 001r rrrr 1101
-    fn encode_st_std_x_2(&self, segment: &mut Segment, register_r: u16) {
+    fn encode_st_std_x_2(&self, segment: &mut Segment, address: u32, register_r: u16) {
 
         if register_r > 31 {
             panic!("Invalid register for encode_st_std_x_2! Only registers [r0, r31] are allowed")
@@ -1582,19 +1837,25 @@ impl AsmEncoder {
 
         log::trace!("result: {:#32b}", result);
 
+        let mut temp_addr:u32 = address;
+
         log::trace!("ENC st_std_x_2: {:#02x}", (result >> 0u16) as u8);
-        segment.data.push((result >> 0u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 0u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 0u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC st_std_x_2: {:#02x}", (result >> 8u16) as u8);
-        segment.data.push((result >> 8u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 8u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("result: {:#026b}", result);
     }
     // ST -X, Rr
     // 1001 001r rrrr 1110
-    fn encode_st_std_x_3(&self, segment: &mut Segment, register_r: u16) {
+    fn encode_st_std_x_3(&self, segment: &mut Segment, address: u32, register_r: u16) {
 
         if register_r > 31 {
             panic!("Invalid register for encode_st_std_x_3! Only registers [r0, r31] are allowed")
@@ -1604,13 +1865,19 @@ impl AsmEncoder {
 
         log::trace!("result: {:#32b}", result);
 
+        let mut temp_addr:u32 = address;
+
         log::trace!("ENC st_std_x_3: {:#02x}", (result >> 0u16) as u8);
-        segment.data.push((result >> 0u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 0u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 0u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC st_std_x_3: {:#02x}", (result >> 8u16) as u8);
-        segment.data.push((result >> 8u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 8u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("result: {:#026b}", result);
     }
@@ -1619,7 +1886,7 @@ impl AsmEncoder {
     // Stores one byte indirect with or without displacement from a register to data space.
     // ST Y, Rr
     // 1000 001r rrrr 1000
-    fn encode_st_std_y_1(&self, segment: &mut Segment, register_r: u16) {
+    fn encode_st_std_y_1(&self, segment: &mut Segment, address: u32, register_r: u16) {
 
         if register_r > 31 {
             panic!("Invalid register for encode_st_std_y_1! Only registers [r0, r31] are allowed")
@@ -1629,19 +1896,25 @@ impl AsmEncoder {
 
         log::trace!("result: {:#32b}", result);
 
+        let mut temp_addr:u32 = address;
+
         log::trace!("ENC st_std_y_1: {:#02x}", (result >> 0u16) as u8);
-        segment.data.push((result >> 0u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 0u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 0u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC st_std_y_1: {:#02x}", (result >> 8u16) as u8);
-        segment.data.push((result >> 8u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 8u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("result: {:#026b}", result);
     }
     // ST X+, Rr
     // 1001 001r rrrr 1101
-    fn encode_st_std_y_2(&self, segment: &mut Segment, register_r: u16) {
+    fn encode_st_std_y_2(&self, segment: &mut Segment, address: u32, register_r: u16) {
 
         if register_r > 31 {
             panic!("Invalid register for encode_st_std_y_2! Only registers [r0, r31] are allowed")
@@ -1651,19 +1924,25 @@ impl AsmEncoder {
 
         log::trace!("result: {:#32b}", result);
 
+        let mut temp_addr:u32 = address;
+
         log::trace!("ENC st_std_y_2: {:#02x}", (result >> 0u16) as u8);
-        segment.data.push((result >> 0u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 0u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 0u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC st_std_y_2: {:#02x}", (result >> 8u16) as u8);
-        segment.data.push((result >> 8u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 8u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("result: {:#026b}", result);
     }
     // ST -X, Rr
     // 1001 001r rrrr 1110
-    fn encode_st_std_y_3(&self, segment: &mut Segment, register_r: u16) {
+    fn encode_st_std_y_3(&self, segment: &mut Segment, address: u32, register_r: u16) {
 
         if register_r > 31 {
             panic!("Invalid register for encode_st_std_y_3! Only registers [r0, r31] are allowed")
@@ -1673,13 +1952,19 @@ impl AsmEncoder {
 
         log::trace!("result: {:#32b}", result);
 
+        let mut temp_addr:u32 = address;
+
         log::trace!("ENC st_std_y_3: {:#02x}", (result >> 0u16) as u8);
-        segment.data.push((result >> 0u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 0u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 0u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC st_std_y_3: {:#02x}", (result >> 8u16) as u8);
-        segment.data.push((result >> 8u16) as u8);
-        segment.size += 1u32;
+        //segment.data.push((result >> 8u16) as u8);
+        //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("result: {:#026b}", result);
     }
@@ -1688,7 +1973,7 @@ impl AsmEncoder {
     // Stores one byte indirect with or without displacement from a register to data space.
     // ST Z, Rr
     // 1000 001r rrrr 0000
-    fn encode_st_std_z_1(&self, segment: &mut Segment, register_r: u16) {
+    fn encode_st_std_z_1(&self, segment: &mut Segment, address: u32, register_r: u16) {
 
         if register_r > 31 {
             panic!("Invalid register for encode_st_std_z_1! Only registers [r0, r31] are allowed")
@@ -1698,19 +1983,25 @@ impl AsmEncoder {
 
         log::trace!("result: {:#32b}", result);
 
+        let mut temp_addr:u32 = address;
+
         log::trace!("ENC st_std_z_1: {:#02x}", (result >> 0u16) as u8);
-        segment.data.push((result >> 0u16) as u8);
-        segment.size += 1u32;
+        // //segment.data.push((result >> 0u16) as u8);
+        // //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 0u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC st_std_z_1: {:#02x}", (result >> 8u16) as u8);
-        segment.data.push((result >> 8u16) as u8);
-        segment.size += 1u32;
+        // segment.data.push((result >> 8u16) as u8);
+        // //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("result: {:#026b}", result);
     }
     // ST Z+, Rr
     // 1001 001r rrrr 0001
-    fn encode_st_std_z_2(&self, segment: &mut Segment, register_r: u16) {
+    fn encode_st_std_z_2(&self, segment: &mut Segment, address: u32, register_r: u16) {
 
         if register_r > 31 {
             panic!("Invalid register for encode_st_std_z_2! Only registers [r0, r31] are allowed")
@@ -1720,19 +2011,25 @@ impl AsmEncoder {
 
         log::trace!("result: {:#32b}", result);
 
+        let mut temp_addr:u32 = address;
+
         log::trace!("ENC st_std_z_2: {:#02x}", (result >> 0u16) as u8);
-        segment.data.push((result >> 0u16) as u8);
-        segment.size += 1u32;
+        // segment.data.push((result >> 0u16) as u8);
+        // //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 0u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC st_std_z_2: {:#02x}", (result >> 8u16) as u8);
-        segment.data.push((result >> 8u16) as u8);
-        segment.size += 1u32;
+        // segment.data.push((result >> 8u16) as u8);
+        // //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("result: {:#026b}", result);
     }
     // ST -Z, Rr
     // 1001 001r rrrr 0010
-    fn encode_st_std_z_3(&self, segment: &mut Segment, register_r: u16) {
+    fn encode_st_std_z_3(&self, segment: &mut Segment, address: u32, register_r: u16) {
 
         if register_r > 31 {
             panic!("Invalid register for encode_st_std_z_3! Only registers [r0, r31] are allowed")
@@ -1742,13 +2039,19 @@ impl AsmEncoder {
 
         log::trace!("result: {:#32b}", result);
 
+        let mut temp_addr:u32 = address;
+
         log::trace!("ENC st_std_z_3: {:#02x}", (result >> 0u16) as u8);
-        segment.data.push((result >> 0u16) as u8);
-        segment.size += 1u32;
+        // segment.data.push((result >> 0u16) as u8);
+        // //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 0u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC st_std_z_3: {:#02x}", (result >> 8u16) as u8);
-        segment.data.push((result >> 8u16) as u8);
-        segment.size += 1u32;
+        // segment.data.push((result >> 8u16) as u8);
+        // //segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("result: {:#026b}", result);
     }
@@ -1757,7 +2060,7 @@ impl AsmEncoder {
     // This is the 32 bit variant of the STS command. There is also a 16 variant (122. STS 16bit)
     // 1001 001d dddd 0000
     // kkkk kkkk kkkk kkkk
-    fn encode_sts(&self, segment: &mut Segment, target_addr: u16, register_d: u16) {
+    fn encode_sts(&self, segment: &mut Segment, address: u32, target_addr: u16, register_d: u16) {
 
         if register_d > 31 {
             panic!("Invalid register for STS (32bit)! Only registers [r0, r31] are allowed")
@@ -1770,21 +2073,32 @@ impl AsmEncoder {
         log::info!("result: {:#10x}\n", result);
         log::trace!("result: {:#32b}\n", result);
 
+        let mut temp_addr:u32 = address;
+
         log::trace!("ENC STS (32bit): {:#02x}\n", (result >> 16u16) as u8);
-        segment.data.push((result >> 16u16) as u8);
-        segment.size += 1u32;
+        // segment.data.push((result >> 16u16) as u8);
+        // segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 16u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC STS (32bit): {:#02x}\n", (result >> 24u16) as u8);
-        segment.data.push((result >> 24u16) as u8);
-        segment.size += 1u32;
+        // segment.data.push((result >> 24u16) as u8);
+        // segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 24u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC STS (32bit): {:#02x}\n", (result >> 0u16) as u8);
-        segment.data.push((result >> 0u16) as u8);
-        segment.size += 1u32;
+        // segment.data.push((result >> 0u16) as u8);
+        // segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 0u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC STS (32bit): {:#02x}\n", (result >> 8u16) as u8);
-        segment.data.push((result >> 8u16) as u8);
-        segment.size += 1u32;
+        // segment.data.push((result >> 8u16) as u8);
+        // segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
+        temp_addr += 1u32;
+
     }
 
     /// 122. STS (16-bit) – Store Direct to Data Space
@@ -1793,7 +2107,7 @@ impl AsmEncoder {
     /// NOTE: STS is only allowed for registers in the range from [r16, r31]
     /// The full 32 regsters cannot be used since there are only 4 bit of space to store the target register.
     /// The register parameter is diminished by 16 so that it fits into the 4 bit space in the instruction word.
-    fn encode_sts_16bit(&self, segment: &mut Segment, register_d: u16, imm_value_k: u16) {
+    fn encode_sts_16bit(&self, segment: &mut Segment, address: u32, register_d: u16, imm_value_k: u16) {
 
         if register_d < 15 || register_d > 31 {
             panic!("Invalid register for STS 16Bit! Only registers [r16, r31] are allowed")
@@ -1805,47 +2119,66 @@ impl AsmEncoder {
 
         let result: u16 = 0xA800u16 | k_mask | (register << 4u16);
 
+        let mut temp_addr:u32 = address;
+
         log::trace!("ENC STS (16 bit): {:#02x}", (result >> 0u16) as u8);
-        segment.data.push((result >> 0u16) as u8);
-        segment.size += 1u32;
+        // segment.data.push((result >> 0u16) as u8);
+        // segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 0u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC STS (16 bit): {:#02x}", (result >> 8u16) as u8);
-        segment.data.push((result >> 8u16) as u8);
-        segment.size += 1u32;
+        // segment.data.push((result >> 8u16) as u8);
+        // segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
+        temp_addr += 1u32;
+
     }
 
     // 124. SUBI – Subtract Immediate
     // Subtracts a register and a constant, and places the result in the destination register Rd. This instruction is
     // working on Register R16 to R31 and is very well suited for operations on the X, Y, and Z-pointers.
     // 0101 KKKK dddd KKKK
-    fn encode_subi(&self, segment: &mut Segment, register_d: u16, constant: u16) 
+    fn encode_subi(&self, segment: &mut Segment, address: u32, register_d: u16, constant: u16) 
     {
         let result: u16 = 0x5000 | ((constant >> 4) << 8) | register_d << 4 | constant & 0x0F;
 
+        let mut temp_addr:u32 = address;
+
         log::trace!("ENC SUBI: {:#02x}\n", (result >> 0u16) as u8);
-        segment.data.push((result >> 0u16) as u8);
-        segment.size += 1u32;
+        // segment.data.push((result >> 0u16) as u8);
+        // segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 0u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC SUBI: {:#02x}\n", (result >> 8u16) as u8);
-        segment.data.push((result >> 8u16) as u8);
-        segment.size += 1u32;
+        // segment.data.push((result >> 8u16) as u8);
+        // segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
+        temp_addr += 1u32;
     }
 
     // 126. TST – Test for Zero or Minus
     // Tests if a register is zero or negative. Performs a logical AND between a register and itself. The register
     // will remain unchanged.
     // 0010 00dd dddd dddd
-    fn encode_tst(&self, segment: &mut Segment, register_d: u16) 
+    fn encode_tst(&self, segment: &mut Segment, address: u32, register_d: u16) 
     {
         let result: u16 = 0x2000 | (register_d & 0x1F) << 5 | register_d & 0x1F;
 
+        let mut temp_addr:u32 = address;
+
         log::trace!("ENC TST: {:#02x}\n", (result >> 0u16) as u8);
-        segment.data.push((result >> 0u16) as u8);
-        segment.size += 1u32;
+        // segment.data.push((result >> 0u16) as u8);
+        // segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 0u16) as u8);
+        temp_addr += 1u32;
 
         log::trace!("ENC TST: {:#02x}\n", (result >> 8u16) as u8);
-        segment.data.push((result >> 8u16) as u8);
-        segment.size += 1u32;
+        // segment.data.push((result >> 8u16) as u8);
+        // segment.size += 1u32;
+        self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
+        temp_addr += 1u32;
     }
 
 }
