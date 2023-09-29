@@ -5,6 +5,7 @@
 == Which Phases exist and what is their purpose ?==
 
 Phase 1. The asm file is loaded from disk
+Phase 2. A include preprocessor resolves all .include instructions and creates one huge source code file/buffer
 Phase 2. The lexer and parser are used to build an AST from the asm file
 Phase 3. The Assembler Phase 1 finds jump-label addresses and variable name addresses
 Phase 4. The Assembler phase 2 builds AsmRecords. AsmRecords already contain resolved addresses
@@ -13,6 +14,122 @@ Phase 5. Encoding. AsmRecords are turned into bytes according to the Microcontro
          The bytes are written into the segment.
 Phase 6. Execution of the bytes in the segment by the emulated CPU
 
+
+
+== Alternative Approach of handling include files and labels ==
+
+A make file or command line parameter lists all .asm files that should be combined during assembly.
+For each filepath a CompilationUnit struct is created and the filepath to the .asm file is inserted into
+the compilation unit.
+
+Place all those CompilationUnits on the compilation_unit FIFO queue.
+The CompilationUnit for the main.asm file has to be the first CompilationUnit placed into the FIFO queue so
+it is processed first. 
+
+1. The first CompilationUnit is retrieved from the compilation_unit FIFO queue
+2. It is made the current compilation unit.
+   It contains the filepath to the .asm/.inc file it was loaded from.
+   It contains an empty symbol table. Each symbol entry is a struct { source_file, symbol_name, address, value }
+3. Usages of unknown labels are entered into the symbol table without source_file and address and value.
+   When there is no known definition of the symbol, source_file and value remain empty. 
+   The address of all symbols remains empty, because the address is not known yet.
+4. When the current compilation_unit defines a symbol with a value, then source_file, symbol_name and value are filled and
+   the symbol is placed into the symbol table of the current compilation unit. The symbol table entry is flagged as
+   a definition of a symbol (as opposed to a usage of a symbol).
+5. When a .include is encountered. That .include is turned into a compilation_unit strcut with the filename of the
+   .include file and the compilation_unit is placed onto the compilation_unit FIFO queue.
+6. When the current compilation unit is processed, if the include_queue is empty -> goto 7
+   If there is an entry inside the include_queue, remove it from the queue, check if this compilation unit has been processed 
+   already.
+   If processed already -> goto 6
+   Else, make this entry the current compilation unit. -> goto 2
+
+-- At this point, a set of compilation unit and their symbol tables exist.
+-- The goal now shifts away from parsing to combining all compilation units into a large assembler
+-- programm that has all symbols resolved by real addresses
+
+-- Resolving includes: There are two cases: #pragma once or no #pragma once.
+-- In both cases .includes are place right where the .include takes place. 
+-- for #pragma once the addition is that the .include is process exactly once.
+-- A second occurence of a #pragma once include is just skipped
+
+== Construction combined list of instructions from all compilation units ==
+ 
+7. Create a global symbol table. It will be updated with data from the local symbol tables
+   of the compilation units. Create a global list of assembly records.
+
+   The main compilation unit is pushed onto a stack
+ 
+   Starting with the main compilation unit, instructions records are generated and the address_ptr incremented
+   according to instruction size. The instruction records are placed into the global list of assembly records.
+   
+   When an .include is encountered it is checked if the .include is #pragma once
+   If it is #pragma once and it has been included already, then skip the include
+   
+   When an .include is encountered and it is not skipped, check if this include is in the stack somewhere
+   When in the stack -> cycle detected --> error --> abort
+   When not in the stack continue
+   
+   When an .include is encountered, the .include is pushed onto the stack and it is processed directly at
+   the address_ptr. It is flagged as processed (for the #pragma once case)
+   The include might add variables which are symbols that defined a name and a value but are not directly
+   turned into an assembly instruction. The symbols are added into the symbol table.
+   A include might add real code, then create assembly records and place them onto the global list of
+   assembly records.
+   include might define jump label symbols, add those into the global symbol table along with the address
+   stored in the address_ptr.
+   
+   This starts a recursive process of .include that might in turn contain .include all while a .asm
+   compilation_unit is waiting to finish processing. There might be .include cycles! Those have to be
+   prevented since otherwise the compiler would start to process an endless loop of includes.
+   The stack is used to break cycles. See above (When in the stack -> cycle detected --> error --> abort)
+   
+   The jump labels and symbol names of variable are updated since now an address is known for the 
+   jump labels (symbol names have no address) data symbols have an address. Example:
+   ```
+   teststring: .db "Hello world", 0
+   ```
+
+   The update is done in the global symbol table.
+   When a value is assigned to a symbol, the symbol in the global symbol table is updated to the new
+   source_file, and the new value. 
+   
+   Symbols might override symbols with the same name defined prior by
+   another compilation unit. Output a warning if that happens because this might be a duplicate symbol name
+   which is valid but might not be on purpose and can cause unforseen bugs.
+   
+   When a .include file is completely processed, pop it from the stack.
+   
+   Continue to process with the compulation unit that now is on top of the stack and has performed the .include 
+   until it is finished. Then also pop that compilation_unit from the stack.
+
+   When the stack is empty, continue with the next compilation_unit from the make file or the
+   command line parameters.
+
+   When there are no more compulation units, done!
+
+-- At this point, there is a global symbol table that contains the latest addresses, values and source file for 
+   all jump labels and symbol names.
+   There is a huge global list of all instructions.
+   Some of those instructions do not contain correct addresses yet.
+
+   Go through all instructions that perform a jump or process a symbol that is not yet containing a 
+   correct address. Fill in the correct address.
+
+-- Now, all instructions are ready for code generation
+
+   Perform encoding of all records into a code segment.
+
+   Simulate the code segment
+
+=== Implementing ===
+
+First parse individual .asm files and .include files into compulation_units with their local symbol tables.
+- define all structs (CompilationUnit, SymbolTableEntry)
+
+Then implement the processing of compilation_units into one large assembler_record list.
+
+Test code: label_include_test.asm, label_include.inc
 
 
 == Description of the Problem with Variable Names ==
@@ -56,14 +173,14 @@ required right then and there because there is no second phase.
 
 But The address is only
 known after all instructions have been analysed because for each instruction, the size
-in bytes can be known (because the sizes are fixed and pre-determined). So the assembler
-has to got down that source code through each instruction sum up their sizes in bytes
+in bytes is be known (because the sizes are fixed and pre-determined). So the assembler
+has to go down the source code through each instruction and sum up their sizes in bytes
 until it detects the variable definition and it's variable name and at that point it
 can accumulate all the byte sizes before that point to find the address of the variable
-in flash memory.
+in .cseg/flash memory.
 
-This is impossible to do in a single pass!
+This is impossible to do in a single pass without extensive use of data structures!
 
 Once the variables address is known, this value can be used to resolve the expression
-into a hard address number that can be written in to the AsmRecord that is then the 
-input to encoding.
+into a hard address number that can be written in to the AsmRecord which is then the 
+input to the encoding phase.

@@ -27,7 +27,6 @@ use crate::parser::assemblerparser::ParamContext;
 use crate::parser::assemblervisitor::assemblerVisitorCompat;
 use crate::DSEG_HASHMAP;
 use crate::CSEG_HASHMAP;
-use crate::HIGH;
 use antlr_rust::tree::ParseTree;
 
 use super::segment_mode::SegmentMode;

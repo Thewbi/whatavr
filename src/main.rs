@@ -6,6 +6,8 @@ mod instructions;
 mod parser;
 mod common;
 
+use std::fs;
+use std::rc::Rc;
 use std::collections::HashMap;
 use std::io;
 use std::io::Cursor;
@@ -20,9 +22,6 @@ use common::common_constants::RAMEND;
 use env_logger::{Builder, Target};
 use instructions::instruction_definition::InstructionDefinition;
 use log::LevelFilter;
-
-use std::fs;
-use std::rc::Rc;
 
 use crate::assembler::asm_encoder::AsmEncoder;
 use crate::assembler::asm_visitor_new::NewAssemblerVisitor;
@@ -72,9 +71,10 @@ lazy_static! {
 // antlr lab
 //
 // cargo build
-// cargo run
 // cargo run --bin build_parser
 // cargo run --bin whatavr
+//
+// cargo run
 //
 // cargo fmt
 fn main() -> io::Result<()> {
@@ -318,13 +318,13 @@ fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>) -> [u8; RAMEND
     //asm_file_path.push_str("test_resources/sample_files/asm/preprocessor.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/push_pop.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/ret_test.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/str_length.asm");
+    asm_file_path.push_str("test_resources/sample_files/asm/str_length.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/scratchpad.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/scratchpad_2.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/setup_stack.asm"); // regression test
     //asm_file_path.push_str("test_resources/sample_files/asm/timer_polling_example.asm");
     //asm_file_path.push_str("C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/avrasm/inc/m328Pdef.inc");
-    asm_file_path.push_str("test_resources/sample_files/asm/hwnp_excercise_1.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/hwnp_excercise_1.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/st_std_test.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/stack_test.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/pin_change_interrupt_demo.asm");
@@ -459,6 +459,17 @@ fn parse_and_encode(segments: &mut Vec<Segment>, input_stream: InputStream<&str>
     log::info!("*************************************************\n");
 
     // todo
+    // determine symbols in the current file and all included files (.include)
+    // have a large buffer of instructions
+    // have a address for each label
+    // have a filepath and a line number for each label (to know where the label is defined)
+
+    // label visitor
+    let mut label_visitor: LabelAssemblerVisitor = LabelAssemblerVisitor::default();
+    label_visitor.record.clear();
+
+    let label_visitor_result = label_visitor.visit(&*root);
+    log::trace!("{:?}\n", label_visitor_result);
 
     log::info!("*************************************************\n");
     log::info!("Phase - AST Visiting - Second Phase - Collecting instruction paramters\n");
@@ -545,13 +556,13 @@ fn dissassemble() -> io::Result<()> {
     //let hex: bool = false;
     //if hex {
 
-        let mut segments: Vec<Segment> = Vec::new();
+    let mut segments: Vec<Segment> = Vec::new();
     load_segment_from_hex_file(&mut segments);
 
-        // // DEBUG dump parsed segments
-        // for seg in segments.iter_mut() {
-        //     log::info!("Segment: {}", seg);
-        // }
+    // // DEBUG dump parsed segments
+    // for seg in segments.iter_mut() {
+    //     log::info!("Segment: {}", seg);
+    // }
 
     const DISSASSEMBLE: bool = false;
     if DISSASSEMBLE {
@@ -577,26 +588,26 @@ fn dissassemble() -> io::Result<()> {
         // disassenble the entire segment
         //
 
-            let mut rdr = Cursor::new(&segment_0.data);
-            while index < segment_0.data.len() {
+        let mut rdr = Cursor::new(&segment_0.data);
+        while index < segment_0.data.len() {
 
-                let word: u16 = rdr.read_u16::<LittleEndian>().unwrap().into();
-                index += 2;
+            let word: u16 = rdr.read_u16::<LittleEndian>().unwrap().into();
+            index += 2;
 
-                log::trace!("word: {:#06x} {:b}\n", word, word);
+            log::trace!("word: {:#06x} {:b}\n", word, word);
 
-                let mut value_storage: HashMap<char, u16> = HashMap::new();
-                let instruction: &InstructionDefinition =
-                    decode_instruction(word, INSTRUCTIONS, &UNKNOWN, &mut value_storage);
+            let mut value_storage: HashMap<char, u16> = HashMap::new();
+            let instruction: &InstructionDefinition =
+                decode_instruction(word, INSTRUCTIONS, &UNKNOWN, &mut value_storage);
 
-                log::info!("instruction {:?}\n", instruction.instruction_type);
-                if instruction.instruction_type == InstructionType::EOR
-                    || instruction.instruction_type == InstructionType::CLR
-                {
-                    log::info!(
-                        "EOR and CLR similar. CLI is implemented by EOR the register with itself!\n"
-                    );
-                }
+            log::info!("instruction {:?}\n", instruction.instruction_type);
+            if instruction.instruction_type == InstructionType::EOR
+                || instruction.instruction_type == InstructionType::CLR
+            {
+                log::info!(
+                    "EOR and CLR similar. CLI is implemented by EOR the register with itself!\n"
+                );
+            }
 
             // produce output of the disassembly process
                 match_instruction(

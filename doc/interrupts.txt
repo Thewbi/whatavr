@@ -1,3 +1,157 @@
+== System Boot ==
+
+From: Atmel-7810-Automotive-Microcontrollers-ATmega328P_Datasheet.pdf
+
+Program flash memory space is divided in two sections, the boot program section and the application program section. Both 
+sections have dedicated lock bits for write and read/write protection. The SPM instruction that writes into the application flash 
+memory section must reside in the boot program section.
+
+During interrupts and subroutine calls, the return address program counter (PC) is stored on the stack. The stack is 
+effectively allocated in the general data SRAM, and consequently the stack size is only limited by the total SRAM size and 
+the usage of the SRAM. All user programs must initialize the SP in the reset routine (before subroutines or interrupts are 
+executed). The stack pointer (SP) is read/write accessible in the I/O space. The data SRAM can easily be accessed through 
+the five different addressing modes supported in the AVR architecture.
+
+A flexible interrupt module has its control registers in the I/O space with an additional global interrupt enable bit in the status 
+register. All interrupts have a separate interrupt vector in the interrupt vector table. The interrupts have priority in accordance 
+with their interrupt vector position. The lower the interrupt vector address, the higher the priority.
+
+The lowest addresses in the program memory space are by default defined as the reset and interrupt vectors. The complete 
+list of vectors is shown in Section 11. “Interrupts” on page 49. The list also determines the priority levels of the different 
+interrupts. The lower the address the higher is the priority level. RESET has the highest priority, and next is INT0 – the 
+external interrupt request 0. 
+
+Interrupt Vectors in ATmega328P
+Table 11-1. Reset and Interrupt Vectors in ATmega328P
+Vector No.   Program Address   Source   Interrupt Definition
+1            0x0000            RESET    External pin, power-on reset, brown-out reset and watchdog system reset
+2            0x0002            INT0     External interrupt request 0
+3            0x0004            INT1     External interrupt request 1
+4 0x0006 PCINT0 Pin change interrupt request 0
+5 0x0008 PCINT1 Pin change interrupt request 1
+6 0x000A PCINT2 Pin change interrupt request 2
+7 0x000C WDT Watchdog time-out interrupt
+8 0x000E TIMER2 COMPA Timer/Counter2 compare match A
+9 0x0010 TIMER2 COMPB Timer/Counter2 compare match B
+10 0x0012 TIMER2 OVF Timer/Counter2 overflow
+11 0x0014 TIMER1 CAPT Timer/Counter1 capture event
+12 0x0016 TIMER1 COMPA Timer/Counter1 compare match A
+13 0x0018 TIMER1 COMPB Timer/Counter1 compare match B
+14 0x001A TIMER1 OVF Timer/Counter1 overflow
+15 0x001C TIMER0 COMPA Timer/Counter0 compare match A
+16 0x001E TIMER0 COMPB Timer/Counter0 compare match B
+17 0x0020 TIMER0 OVF Timer/Counter0 overflow
+18 0x0022 SPI, STC SPI serial transfer complete
+19 0x0024 USART, RX USART Rx complete
+20 0x0026 USART, UDRE USART, data register empty
+21 0x0028 USART, TX USART, Tx complete
+22 0x002A ADC ADC conversion complete
+23 0x002C EE READY EEPROM ready
+24 0x002E ANALOG COMP Analog comparator
+25 0x0030 TWI 2-wire serial interface
+26 0x0032 SPM READY Store program memory ready
+
+Table 11-2 shows reset and interrupt vectors placement for the various combinations of BOOTRST and IVSEL settings. If the 
+program never enables an interrupt source, the interrupt vectors are not used, and regular program code can be placed at 
+these locations. This is also the case if the reset vector is in the application section while the interrupt vectors are in the boot 
+section or vice versa.
+
+Reset and Interrupt Vectors Placement in ATmega328P(1)
+BOOTRST   IVSEL   Reset Address         Interrupt Vectors Start Address
+1         0       0x000                 0x002
+1         1       0x000                 Boot reset address + 0x0002
+0         0       Boot reset address    0x002
+0         1       Boot reset address    Boot reset address + 0x0002
+Note: 1. For the BOOTRST fuse “1” means unprogrammed while “0” means programmed.
+
+Given all the information outlined above, the startup process is:
+When the pins BOOTRST is 1 and IVSEL is 0, then the CPU will start processing at adress 0x0000 in 
+.cseg / flash memory.
+
+At 0x0000 per convention a programmer may place the interrupt vector table. It consist of
+jmp instructions (2 byte) that jump to the interrupt handler code / routine for that specific interrupt.
+At address 0x0000, where the CPU starts executing from, the RESET handler is placed. Therefore
+the CPU will usually start with the RESET handler.
+
+If a programmer wants to use interrupts, they have to enable them globally and each individual interrupt
+has to be enabled. Once interrupts are enabled, the CPU will look into the well-known addresses in
+the interrupt vector table and execute the instruction that is located there.
+
+As stated earlier, the programmer might also decide against writing a real interrupt vector table and
+instead just place their application at 0x0000. In this case, enabling interrupt becomes a problem
+because there is no suitable interrupt vector table code located where the CPU looks for interrupt
+handler code!
+
+So either, if you need interrupts, write a correct interrupt vector table or never use interrupts
+if no interrupt vector table is prepared by your code. In both cases, the CPU will start executing
+from address 0x0000.
+
+
+The most typical and general program setup for the reset and interrupt vector addresses in Atmel® ATmega328P is:
+
+```
+Address Labels Code Comments
+0x0000 jmp RESET ; Reset Handler
+0x0002 jmp EXT_INT0 ; IRQ0 Handler
+0x0004 jmp EXT_INT1 ; IRQ1 Handler
+0x0006 jmp PCINT0 ; PCINT0 Handler
+0x0008 jmp PCINT1 ; PCINT1 Handler
+0x000A jmp PCINT2 ; PCINT2 Handler
+0x000C jmp WDT ; Watchdog Timer Handler
+0x000E jmp TIM2_COMPA ; Timer2 Compare A Handler
+0x0010 jmp TIM2_COMPB ; Timer2 Compare B Handler
+0x0012 jmp TIM2_OVF ; Timer2 Overflow Handler
+0x0014 jmp TIM1_CAPT ; Timer1 Capture Handler
+0x0016 jmp TIM1_COMPA ; Timer1 Compare A Handler
+0x0018 jmp TIM1_COMPB ; Timer1 Compare B Handler
+0x001A jmp TIM1_OVF ; Timer1 Overflow Handler
+0x001C jmp TIM0_COMPA ; Timer0 Compare A Handler
+0x001E jmp TIM0_COMPB ; Timer0 Compare B Handler
+0x0020 jmp TIM0_OVF ; Timer0 Overflow Handler
+0x0022 jmp SPI_STC ; SPI Transfer Complete Handler
+0x0024 jmp USART_RXC ; USART, RX Complete Handler
+0x0026 jmp USART_UDRE ; USART, UDR Empty Handler
+0x0028 jmp USART_TXC ; USART, TX Complete Handler
+0x002A jmp ADC ; ADC Conversion Complete Handler
+0x002C jmp EE_RDY ; EEPROM Ready Handler
+0x002E jmp ANA_COMP ; Analog Comparator Handler
+0x0030 jmp TWI ; 2-wire Serial Interface Handler
+0x0032 jmp SPM_RDY ; Store Program Memory Ready Handler
+;
+0x0033 RESET: ldi r16, high(RAMEND); Main program start
+0x0034 out SPH,r16 ; Set Stack Pointer to top of RAM
+0x0035 ldi r16, low(RAMEND)
+0x0036 out SPL,r16
+0x0037 sei ; Enable interrupts
+0x0038 <instr> xxx
+```
+
+
+The interrupt vectors can be moved to the start of the boot flash section by setting the IVSEL bit 
+in the MCU control register (MCUCR). Refer to Section 11. “Interrupts” on page 49 for more information. The reset vector can 
+also be moved to the start of the boot flash section by programming the BOOTRST fuse, see Section 26. “Boot Loader 
+Support – Read-While-Write Self-Programming” on page 229.
+
+The CPU will 
+
+
+
+https://www.quora.com/How-does-the-ATmega328P-startup-code-work
+The startup code provided by avr-gcc does the following:
+
+Clears the status register.
+Sets the stack pointer to the top of SRAM.
+Initialize global variables with non-zero values by copying from program memory.
+Clears the BSS segment (global variables initialized to zero)
+Calls function main()
+disables interrupts
+tight loop jumping to self. (Effectively ends program)
+Note that if you are talking specifically about an Arduino board, there is a separate boot program that does the above and when the boot program determines it isn’t loading a program it jumps to the startup code (same steps as above) for the application.
+
+If your program is written in assembler, it does whatever you want as you provide the startup code. And if you are using another compiler, all bets are off as to what the startup code does.
+
+== Interrupt execution ==
+
 //next steps
         // // check the interrupt queue for a interrupt
         // // but only if the CPU has not executed an interrupt right before.

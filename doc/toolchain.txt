@@ -51,7 +51,7 @@ When using .DB inside the .CSEG (code segment, flash memory) then .ORG and .DB w
 the linker. The reason is that the assembler will just generate a code segment that contains the
 constants as if they where encoded instructions. The code segment is then placed into flash 
 memory during application upload (flashing the flash memory with the code segments) and from 
-thereon, the constants are available in the code segment. Even after any power-cycle.
+there on, the constants are available in the code segment. Even after any power-cycle.
 
 When using the .DB and .ORG assemble instructions inside the data segment (SRAM) then the 
 situation is completely different! The SRAM block is not flashed by the uploader! SRAM

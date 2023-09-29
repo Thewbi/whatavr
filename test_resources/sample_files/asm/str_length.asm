@@ -2,7 +2,10 @@
 
 .cseg                               ; code segments starts here ...
 
-.org 0x0000                         ; Einsprung nach Reset ...
+.org 0x0000                         ; Einsprung nach Reset ... 
+                                    ; CPU starts processing at 0x0000 after power up / reset
+                                    ; Keine interrupts werden enabled, keine interrupt vector tabelle wird bereitgestellt
+                                    ; Es wird einfach direkt der Applications Code ausgeführt.
 
     ;teststring: .db "Hello world", 0
 
