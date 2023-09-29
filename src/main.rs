@@ -302,7 +302,7 @@ fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>) -> [u8; RAMEND
     //asm_file_path.push_str("test_resources/sample_files/asm/asm_3.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/asm_4.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/blinklicht.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/call_and_return.asm"); // regression test
+    asm_file_path.push_str("test_resources/sample_files/asm/call_and_return.asm"); // regression test
     //asm_file_path.push_str("test_resources/sample_files/asm/call_test.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/call_test_2.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/count_bits.asm");
@@ -310,6 +310,7 @@ fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>) -> [u8; RAMEND
     //asm_file_path.push_str("test_resources/sample_files/asm/dseg.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/define_byte.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/excercise.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/expression_test.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/expression.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/inc.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/intrinsic.asm");
@@ -318,7 +319,7 @@ fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>) -> [u8; RAMEND
     //asm_file_path.push_str("test_resources/sample_files/asm/preprocessor.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/push_pop.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/ret_test.asm");
-    asm_file_path.push_str("test_resources/sample_files/asm/str_length.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/str_length.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/scratchpad.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/scratchpad_2.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/setup_stack.asm"); // regression test
@@ -465,11 +466,11 @@ fn parse_and_encode(segments: &mut Vec<Segment>, input_stream: InputStream<&str>
     // have a filepath and a line number for each label (to know where the label is defined)
 
     // label visitor
-    let mut label_visitor: LabelAssemblerVisitor = LabelAssemblerVisitor::default();
-    label_visitor.record.clear();
+    //let mut label_visitor: LabelAssemblerVisitor = LabelAssemblerVisitor::default();
+    //label_visitor.record.clear();
 
-    let label_visitor_result = label_visitor.visit(&*root);
-    log::trace!("{:?}\n", label_visitor_result);
+    //let label_visitor_result = label_visitor.visit(&*root);
+    //log::trace!("{:?}\n", label_visitor_result);
 
     log::info!("*************************************************\n");
     log::info!("Phase - AST Visiting - Second Phase - Collecting instruction paramters\n");

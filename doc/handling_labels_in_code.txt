@@ -18,26 +18,31 @@ Phase 6. Execution of the bytes in the segment by the emulated CPU
 
 == Alternative Approach of handling include files and labels ==
 
-A make file or command line parameter lists all .asm files that should be combined during assembly.
-For each filepath a CompilationUnit struct is created and the filepath to the .asm file is inserted into
-the compilation unit.
+1. A make file or command line parameter lists all .asm files that should be combined during assembly.
+   For each filepath a CompilationUnit struct is created and the filepath to the .asm file is inserted into
+   the compilation unit.
 
-Place all those CompilationUnits on the compilation_unit FIFO queue.
-The CompilationUnit for the main.asm file has to be the first CompilationUnit placed into the FIFO queue so
-it is processed first. 
+1. Place all those CompilationUnits on the compilation_unit FIFO queue.
+   The CompilationUnit for the main.asm file has to be the first CompilationUnit placed into the FIFO queue so
+   it is processed first. 
 
 1. The first CompilationUnit is retrieved from the compilation_unit FIFO queue
+
 2. It is made the current compilation unit.
    It contains the filepath to the .asm/.inc file it was loaded from.
    It contains an empty symbol table. Each symbol entry is a struct { source_file, symbol_name, address, value }
+
 3. Usages of unknown labels are entered into the symbol table without source_file and address and value.
    When there is no known definition of the symbol, source_file and value remain empty. 
    The address of all symbols remains empty, because the address is not known yet.
+
 4. When the current compilation_unit defines a symbol with a value, then source_file, symbol_name and value are filled and
    the symbol is placed into the symbol table of the current compilation unit. The symbol table entry is flagged as
    a definition of a symbol (as opposed to a usage of a symbol).
-5. When a .include is encountered. That .include is turned into a compilation_unit strcut with the filename of the
+
+5. When a .include is encountered. That .include is turned into a compilation_unit struct with the filename of the
    .include file and the compilation_unit is placed onto the compilation_unit FIFO queue.
+
 6. When the current compilation unit is processed, if the include_queue is empty -> goto 7
    If there is an entry inside the include_queue, remove it from the queue, check if this compilation unit has been processed 
    already.
@@ -76,7 +81,10 @@ it is processed first.
    turned into an assembly instruction. The symbols are added into the symbol table.
    A include might add real code, then create assembly records and place them onto the global list of
    assembly records.
-   include might define jump label symbols, add those into the global symbol table along with the address
+   TODO: find a solution for ldi ZH, HIGH(teststring * 2). The assembly record has to contain the tree
+   which models the HIGH(teststring * 2) expression since this expression has to be evaluated shortly
+   before encoding and after the address of the symbol teststring is known!
+   A include might define jump label symbols, add those into the global symbol table along with the address
    stored in the address_ptr.
    
    This starts a recursive process of .include that might in turn contain .include all while a .asm
@@ -130,6 +138,44 @@ First parse individual .asm files and .include files into compulation_units with
 Then implement the processing of compilation_units into one large assembler_record list.
 
 Test code: label_include_test.asm, label_include.inc
+
+TODO: find a solution for ldi ZH, HIGH(teststring * 2). The assembly record has to contain the tree
+   which models the HIGH(teststring * 2) expression since this expression has to be evaluated shortly
+   before encoding and after the address of the symbol teststring is known!
+
+
+
+== Alternative solution ==
+
+Phase 1 - from .asm to lines
+
+go through each .asm file and from each line create a corresponsing line record and insert it into a global line list
+except for .include lines which are recursively resolved (use stack to detect cycles)
+
+DEBUG - lock at the list of lines and make sure the resolution of the .includes did work
+Make sure each line has a pointer to the file that they have been retrieved from.
+Make sure expressions are inserted in the form of trees ldi r25, 3 * (17 + 18)
+must be:   * 
+          /  \
+         3    +
+              /\
+            17  18
+
+Phase 2 - insert adresses
+go through the line list and for each .org statement move the address_ptr and for each assembly instruction
+increase the address_ptr by the instruction's size in bytes
+Add the addresses to each line that contains a assembler instruction
+for labels of resolved bytes in memory, store the current adress_ptr value into the symbol table for that symbol.
+
+DEBUG - make sure that the address of each line is correct. Test with several .org instructions that move the address around
+
+Phase 3 - evaluate all expression trees using all values and addressees in the symbol table.
+To perform this evaluation, iterate over all list entries on the global line list and update the symbol table
+with each eentry. evaluate expressions on each line given the current symbol table.
+
+DEBUG look at the final assembly and make sure that all addresses anv evaluated values are correct.
+Test with overriding variable several times and evaluate expressions using those different values-
+
 
 
 == Description of the Problem with Variable Names ==

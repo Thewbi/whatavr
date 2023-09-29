@@ -8,25 +8,30 @@ use std::process::Command;
 // Then execute:
 // cargo run --bin build_parser
 fn main() {
+
+    // this is the path to the assembler_parser.g4 file relative to the current working directory
     let grammars = vec![
-        //"../parser/assembler",
-        "../../src/parser/assembler", // this is the path to the assembler.g4 file relative to the current working directory
+        "../../src/parser/assembler",
     ];
     let additional_args = vec![Some("-visitor")];
     let antlr_path = "../../resources/antlr4/antlr4-4.8-2-SNAPSHOT-complete.jar";
 
     for (grammar, arg) in grammars.into_iter().zip(additional_args) {
+
+        let lexer_file_name = grammar.to_owned() + "_lexer.g4";
+        let parser_file_name = grammar.to_owned() + "_parser.g4";
+
         // ignoring error because we do not need to run anything when deploying to crates.io
-        let _ = gen_for_grammar(grammar, antlr_path, arg);
+        let _ = gen_for_grammar(&lexer_file_name, &parser_file_name, antlr_path, arg);
     }
 
     //println!("cargo:rerun-if-changed=build.rs");
-
     //println!("cargo:rerun-if-changed=../../resources/antlr4/antlr4-4.8-2-SNAPSHOT-complete.jar");
 }
 
 fn gen_for_grammar(
-    grammar_file_name: &str,
+    lexer_file_name: &str,
+    parser_file_name: &str,
     _antlr_path: &str,
     additional_arg: Option<&str>,
 ) -> Result<(), Box<dyn Error>> {
@@ -35,8 +40,6 @@ fn gen_for_grammar(
 
     //let input = env::current_dir().unwrap().join("parser");
     let input = env::current_dir().unwrap().join("resources").join("antlr4");
-
-    let file_name = grammar_file_name.to_owned() + ".g4";
 
     let _c = Command::new("java")
         .current_dir(input) // this sets the pwd (current working directory) of the command call
@@ -49,7 +52,8 @@ fn gen_for_grammar(
         .arg("-o")
         //.arg("../tests/gen")
         .arg("../../src/parser") // this is the folder where the generated files are placed
-        .arg(&file_name)
+        .arg(&lexer_file_name)
+        .arg(&parser_file_name)
         .args(additional_arg)
         .spawn()
         .expect("antlr tool failed to start")

@@ -30,8 +30,13 @@ main:
      # uses the RAMEND variable defined in "label_include.inc"
     ldi r24, HIGH(RAMEND)
 
+    # random normal instruction, nothing special
     clr r24
+
     # teststring is used before it's address is defined!
+    # TODO: find a solution for ldi ZH, HIGH(teststring * 2). The assembly record has to contain the tree
+    # which models the HIGH(teststring * 2) expression since this expression has to be evaluated shortly
+    # before encoding and after the address of the symbol teststring is known!
     ldi ZH, HIGH(teststring * 2)
 
 # teststring is used before it's address is defined!
