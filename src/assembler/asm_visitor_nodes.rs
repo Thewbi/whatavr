@@ -425,6 +425,20 @@ impl<'i> NodeAssemblerVisitor {
             asm_record.line = line;
             asm_record.column = column;
 
+            for i in 2..assembler_directive.len()
+            {
+                let temp = assembler_directive[i].value.as_bytes();
+
+                if temp[0] == b'\"'
+                {
+                    asm_record.direct_data = [asm_record.direct_data.as_slice(), &temp[1..(temp.len() - 1usize)]].concat();
+                }
+                else 
+                {
+                    asm_record.direct_data = [asm_record.direct_data.as_slice(), &temp].concat();
+                }
+            }
+
             self.records.push(asm_record);
 
         } else if "dseg".eq(&asm_directive) {
@@ -489,7 +503,7 @@ impl<'i> NodeAssemblerVisitor {
 
     pub fn process_instruction(&mut self, visit_children_result: &Vec<Node<String>>, line: isize, column: isize)
     {
-        log::info!("cr: {:?}\n", visit_children_result);
+        //log::info!("cr: {:?}\n", visit_children_result);
 
         let mut asm_record: AsmRecord = AsmRecord::default();
         asm_record.source_file = self.source_file.clone();
@@ -691,6 +705,62 @@ impl<'i> NodeAssemblerVisitor {
         self.records.push(asm_record);
 
     }
+
+    fn process_asm_intrinsic_usage(&mut self, visit_children_result: Vec<Node<String>>) -> Vec<Node<String>>
+    {
+        //log::info!("cr: {:?}\n", visit_children_result);
+
+        let mut node_vector: Vec<Node<String>> = Vec::new();
+
+        let mut binary_tree: Node<String> = Node::new(visit_children_result[0].value.clone());
+        binary_tree.expression = true;
+
+        return vec![binary_tree.left(visit_children_result[2].clone())];
+
+        // let var_name = &visit_children_result[2].value;
+
+        // let mut cseg_map = CSEG_HASHMAP.lock().unwrap();
+        // if cseg_map.contains_key(var_name)
+        // {
+        //     let var_value = cseg_map.get(var_name).unwrap();
+
+        //     let var_as_u16:u16 = number_literal_to_u16(var_value);
+
+        //     match visit_children_result[0].as_str() {
+        //         "LOW" => {
+        //             let low_value: u16 = crate::LOW!(var_as_u16);
+        //             return vec![low_value.to_string().clone()];
+        //         }
+        //         "HIGH" => {
+        //             let high_value: u16 = crate::HIGH!(var_as_u16);
+        //             return vec![high_value.to_string().clone()];
+        //         }
+        //         _ => panic!("Unknown!"),
+        //     }
+        // }
+
+        // let mut dseg_map = DSEG_HASHMAP.lock().unwrap();
+        // if dseg_map.contains_key(var_name)
+        // {
+        //     let var_value = dseg_map.get(var_name).unwrap();
+        //     match visit_children_result[0].as_str() {
+        //         "LOW" => {
+        //             let low_value: u16 = crate::LOW!(var_value);
+        //             return vec![low_value.to_string().clone()];
+        //         }
+        //         "HIGH" => {
+        //             let high_value: u16 = crate::HIGH!(var_value);
+        //             return vec![high_value.to_string().clone()];
+        //         }
+        //         _ => panic!("Unknown!"),
+        //     }
+        // }
+
+        // panic!("Unresolved symbol in AST visiting phase: {:?}", visit_children_result);
+
+        visit_children_result
+    }
+
 }
 
 impl<'i> ParseTreeVisitorCompat<'i> for NodeAssemblerVisitor {
@@ -780,7 +850,7 @@ impl<'i> assemblerVisitorCompat<'i> for NodeAssemblerVisitor {
         let visit_children_result = self.visit_children(ctx);
         self.ascend_indent();
 
-        log::info!("{:?}\n", visit_children_result[2]);
+        //log::info!("{:?}\n", visit_children_result[2]);
 
         let tok: Ref<'_, GenericToken<Cow<'_, str>>> = ctx.start();
 
@@ -809,23 +879,11 @@ impl<'i> assemblerVisitorCompat<'i> for NodeAssemblerVisitor {
         ctx: &parser::assemblerparser::Asm_instrinsic_instructionContext<'i>) -> Self::Return 
     {
         let tok: Ref<'_, GenericToken<Cow<'_, str>>> = ctx.start();
-        log::info!("TOK {:?}\n", tok);
-        log::info!("TOK.line {:?}\n", tok.line);
-        log::info!("TOK.column {:?}\n", tok.column);
-
-        //let b = Box::new(ctx.start());
-
-        //let generic_token: dyn Token = ctx.start() as Token;
-        //let generic_token = ctx.start() as ParserRuleContext;
-        //generic_token.
-        //ctx.
-
-        //let generic_token =  ctx.start().deref() as GenericToken<dyn CustomRuleContext>;
-        //let generic_token =  ctx.start().deref();
-        //generic_token.
-
-        //ctx.file();
-        log::info!("visit_asm_instrinsic_instruction CTX {:?} {:?} {:?}\n", self.source_file, ctx.start(), ctx.start().get_token_index());
+        //log::info!("TOK {:?}\n", tok);
+        //log::info!("TOK.line {:?}\n", tok.line);
+        //log::info!("TOK.column {:?}\n", tok.column);
+        
+        //log::info!("visit_asm_instrinsic_instruction CTX {:?} {:?} {:?}\n", self.source_file, ctx.start(), ctx.start().get_token_index());
 
         self.descend_indent("visit_asm_instrinsic_instruction");
         let visit_children_result = self.visit_children(ctx);
@@ -845,7 +903,6 @@ impl<'i> assemblerVisitorCompat<'i> for NodeAssemblerVisitor {
         visit_children_result
     }
 
-    /*
     fn visit_asm_intrinsic_usage(&mut self, ctx: &parser::assemblerparser::Asm_intrinsic_usageContext<'i>) -> Self::Return {
         self.descend_indent("visit_asm_intrinsic_usage");
         let visit_children_result = self.visit_children(ctx);
@@ -854,7 +911,7 @@ impl<'i> assemblerVisitorCompat<'i> for NodeAssemblerVisitor {
         log::info!("cr: {:?}\n", visit_children_result);
 
         self.process_asm_intrinsic_usage(visit_children_result)
-    } */
+    }
 
     fn visit_expression(&mut self, ctx: &parser::assemblerparser::ExpressionContext<'i>) -> Self::Return 
     {
@@ -862,7 +919,7 @@ impl<'i> assemblerVisitorCompat<'i> for NodeAssemblerVisitor {
         let mut visit_children_result = self.visit_children(ctx);
         self.ascend_indent();
 
-        log::info!("{:?}\n", visit_children_result);
+        //log::info!("{:?}\n", visit_children_result);
 
         if visit_children_result.len() == 1usize {
 

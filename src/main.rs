@@ -498,9 +498,11 @@ fn parse_and_encode(segments: &mut Vec<Segment>, input_stream: InputStream<&str>
     log::info!("Phase - DEBUG - ALL RECORDS\n");
     log::info!("*************************************************\n");
 
+    log::info!("\n");
     let mut idx: u32 = 0u32;
     for asm_record in visitor.records.iter_mut() {
         log::info!("{:?}\n", asm_record);
+        log::info!("\n");
     }
 
     log::info!("*************************************************\n");
