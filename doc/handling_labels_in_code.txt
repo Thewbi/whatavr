@@ -149,7 +149,7 @@ TODO: find a solution for ldi ZH, HIGH(teststring * 2). The assembly record has 
 
 Phase 1 - from .asm to lines
 
-go through each .asm file and from each line create a corresponsing line record and insert it into a global line list
+Go through each .asm file and from each line create a corresponsing line record and insert it into a global line list
 except for .include lines which are recursively resolved (use stack to detect cycles)
 
 DEBUG - lock at the list of lines and make sure the resolution of the .includes did work
@@ -161,20 +161,45 @@ must be:   *
               /\
             17  18
 
+
+
 Phase 2 - insert adresses
-go through the line list and for each .org statement move the address_ptr and for each assembly instruction
-increase the address_ptr by the instruction's size in bytes
-Add the addresses to each line that contains a assembler instruction
-for labels of resolved bytes in memory, store the current adress_ptr value into the symbol table for that symbol.
+
+Go through the line list and for each .org assembler instruction move the address_ptr and for each assembly instruction
+increase the address_ptr by the instruction's size in bytes.
+
+After a .org assembler instruction has been applied, the corresponding assembler_record
+has to be removed from the list since during the encoding phase it will not be encoded into machine code and it
+has a instruction type of UNKNOWN which causes a panic!()
+
+Add the addresses to each line that contains a assembler instruction.
+
+For labels of resolved bytes in memory, store the current adress_ptr value into the symbol table for that symbol.
 
 DEBUG - make sure that the address of each line is correct. Test with several .org instructions that move the address around
 
+
+
 Phase 3 - evaluate all expression trees using all values and addressees in the symbol table.
+
 To perform this evaluation, iterate over all list entries on the global line list and update the symbol table
-with each eentry. evaluate expressions on each line given the current symbol table.
+with each entry. 
+
+After the symbol table was updated by a assembler instruction such as equ or def the assembler_record
+has to be removed from the list since during the encoding phase it will not be encoded into machine code and it
+has a instruction type of UNKNOWN which causes a panic!()
+
+Evaluate expressions on each line given the current symbol table. (Call the evaluate method
+on each line))
 
 DEBUG look at the final assembly and make sure that all addresses anv evaluated values are correct.
 Test with overriding variable several times and evaluate expressions using those different values-
+
+
+
+
+PHASE 4 - encoding
+pass the list of assembly records to the encoder
 
 
 

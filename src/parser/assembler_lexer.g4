@@ -221,7 +221,8 @@ WS : [ \t\n\r\f]+ -> skip  ;
 //LINE_COMMENT : ';' ~[\r\n]* -> channel(HIDDEN) ;
 LINE_COMMENT 
     : 
-    ';' ~[\r\n]* -> skip 
+    //( ';' | HASH_TAG ) ~[\r\n]* -> skip // hashtag is reserved for the preprocessor
+    ( ';' ) ~[\r\n]* -> skip 
     ;
 
 //BLOCK_COMMENT 

@@ -5,6 +5,21 @@ use std::fmt;
 #[derive(Default)]
 pub enum AsmRecordType {
 
+    BYTE,
+
+    // assembler directive CSEG
+    CSEG,
+
+    DB,
+
+    DSEG,
+
+    DEF,
+
+    DEVICE,
+
+    EQU,
+
     // for instructions
     INSTRUCTION,
 

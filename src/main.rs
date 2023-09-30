@@ -169,14 +169,14 @@ fn load_segment_from_listing_file(segments: &mut Vec<Segment>) -> [u8; RAMEND as
     // let input_stream: InputStream<&str> = InputStream::new(data.as_str());
 
     // open the file in read-only mode (ignoring errors).
-    let file = File::open(lss_file_path).unwrap();
+    let file = File::open(lss_file_path.clone()).unwrap();
     let reader = BufReader::new(file);
 
     let mut string_buffer = String::new();
 
     // read the file line by line using the lines() iterator from std::io::BufRead.
     let mut idx: u32 = 1u32;
-    for (index, line) in reader.lines().enumerate() {
+    for (_index, line) in reader.lines().enumerate() {
 
         // ignore errors
         let line = line.unwrap();
@@ -224,7 +224,7 @@ fn load_segment_from_listing_file(segments: &mut Vec<Segment>) -> [u8; RAMEND as
 
     let input_stream: InputStream<&str> = InputStream::new(string_buffer.as_str());
 
-    parse_and_encode(segments, input_stream)
+    parse_and_encode(segments, input_stream, lss_file_path.clone())
 
     //Ok(())
 }
@@ -302,10 +302,12 @@ fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>) -> [u8; RAMEND
     //asm_file_path.push_str("test_resources/sample_files/asm/asm_3.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/asm_4.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/blinklicht.asm");
-    asm_file_path.push_str("test_resources/sample_files/asm/call_and_return.asm"); // regression test
+    //asm_file_path.push_str("test_resources/sample_files/asm/call_and_return.asm"); // regression test
     //asm_file_path.push_str("test_resources/sample_files/asm/call_test.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/call_test_2.asm");
+
     //asm_file_path.push_str("test_resources/sample_files/asm/count_bits.asm");
+
     //asm_file_path.push_str("test_resources/sample_files/asm/def_assembler_directive.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/dseg.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/define_byte.asm");
@@ -316,6 +318,7 @@ fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>) -> [u8; RAMEND
     //asm_file_path.push_str("test_resources/sample_files/asm/intrinsic.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/jmp_instruction.asm"); // problem
     //asm_file_path.push_str("test_resources/sample_files/asm/jmp.asm"); // good for regression test (will increment r17 until overflow)
+    asm_file_path.push_str("test_resources/sample_files/asm/label_include_test.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/preprocessor.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/push_pop.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/ret_test.asm");
@@ -392,7 +395,7 @@ fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>) -> [u8; RAMEND
 
     let input_stream: InputStream<&str> = InputStream::new(data.as_str());
 
-    parse_and_encode(segments, input_stream)
+    parse_and_encode(segments, input_stream, asm_file_path.clone())
 
 }
 
@@ -426,7 +429,7 @@ fn load_segment_from_hex_file(segments: &mut Vec<Segment>) -> io::Result<()>
     Ok(())
 }
 
-fn parse_and_encode(segments: &mut Vec<Segment>, input_stream: InputStream<&str>) -> [u8; RAMEND as usize] 
+fn parse_and_encode(segments: &mut Vec<Segment>, input_stream: InputStream<&str>, source_file: String) -> [u8; RAMEND as usize] 
 {
     //
     // Phase - AST Creation (Grammar Lexing and Parsing)
@@ -465,23 +468,41 @@ fn parse_and_encode(segments: &mut Vec<Segment>, input_stream: InputStream<&str>
     // have a address for each label
     // have a filepath and a line number for each label (to know where the label is defined)
 
-    // label visitor
-    //let mut label_visitor: LabelAssemblerVisitor = LabelAssemblerVisitor::default();
-    //label_visitor.record.clear();
+    // // Line visitor
+    // let mut line_visitor: LineAssemblerVisitor = LineAssemblerVisitor::default();
+    // line_visitor.record.clear();
 
-    //let label_visitor_result = label_visitor.visit(&*root);
-    //log::trace!("{:?}\n", label_visitor_result);
+    // let line_visitor_result = line_visitor.visit(&*root);
+    // log::trace!("{:?}\n", line_visitor_result);
 
     log::info!("*************************************************\n");
-    log::info!("Phase - AST Visiting - Second Phase - Collecting instruction paramters\n");
+    log::info!("Phase - AST Visiting - Second Phase - Collecting instruction parameters\n");
     log::info!("*************************************************\n");
 
     // new visitor
     let mut visitor: NewAssemblerVisitor = NewAssemblerVisitor::default();
+    visitor.source_file = source_file.clone();
     visitor.record.clear();
 
     let visitor_result = visitor.visit(&*root);
     log::trace!("{:?}\n", visitor_result);
+
+    //
+    // DEBUG - output all records
+    //
+
+    log::info!("*************************************************\n");
+    log::info!("Phase - DEBUG - ALL RECORDS\n");
+    log::info!("*************************************************\n");
+
+    let mut idx: u32 = 0u32;
+    for asm_record in visitor.records.iter_mut() {
+        log::info!("{:?}\n", asm_record);
+    }
+
+    log::info!("*************************************************\n");
+    log::info!("Phase - DEBUG - ALL RECORDS - END END END END END\n");
+    log::info!("*************************************************\n");
 
     //
     // Phase - Encoding

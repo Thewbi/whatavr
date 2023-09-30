@@ -28,6 +28,10 @@ pub struct AsmRecord {
 
     pub direct_data: Vec<u8>,
 
+    pub source_file: String,
+    pub line: isize,
+    pub column: isize,
+
 }
 
 impl AsmRecord {
@@ -42,6 +46,9 @@ impl AsmRecord {
         target_label: String,
         target_address: i16,
         io_dest: IoDestination,
+        source_file: String,
+        line: isize,
+        column: isize,
     ) -> AsmRecord {
         AsmRecord {
             record_type: record_type,
@@ -55,6 +62,9 @@ impl AsmRecord {
             io_dest: io_dest,
             idx: 0u32,
             direct_data: Vec::default(),
+            source_file: source_file,
+            line: line,
+            column: column,
         }
     }
 
@@ -70,6 +80,9 @@ impl AsmRecord {
         self.io_dest = IoDestination::UNKNOWN;
         self.idx = u32::default();
         self.direct_data = Vec::default();
+        self.source_file = String::default();
+        self.line = isize::default();
+        self.column = isize::default();
     }
 
     pub fn set_idx(&mut self, idx: u32) {
@@ -92,19 +105,23 @@ impl Default for AsmRecord {
             io_dest: IoDestination::UNKNOWN,
             idx: u32::default(),
             direct_data: Vec::default(),
+            source_file: String::default(),
+            line: isize::default(),
+            column: isize::default(),
         }
     }
 }
 
 impl fmt::Display for AsmRecord {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "(idx:{:<4}{:#04x}, label:{:<10}, itype:{:<5}, reg_1:{:<3} {:#04x}, reg_2:{:<3} {:#04x}, data:{} {:#04x}, tgt_label:{}, tgt_addr:{})", 
+        write!(f, "(idx:{:<4}{:#04x}, label:{:<10}, itype:{:<5}, reg_1:{:<3} {:#04x}, reg_2:{:<3} {:#04x}, data:{} {:#04x}, tgt_label:{}, tgt_addr:{}, source_file:{}, line:{}, column:{})", 
             self.idx, self.idx,
             self.label, 
             self.instruction_type.to_string(),
             self.reg_1, self.reg_1,
             self.reg_2, self.reg_2,
             self.data, self.data,
-            self.target_label, self.target_address)
+            self.target_label, self.target_address,
+            self.source_file, self.line, self.column)
     }
 }

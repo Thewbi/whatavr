@@ -254,17 +254,23 @@ impl<'i> assemblerVisitorCompat<'i> for DefaultAssemblerVisitor {
         // force a NOP operation and place the label onto that NOP operation
         if self.label != "" {
 
+            // // create a new record
+            // let asm_record: AsmRecord = AsmRecord::new(
+            //     super::asm_record_type::AsmRecordType::UNKNOWN,
+            //     self.label.clone(), 
+            //     InstructionType::NOP, 
+            //     0xFF, 
+            //     0xFF, 
+            //     0, 
+            //     String::from(""), 
+            //     0x00i16,
+            //     IoDestination::UNKNOWN,
+            //     String::from("unknown_line_A"));
+
             // create a new record
-            let asm_record: AsmRecord = AsmRecord::new(
-                super::asm_record_type::AsmRecordType::UNKNOWN,
-                self.label.clone(), 
-                InstructionType::NOP, 
-                0xFF, 
-                0xFF, 
-                0, 
-                String::from(""), 
-                0x00i16,
-                IoDestination::UNKNOWN);
+            let mut asm_record: AsmRecord = AsmRecord::default();
+            asm_record.label = self.label.clone();
+            asm_record.instruction_type = InstructionType::NOP;
 
             // store the record into the result
             self.records.push(asm_record);
@@ -286,7 +292,7 @@ impl<'i> assemblerVisitorCompat<'i> for DefaultAssemblerVisitor {
         }
         // look for assembler directives
         // assembler directives are identified via a dot character
-        let assembler_directive = ".".eq(&children_result[0]);
+        let assembler_directive: bool = ".".eq(&children_result[0]);
         if assembler_directive {
             self.parse_assembler_directive(&children_result);
             self.ascend_ident();
@@ -400,7 +406,7 @@ impl<'i> assemblerVisitorCompat<'i> for DefaultAssemblerVisitor {
             log::trace!("{:?}", instruction_type);
 
             // create an AsmRecord so it can be added to the application code
-            let rec = AsmRecord::new(
+            let rec: AsmRecord = AsmRecord::new(
                 super::asm_record_type::AsmRecordType::UNKNOWN,
                 self.label.clone(), 
                 instruction_type, 
@@ -409,7 +415,10 @@ impl<'i> assemblerVisitorCompat<'i> for DefaultAssemblerVisitor {
                 self.record.data, 
                 self.target_label.clone(), 
                 0x00i16,
-                self.record.io_dest);
+                self.record.io_dest,
+    String::from("source_file_B"),
+                0isize,
+        0isize);
             self.records.push(rec);
 
         } else if mnemonic_upper_case_as_string == "STS" {
@@ -434,7 +443,7 @@ impl<'i> assemblerVisitorCompat<'i> for DefaultAssemblerVisitor {
             log::trace!("{:?}", instruction_type);
 
             // create an AsmRecord so it can be added to the application code
-            let rec = AsmRecord::new(
+            let rec: AsmRecord = AsmRecord::new(
                 super::asm_record_type::AsmRecordType::UNKNOWN,
                 self.label.clone(), 
                 instruction_type, 
@@ -443,7 +452,10 @@ impl<'i> assemblerVisitorCompat<'i> for DefaultAssemblerVisitor {
                 self.record.data, 
                 self.target_label.clone(), 
                 0x00i16,
-                self.record.io_dest);
+                self.record.io_dest,
+                String::from("source_file_C"),
+                0isize,
+        0isize);
             self.records.push(rec);
 
         } else if mnemonic_upper_case_as_string == "ST" {
@@ -485,7 +497,7 @@ impl<'i> assemblerVisitorCompat<'i> for DefaultAssemblerVisitor {
             log::trace!("{:?}", instruction_type);
 
             // create an AsmRecord so it can be added to the application code
-            let rec = AsmRecord::new(
+            let rec: AsmRecord = AsmRecord::new(
                 super::asm_record_type::AsmRecordType::UNKNOWN,
                 self.label.clone(), 
                 instruction_type, 
@@ -494,7 +506,10 @@ impl<'i> assemblerVisitorCompat<'i> for DefaultAssemblerVisitor {
                 self.record.data, 
                 self.target_label.clone(),
                 0x00i16,
-                self.record.io_dest);
+                self.record.io_dest,
+                String::from("source_file_D"),
+                0isize,
+        0isize);
             self.records.push(rec);
 
         } else {
@@ -509,7 +524,10 @@ impl<'i> assemblerVisitorCompat<'i> for DefaultAssemblerVisitor {
                 self.record.data, 
                 self.target_label.clone(),
                 0x00i16,
-                self.record.io_dest);
+                self.record.io_dest,
+                String::from("unknown_line_A"),
+                0isize,
+        0isize);
                 
             self.records.push(rec);
         }

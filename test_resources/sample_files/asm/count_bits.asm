@@ -7,10 +7,11 @@ num_ones: .byte 1
 
     .org 0x0000
 
-    ldi r16, HIGH(RAMEND)
-	out SPH, r16
-	ldi r16, LOW(RAMEND)
-	out SPL, r16
+.include "setup_stack.asm"
+;    ldi r16, HIGH(RAMEND)
+;	out SPH, r16
+;	ldi r16, LOW(RAMEND)
+;	out SPL, r16
 
 main:
     ldi r24, 12       ; 1100

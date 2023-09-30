@@ -28,6 +28,13 @@ use crate::parser::assemblervisitor::assemblerVisitorCompat;
 use crate::DSEG_HASHMAP;
 use crate::CSEG_HASHMAP;
 use antlr_rust::tree::ParseTree;
+use antlr_rust::parser_rule_context::ParserRuleContext;
+use antlr_rust::token::Token;
+use antlr_rust::token::GenericToken;
+use crate::lazy_static::__Deref;
+use antlr_rust::rule_context::CustomRuleContext;
+use std::cell::Ref;
+use std::borrow::Cow;
 
 use super::segment_mode::SegmentMode;
 
@@ -55,6 +62,9 @@ pub struct NewAssemblerVisitor {
 
     pub cseg_org_pointer: u16,
     pub dseg_org_pointer: u16,
+
+    // the source file that this visitor visits
+    pub source_file: String,
 }
 
 impl Default for NewAssemblerVisitor {
@@ -77,20 +87,22 @@ impl Default for NewAssemblerVisitor {
 
             cseg_org_pointer: 0x00u16,
             dseg_org_pointer: 0x00u16,
+
+            source_file: String::default(),
         }
     }
 }
 
 impl<'i> NewAssemblerVisitor {
 
-    pub fn ascend_ident(&mut self) {
+    pub fn ascend_indent(&mut self) {
         if !self.debug_output {
             return;
         }
         self.indent = self.indent - 1;
     }
 
-    pub fn descend_ident(&mut self, label: &str) {
+    pub fn descend_indent(&mut self, label: &str) {
         if !self.debug_output {
             return;
         }
@@ -325,6 +337,155 @@ impl<'i> NewAssemblerVisitor {
         asm_record.instruction_type = instruction_type;
     }
 
+    // .include is resolved and removed from the output (add check for cyclic includes)
+    // All other assembler directives are wrapped into an assembly_record and are passed on
+    // to the next phase.
+    fn parse_assembler_directive(&mut self, assembler_directive: &Vec<String>, line: isize, column: isize) {
+        log::trace!("parse_assembler_directive");
+
+        let asm_directive = assembler_directive[1].to_lowercase();
+
+        if "include".eq(&asm_directive) {
+
+            // C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328Pdef.inc
+
+            let unwrapped_name: &String = &assembler_directive[2].replace("\"", "");
+
+            let mut asm_file_path: String = String::new();
+            // .inc files are resolved from the system include folder
+            // .asm files are included from the current folder
+            // if unwrapped_name.ends_with(".inc") {
+            //     asm_file_path.push_str("C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/avrasm/inc/");
+            // } else {
+            //     asm_file_path.push_str("C:/aaa_se/rust/whatavr/test_resources/sample_files/asm/");
+            // }
+            //asm_file_path.push_str("/Users/bischowg/dev/rust/whatavr/test_resources/sample_files/asm/");
+            asm_file_path.push_str("test_resources/sample_files/asm/");
+            asm_file_path.push_str(unwrapped_name);
+
+            log::info!("Including \"{}\"\n", &asm_file_path.clone());
+
+            let data = fs::read_to_string(asm_file_path.clone()).expect("Unable to read file");
+            log::trace!("\n{}\n", data);
+
+            let input_stream: InputStream<&str> = InputStream::new(data.as_str());
+
+            let token_factory: antlr_rust::token_factory::ArenaFactory<'_, antlr_rust::token_factory::CommonTokenFactory, antlr_rust::token::GenericToken<_>> = ArenaCommonFactory::default();
+            let mut _lexer: parser::assemblerlexer::assemblerLexer<'_, InputStream<&str>> = parser::assemblerlexer::assemblerLexer::new_with_token_factory(
+                input_stream,
+                &token_factory,
+            );
+            let token_source: CommonTokenStream<'_, parser::assemblerlexer::assemblerLexer<'_, InputStream<&str>>> = CommonTokenStream::new(_lexer);
+            let mut parser: parser::assemblerparser::assemblerParser<'_, CommonTokenStream<'_, parser::assemblerlexer::assemblerLexer<'_, InputStream<&str>>>, antlr_rust::DefaultErrorStrategy<'_, assemblerParserContextType>> = parser::assemblerparser::assemblerParser::new(token_source);
+
+            let result = parser.asm_file();
+            assert!(result.is_ok());
+            let root: Rc<Asm_fileContextAll> = result.unwrap();
+
+            // new visitor
+            let mut visitor: NewAssemblerVisitor = NewAssemblerVisitor::default();
+            visitor.source_file = asm_file_path.clone();
+            visitor.record.clear();
+
+            let visitor_result = visitor.visit(&*root);
+
+            log::trace!("{:?}", visitor_result);
+
+            // insert all parsed AsmRecords into the parent
+            if visitor.records.len() > 0 {
+                self.records.append(&mut visitor.records);
+            }
+
+        } else if "byte".eq(&asm_directive) {
+
+            let mut asm_record: AsmRecord = AsmRecord::default();
+            asm_record.record_type = AsmRecordType::BYTE;
+            asm_record.source_file = self.source_file.clone();
+            asm_record.line = line;
+            asm_record.column = column;
+
+            self.records.push(asm_record);
+
+        } else if "cseg".eq(&asm_directive) {
+
+            let mut asm_record: AsmRecord = AsmRecord::default();
+            asm_record.record_type = AsmRecordType::CSEG;
+            asm_record.source_file = self.source_file.clone();
+            asm_record.line = line;
+            asm_record.column = column;
+
+            self.records.push(asm_record);
+
+        } else if "db".eq(&asm_directive) {
+
+            let mut asm_record: AsmRecord = AsmRecord::default();
+            asm_record.record_type = AsmRecordType::DB;
+            asm_record.source_file = self.source_file.clone();
+            asm_record.line = line;
+            asm_record.column = column;
+
+            self.records.push(asm_record);
+
+        } else if "dseg".eq(&asm_directive) {
+
+            let mut asm_record: AsmRecord = AsmRecord::default();
+            asm_record.record_type = AsmRecordType::DSEG;
+            asm_record.source_file = self.source_file.clone();
+            asm_record.line = line;
+            asm_record.column = column;
+
+            self.records.push(asm_record);
+
+        } else if "device".eq(&asm_directive) {
+
+            let mut asm_record: AsmRecord = AsmRecord::default();
+            asm_record.record_type = AsmRecordType::DEVICE;
+            asm_record.source_file = self.source_file.clone();
+            asm_record.line = line;
+            asm_record.column = column;
+
+            self.records.push(asm_record);
+
+        } else if "def".eq(&asm_directive) {
+
+            let mut asm_record: AsmRecord = AsmRecord::default();
+            asm_record.record_type = AsmRecordType::DEF;
+            asm_record.source_file = self.source_file.clone();
+            asm_record.line = line;
+            asm_record.column = column;
+
+            self.records.push(asm_record);
+
+        } else if "equ".eq(&asm_directive) {
+            
+            let mut asm_record: AsmRecord = AsmRecord::default();
+            asm_record.record_type = AsmRecordType::EQU;
+            asm_record.source_file = self.source_file.clone();
+            asm_record.line = line;
+            asm_record.column = column;
+
+            self.records.push(asm_record);
+
+        }  else if "org".eq(&asm_directive) {
+            
+            let mut asm_record: AsmRecord = AsmRecord::default();
+            asm_record.record_type = AsmRecordType::ORG;
+            asm_record.source_file = self.source_file.clone();
+            asm_record.line = line;
+            asm_record.column = column;
+
+            self.records.push(asm_record);
+
+        } else {
+
+            log::info!("{:?}\n", &asm_directive);
+
+            panic!();
+
+        }
+
+    }
+/*
     fn parse_assembler_directive(&mut self, assembler_directive: &Vec<String>) {
         log::trace!("parse_assembler_directive");
 
@@ -532,7 +693,9 @@ impl<'i> NewAssemblerVisitor {
 
         }
     }
+ */
 
+ /*
     fn process_asm_intrinsic_usage(&mut self, visit_children_result: Vec<String>) -> Vec<String>
     {
         log::info!("cr: {:?}\n", visit_children_result);
@@ -580,12 +743,16 @@ impl<'i> NewAssemblerVisitor {
 
         visit_children_result
     }
+     */
 
-    pub fn process_instruction(&mut self, visit_children_result: &Vec<String>) //-> Vec<String>
+    pub fn process_instruction(&mut self, visit_children_result: &Vec<String>, line: isize, column: isize)
     {
         log::info!("cr: {:?}\n", visit_children_result);
 
         let mut asm_record: AsmRecord = AsmRecord::default();
+        asm_record.source_file = self.source_file.clone();
+        asm_record.line = line;
+        asm_record.column = column;
 
         let mnemonic: &String = &visit_children_result[0];
 
@@ -822,9 +989,9 @@ impl<'i> ParseTreeVisitorCompat<'i> for NewAssemblerVisitor {
 impl<'i> assemblerVisitorCompat<'i> for NewAssemblerVisitor {
 
     fn visit_row(&mut self, ctx: &parser::assemblerparser::RowContext<'i>) -> Self::Return {
-        self.descend_ident("visit_row");
+        self.descend_indent("visit_row");
         let children_result = self.visit_children(ctx);
-        self.ascend_ident();
+        self.ascend_indent();
 
         log::trace!("cr: {:?}", children_result);
 
@@ -837,35 +1004,58 @@ impl<'i> assemblerVisitorCompat<'i> for NewAssemblerVisitor {
     }
 
     fn visit_instruction(&mut self, ctx: &InstructionContext<'i>) -> Self::Return {
-        self.descend_ident("visit_instruction");
+        self.descend_indent("visit_instruction");
         let visit_children_result = self.visit_children(ctx);
-        self.ascend_ident();
+        self.ascend_indent();
 
-        self.process_instruction(&visit_children_result);
+        let tok: Ref<'_, GenericToken<Cow<'_, str>>> = ctx.start();
+
+        self.process_instruction(&visit_children_result, tok.line, tok.column);
 
         visit_children_result
     }
 
     fn visit_mnemonic(&mut self, ctx: &parser::assemblerparser::MnemonicContext<'i>) -> Self::Return {
-        self.descend_ident("visit_mnemonic");
+        self.descend_indent("visit_mnemonic");
         let visit_children_result = self.visit_children(ctx);
-        self.ascend_ident();
+        self.ascend_indent();
 
         visit_children_result
     }
 
     fn visit_param(&mut self, ctx: &ParamContext<'i>) -> Self::Return {
-        self.descend_ident("visit_param");
+        self.descend_indent("visit_param");
         let visit_children_result = self.visit_children(ctx);
-        self.ascend_ident();
+        self.ascend_indent();
 
         visit_children_result
     }
 
-    fn visit_asm_instrinsic_instruction(&mut self, ctx: &parser::assemblerparser::Asm_instrinsic_instructionContext<'i>) -> Self::Return {
-        self.descend_ident("visit_asm_instrinsic_instruction");
+    fn visit_asm_instrinsic_instruction(&mut self, 
+        ctx: &parser::assemblerparser::Asm_instrinsic_instructionContext<'i>) -> Self::Return 
+    {
+        let tok: Ref<'_, GenericToken<Cow<'_, str>>> = ctx.start();
+        log::info!("TOK {:?}\n", tok);
+        log::info!("TOK.line {:?}\n", tok.line);
+        log::info!("TOK.column {:?}\n", tok.column);
+
+        //let b = Box::new(ctx.start());
+
+        //let generic_token: dyn Token = ctx.start() as Token;
+        //let generic_token = ctx.start() as ParserRuleContext;
+        //generic_token.
+        //ctx.
+
+        //let generic_token =  ctx.start().deref() as GenericToken<dyn CustomRuleContext>;
+        //let generic_token =  ctx.start().deref();
+        //generic_token.
+
+        //ctx.file();
+        log::info!("visit_asm_instrinsic_instruction CTX {:?} {:?} {:?}\n", self.source_file, ctx.start(), ctx.start().get_token_index());
+
+        self.descend_indent("visit_asm_instrinsic_instruction");
         let visit_children_result = self.visit_children(ctx);
-        self.ascend_ident();
+        self.ascend_indent();
 
         log::trace!("cr: {:?}\n", visit_children_result);
 
@@ -873,7 +1063,7 @@ impl<'i> assemblerVisitorCompat<'i> for NewAssemblerVisitor {
         // assembler directives are identified via a dot character
         let assembler_directive: bool = ".".eq(&visit_children_result[0]);
         if assembler_directive {
-            self.parse_assembler_directive(&visit_children_result);
+            self.parse_assembler_directive(&visit_children_result, tok.line, tok.column);
 
             self.reset_self();
         }
@@ -881,20 +1071,21 @@ impl<'i> assemblerVisitorCompat<'i> for NewAssemblerVisitor {
         visit_children_result
     }
 
+    /*
     fn visit_asm_intrinsic_usage(&mut self, ctx: &parser::assemblerparser::Asm_intrinsic_usageContext<'i>) -> Self::Return {
-        self.descend_ident("visit_asm_intrinsic_usage");
+        self.descend_indent("visit_asm_intrinsic_usage");
         let visit_children_result = self.visit_children(ctx);
-        self.ascend_ident();
+        self.ascend_indent();
 
         log::info!("cr: {:?}\n", visit_children_result);
 
         self.process_asm_intrinsic_usage(visit_children_result)
-    }
+    } */
 
     fn visit_expression(&mut self, ctx: &parser::assemblerparser::ExpressionContext<'i>) -> Self::Return {
-        self.descend_ident("visit_expression");
+        self.descend_indent("visit_expression");
         let mut visit_children_result = self.visit_children(ctx);
-        self.ascend_ident();
+        self.ascend_indent();
 
         if visit_children_result.len() == 1usize {
 
@@ -960,9 +1151,9 @@ impl<'i> assemblerVisitorCompat<'i> for NewAssemblerVisitor {
     }
 
     fn visit_label_definition(&mut self, ctx: &parser::assemblerparser::Label_definitionContext<'i>) -> Self::Return {
-        self.descend_ident("visit_label_definition");
+        self.descend_indent("visit_label_definition");
         let visit_children_result = self.visit_children(ctx);
-        self.ascend_ident();
+        self.ascend_indent();
 
         log::info!("cr: {:?}\n", visit_children_result);
 
@@ -1032,7 +1223,7 @@ mod tests {
         
         // Act
 
-        new_assembler_visitor.process_instruction(&visit_children_result);
+        new_assembler_visitor.process_instruction(&visit_children_result, 1, 4);
 
         // Assert
 
@@ -1043,6 +1234,7 @@ mod tests {
 
     }
 
+    /*
     #[test]
     fn visit_asm_intrinsic_usage_low_ramend_test() {
 
@@ -1063,8 +1255,9 @@ mod tests {
         // Assert
 
         assert_eq!("255", result[0]);
-    }
+    } */
 
+    /*
     #[test]
     fn visit_asm_intrinsic_usage_high_ramend_test() {
 
@@ -1085,6 +1278,6 @@ mod tests {
         // Assert
 
         assert_eq!("8", result[0]);
-    }
+    } */
 
 }
