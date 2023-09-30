@@ -152,9 +152,10 @@ Phase 1 - from .asm to lines
 Go through each .asm file and from each line create a corresponsing line record and insert it into a global line list
 except for .include lines which are recursively resolved (use stack to detect cycles)
 
-DEBUG - lock at the list of lines and make sure the resolution of the .includes did work
-Make sure each line has a pointer to the file that they have been retrieved from.
-Make sure expressions are inserted in the form of trees ldi r25, 3 * (17 + 18)
+DEBUG - 
+[OK] Look at the list of lines and make sure the resolution of the .includes did work
+[OK] Make sure each line has a pointer to the file that they have been retrieved from.
+[TODO] Make sure expressions are inserted in the form of trees ldi r25, 3 * (17 + 18)
 must be:   * 
           /  \
          3    +
@@ -176,7 +177,12 @@ Add the addresses to each line that contains a assembler instruction.
 
 For labels of resolved bytes in memory, store the current adress_ptr value into the symbol table for that symbol.
 
-DEBUG - make sure that the address of each line is correct. Test with several .org instructions that move the address around
+DEBUG - 
+[TODO] Again output a list of all assembly records -> Each record has to have an address. .org and .include instructions
+are not contained any more
+[TODO] output the symbol table. Each variable label has to point to a correct address
+[TODO] make sure that the address of each line is correct. 
+[TODO] Test with several .org instructions that move the address around
 
 
 
@@ -192,14 +198,21 @@ has a instruction type of UNKNOWN which causes a panic!()
 Evaluate expressions on each line given the current symbol table. (Call the evaluate method
 on each line))
 
-DEBUG look at the final assembly and make sure that all addresses anv evaluated values are correct.
-Test with overriding variable several times and evaluate expressions using those different values-
+DEBUG 
+[TODO] look at the final assembly and make sure that all addresses anv evaluated values are correct.
+[TODO] Test with overriding variable several times and evaluate expressions using those different values.
+[ASSERT] No assembler instructions exist in the list of assembly records any more, they are all applied and removed.
+[ASSERT] Every record has an address.
+[ASSERT] All parameters now are concrete values and all expressions have been evaluated to concrete values
 
 
 
 
 PHASE 4 - encoding
 pass the list of assembly records to the encoder
+
+
+PHASE 5 - execute
 
 
 

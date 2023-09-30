@@ -44,6 +44,8 @@ use crate::io::BufReader;
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
+use crate::assembler::asm_visitor_nodes::NodeAssemblerVisitor;
+
 // https://stackoverflow.com/questions/34832583/global-mutable-hashmap-in-a-library
 #[macro_use]
 extern crate lazy_static;
@@ -312,13 +314,13 @@ fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>) -> [u8; RAMEND
     //asm_file_path.push_str("test_resources/sample_files/asm/dseg.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/define_byte.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/excercise.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/expression_test.asm");
+    asm_file_path.push_str("test_resources/sample_files/asm/expression_test.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/expression.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/inc.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/intrinsic.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/jmp_instruction.asm"); // problem
     //asm_file_path.push_str("test_resources/sample_files/asm/jmp.asm"); // good for regression test (will increment r17 until overflow)
-    asm_file_path.push_str("test_resources/sample_files/asm/label_include_test.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/label_include_test.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/preprocessor.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/push_pop.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/ret_test.asm");
@@ -480,12 +482,13 @@ fn parse_and_encode(segments: &mut Vec<Segment>, input_stream: InputStream<&str>
     log::info!("*************************************************\n");
 
     // new visitor
-    let mut visitor: NewAssemblerVisitor = NewAssemblerVisitor::default();
+    //let mut visitor: NewAssemblerVisitor = NewAssemblerVisitor::default();
+    let mut visitor: NodeAssemblerVisitor = NodeAssemblerVisitor::default();
     visitor.source_file = source_file.clone();
     visitor.record.clear();
 
     let visitor_result = visitor.visit(&*root);
-    log::trace!("{:?}\n", visitor_result);
+    //log::trace!("{:?}\n", visitor_result);
 
     //
     // DEBUG - output all records

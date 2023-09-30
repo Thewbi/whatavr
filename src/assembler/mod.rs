@@ -5,5 +5,8 @@ pub mod asm_record;
 pub mod asm_record_type;
 pub mod asm_visitor;
 pub mod asm_visitor_new;
+pub mod asm_visitor_nodes;
 pub mod io_destination;
 pub mod segment_mode;
+pub mod binary_tree;
+pub mod node;

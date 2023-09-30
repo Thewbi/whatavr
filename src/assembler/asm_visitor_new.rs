@@ -35,6 +35,7 @@ use crate::lazy_static::__Deref;
 use antlr_rust::rule_context::CustomRuleContext;
 use std::cell::Ref;
 use std::borrow::Cow;
+use crate::assembler::binary_tree::BinaryTree;
 
 use super::segment_mode::SegmentMode;
 
@@ -1082,6 +1083,23 @@ impl<'i> assemblerVisitorCompat<'i> for NewAssemblerVisitor {
         self.process_asm_intrinsic_usage(visit_children_result)
     } */
 
+    fn visit_expression(&mut self, ctx: &parser::assemblerparser::ExpressionContext<'i>) -> Self::Return 
+    {
+        self.descend_indent("visit_expression");
+        let mut visit_children_result = self.visit_children(ctx);
+        self.ascend_indent();
+
+        log::info!("{:?}\n", visit_children_result);
+
+        let binary_tree: BinaryTree<i32> = BinaryTree::new(1);
+
+        //self.record
+
+        visit_children_result
+        //binary_tree
+    }
+
+    /* 
     fn visit_expression(&mut self, ctx: &parser::assemblerparser::ExpressionContext<'i>) -> Self::Return {
         self.descend_indent("visit_expression");
         let mut visit_children_result = self.visit_children(ctx);
@@ -1148,7 +1166,7 @@ impl<'i> assemblerVisitorCompat<'i> for NewAssemblerVisitor {
         }
 
         visit_children_result
-    }
+    }*/
 
     fn visit_label_definition(&mut self, ctx: &parser::assemblerparser::Label_definitionContext<'i>) -> Self::Return {
         self.descend_indent("visit_label_definition");
