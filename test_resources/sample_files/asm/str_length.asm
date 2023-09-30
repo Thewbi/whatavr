@@ -1,4 +1,10 @@
-.include "m328Pdef.inc"             ; useful definitions ...
+;.include "m328Pdef.inc"             ; useful definitions ...
+
+.equ	RAMEND	= 0x08ff
+.def	ZL	= r30
+.def	ZH	= r31
+.equ	SPL	= 0x3d
+.equ	SPH	= 0x3e
 
 .cseg                               ; code segments starts here ...
 

@@ -506,6 +506,7 @@ impl<'i> NodeAssemblerVisitor {
         //log::info!("cr: {:?}\n", visit_children_result);
 
         let mut asm_record: AsmRecord = AsmRecord::default();
+        asm_record.record_type = AsmRecordType::INSTRUCTION;
         asm_record.source_file = self.source_file.clone();
         asm_record.line = line;
         asm_record.column = column;

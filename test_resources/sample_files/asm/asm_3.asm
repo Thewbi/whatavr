@@ -1,3 +1,9 @@
+.equ	RAMEND	= 0x08ff
+.def	ZL	= r30
+.def	ZH	= r31
+.equ	SPL	= 0x3d
+.equ	SPH	= 0x3e
+
 	ldi	r16, LOW(RAMEND)		; load low byte of RAMEND into r16
 	out	SPL, r16			; store r16 in stack pointer low
 	ldi	r16, HIGH(RAMEND)	; load high byte of RAMEND into r16

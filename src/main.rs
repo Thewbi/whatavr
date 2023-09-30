@@ -301,7 +301,7 @@ fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>) -> [u8; RAMEND
     let mut asm_file_path: String = String::new();
     //asm_file_path.push_str("test_resources/sample_files/asm/asm_1.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/asm_2.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/asm_3.asm");
+    asm_file_path.push_str("test_resources/sample_files/asm/asm_3.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/asm_4.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/blinklicht.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/call_and_return.asm"); // regression test
@@ -314,7 +314,7 @@ fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>) -> [u8; RAMEND
     //asm_file_path.push_str("test_resources/sample_files/asm/dseg.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/define_byte.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/excercise.asm");
-    asm_file_path.push_str("test_resources/sample_files/asm/expression_test.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/expression_test.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/expression.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/inc.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/intrinsic.asm");
@@ -324,7 +324,9 @@ fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>) -> [u8; RAMEND
     //asm_file_path.push_str("test_resources/sample_files/asm/preprocessor.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/push_pop.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/ret_test.asm");
+
     //asm_file_path.push_str("test_resources/sample_files/asm/str_length.asm");
+
     //asm_file_path.push_str("test_resources/sample_files/asm/scratchpad.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/scratchpad_2.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/setup_stack.asm"); // regression test

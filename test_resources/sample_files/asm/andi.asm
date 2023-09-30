@@ -1,0 +1,1 @@
+andi	r24, 0xDF
