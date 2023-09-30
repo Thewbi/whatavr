@@ -1,6 +1,6 @@
 use crate::instructions::instruction_type::InstructionType;
 
-use super::{io_destination::IoDestination, asm_record_type::AsmRecordType};
+use super::{io_destination::IoDestination, asm_record_type::AsmRecordType, node::Node};
 
 use std::fmt;
 
@@ -16,6 +16,9 @@ pub struct AsmRecord {
 
     pub reg_1: u16,
     pub reg_2: u16,
+
+    pub expression_1: Option<Box<Node<String>>>,
+    pub expression_2: Option<Box<Node<String>>>,
 
     pub data: u16,
 
@@ -56,6 +59,8 @@ impl AsmRecord {
             instruction_type: instruction_type,
             reg_1: reg_1,
             reg_2: reg_2,
+            expression_1: None,
+            expression_2: None,
             data: data,
             target_label: target_label,
             target_address: target_address,
@@ -74,6 +79,8 @@ impl AsmRecord {
         self.instruction_type = InstructionType::UNKNOWN;
         self.reg_1 = 0xFF;
         self.reg_2 = 0xFF;
+        self.expression_1 = None;
+        self.expression_2 = None;
         self.data = u16::default();
         self.target_label = String::default();
         self.target_address = 0i16;
@@ -99,6 +106,8 @@ impl Default for AsmRecord {
             instruction_type: InstructionType::UNKNOWN,
             reg_1: 0xFF,
             reg_2: 0xFF,
+            expression_1: None,
+            expression_2: None,
             data: u16::default(),
             target_label: String::default(),
             target_address : 0i16,
@@ -114,12 +123,13 @@ impl Default for AsmRecord {
 
 impl fmt::Display for AsmRecord {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "(idx:{:<4}{:#04x}, label:{:<10}, itype:{:<5}, reg_1:{:<3} {:#04x}, reg_2:{:<3} {:#04x}, data:{} {:#04x}, tgt_label:{}, tgt_addr:{}, source_file:{}, line:{}, column:{})", 
+        write!(f, "(idx:{:<4} {:#04x}, label:{:<10}, itype:{:<5}, reg_1:{:<3} {:#04x}, reg_2:{:<3} {:#04x}, expr_1: {:?}, expr_2: {:?}, data:{} {:#04x}, tgt_label:{}, tgt_addr:{}, source_file:{}, line:{}, column:{})", 
             self.idx, self.idx,
             self.label, 
             self.instruction_type.to_string(),
             self.reg_1, self.reg_1,
             self.reg_2, self.reg_2,
+            self.expression_1, self.expression_2,
             self.data, self.data,
             self.target_label, self.target_address,
             self.source_file, self.line, self.column)

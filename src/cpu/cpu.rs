@@ -704,10 +704,12 @@ impl CPU {
             InstructionType::BREAK => {
                 log::trace!("[BREAK]\n");
 
+                //cpu.pc += 2i32;
+
                 // nop
                 panic!("Break reached");
 
-                cpu.pc += 2i32;
+                
             }
 
             // /*  18 */
@@ -1481,7 +1483,7 @@ impl CPU {
                 // build a u16 value from the register pair
                 let reg_low: u16 = cpu.register_file[register as usize] as u16;
                 let reg_high: u16 = cpu.register_file[(register + 1u8) as usize] as u16;
-                let mut value: u16 = ((reg_high << 8u8) + reg_low);
+                let value: u16 = (reg_high << 8u8) + reg_low;
 
                 // subtract Immediate from Word
                 let subtracted_value:i16 = (value as i16 - k) as i16;

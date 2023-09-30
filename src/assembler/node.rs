@@ -5,6 +5,10 @@ pub struct Node<T> {
     pub value: T,
     pub left: Option<Box<Node<T>>>,
     pub right: Option<Box<Node<T>>>,
+
+    // this flag is used in visitor.process_instruction() to differentiate
+    // between registers, immediate values and expressions
+    pub expression: bool,
 }
 
 impl<T> Node<T> {
@@ -13,6 +17,7 @@ impl<T> Node<T> {
             value,
             left: None,
             right: None,
+            expression: false,
         }
     }
 
@@ -30,7 +35,7 @@ impl<T> Node<T> {
 impl<T: Debug> std::fmt::Debug for Node<T> {
 
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> { 
-        write!(formatter, "Node[{:?} LHS:{:?} RHS:{:?}]", self.value, self.left, self.right)
+        write!(formatter, "Node[{:?} expr:{:?} LHS:{:?} RHS:{:?}]", self.value, self.expression, self.left, self.right)
     }
 
 }
