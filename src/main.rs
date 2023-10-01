@@ -24,8 +24,11 @@ use instructions::instruction_definition::InstructionDefinition;
 use log::LevelFilter;
 
 use crate::assembler::asm_encoder::AsmEncoder;
+use crate::assembler::asm_record;
+use crate::assembler::asm_record::AsmRecord;
 use crate::assembler::asm_record_type::AsmRecordType;
 use crate::assembler::asm_visitor_new::NewAssemblerVisitor;
+use crate::assembler::evaluator::Evaluator;
 use crate::common::listing_parser::is_code_offset_c_listing;
 use crate::cpu::cpu::CPU;
 use crate::ihex_mgmt::ihex_mgmt::parse_hex_file;
@@ -434,9 +437,12 @@ fn load_segment_from_hex_file(segments: &mut Vec<Segment>) -> io::Result<()>
     Ok(())
 }
 
-pub fn create_label(labels: &mut HashMap<String, u32>, label: String, idx: u32) {
+pub fn create_label(map: &mut HashMap<String, u32>, label: String, idx: u32) {
+    
+    // DEBUG
     println!("Label: {} -> idx: {:#04X}", label, idx);
-    labels.insert(label.clone(), idx);
+
+    map.insert(label.clone(), idx);
 }
 
 fn parse_and_encode(segments: &mut Vec<Segment>, input_stream: InputStream<&str>, source_file: String) -> [u8; RAMEND as usize] 
@@ -501,14 +507,22 @@ fn parse_and_encode(segments: &mut Vec<Segment>, input_stream: InputStream<&str>
     // phase 1 - scan for labels
     //
 
-    let mut labels: HashMap<String, u32> = HashMap::new();
+    let mut symbol_table: HashMap<String, u32> = HashMap::new();
+    let mut evaluator: Evaluator =  Evaluator::new();    
 
     let mut address: u32 = 0u32;
     for asm_record in visitor.records.iter_mut() {
 
         // for .org instructions, change the idx to encode to another location in the code segment
         if asm_record.record_type == AsmRecordType::ORG {
-            address = asm_record.address;
+            //address = asm_record.address;
+
+            address = evaluator.evaluate(asm_record.expression_1.clone());
+
+            //address = asm_record.expression_1
+
+            //TODO REMOVE THE .ORG AsmRecord since it has been processed and is not converted into machine code during encoding
+            asm_record.remove = true;
             continue;
         }
 
@@ -518,36 +532,43 @@ fn parse_and_encode(segments: &mut Vec<Segment>, input_stream: InputStream<&str>
         // if a label was specified for the current address,
         // manage the mapping of the label to the current address
         if asm_record.label != "" {
-            create_label(&mut labels, asm_record.label.clone(), address);
+            create_label(&mut symbol_table, asm_record.label.clone(), address);
         }
-        // if asm_record.record_type == AsmRecordType::DB {
-        //     create_label(&mut labels, asm_record.label.clone(), address);
-        // }
 
         // advance the address by the actual length of the instruction.
         // Some instructions are 1 word (2 byte) whereas others are 2 word (4 byte)
         address += InstructionType::words(&asm_record.instruction_type);
     }
 
-    log::info!("*************************************************\n");
+    // remove all .org assembler instructions
+    // retain keeps only the elements that match the predicate
+    visitor.records.retain(|x| x.remove == false);
+
+    log::info!("*************************************************************\n");
     log::info!("Phase - DEBUG - Output all records after address construction\n");
-    log::info!("*************************************************\n");
+    log::info!("*************************************************************\n");
 
     log::info!("\n");
-    let mut idx: u32 = 0u32;
     for asm_record in visitor.records.iter_mut() {
         log::info!("{}\n", asm_record);
         log::info!("\n");
     }
-
     
     println!("");
     println!("+++++++-------+++++++-------+++++++-------+++++++-------");
-    for (label, address) in &labels {
+    for (label, address) in &symbol_table {
         println!("Label: {} -> idx: {:#04X}", label, address);
     }
     println!("+++++++-------+++++++-------+++++++-------+++++++-------");
     println!("");
+
+    log::info!("*************************************************\n");
+    log::info!("Phase - Iterate over AsmRecords, update symbol table from .def and .equ and evaluation expressions\n");
+    log::info!("*************************************************\n");
+
+    // remove all asm records that do not contain instructions
+    // retain keeps only the elements that match the predicate
+    visitor.records.retain(|x| x.record_type == AsmRecordType::INSTRUCTION);
 
     //
     // Phase - Encoding

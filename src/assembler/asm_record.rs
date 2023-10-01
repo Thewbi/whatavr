@@ -36,6 +36,8 @@ pub struct AsmRecord {
     pub line: isize,
     pub column: isize,
 
+    pub remove: bool,
+
 }
 
 impl AsmRecord {
@@ -53,6 +55,7 @@ impl AsmRecord {
         source_file: String,
         line: isize,
         column: isize,
+        remove: bool,
     ) -> AsmRecord {
         AsmRecord {
             record_type: record_type,
@@ -72,6 +75,7 @@ impl AsmRecord {
             source_file: source_file,
             line: line,
             column: column,
+            remove: false,
         }
     }
 
@@ -93,6 +97,7 @@ impl AsmRecord {
         self.source_file = String::default();
         self.line = isize::default();
         self.column = isize::default();
+        self.remove = false;
     }
 
     pub fn set_idx(&mut self, idx: u32) {
@@ -125,17 +130,18 @@ impl Default for AsmRecord {
             source_file: String::default(),
             line: isize::default(),
             column: isize::default(),
+            remove: false,
         }
     }
 }
 
 impl fmt::Display for AsmRecord {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "(idx:{:<4} {:#04x}, addr:{:<4} {:#04x}, label:{:<10}, itype:{:<5}, reg_1:{:<3} {:#04x}, reg_2:{:<3} {:#04x}, expr_1: {:?}, expr_2: {:?}, data:{} {:#04x}, tgt_label:{}, tgt_addr:{}, source_file:{}, line:{}, column:{})", 
+        write!(f, "(idx:{:<4} {:#04x}, addr:{:<4} {:#04x}, label:{:<10}, rtype:{:<5}, itype:{:<5}, reg_1:{:<3} {:#04x}, reg_2:{:<3} {:#04x}, expr_1: {:?}, expr_2: {:?}, data:{} {:#04x}, tgt_label:{}, tgt_addr:{}, source_file:{}, line:{}, column:{})", 
             self.idx, self.idx,
             self.address, self.address,
             self.label, 
-            self.instruction_type.to_string(),
+            self.record_type.to_string(), self.instruction_type.to_string(),
             self.reg_1, self.reg_1,
             self.reg_2, self.reg_2,
             self.expression_1, self.expression_2,

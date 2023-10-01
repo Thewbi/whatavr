@@ -87,9 +87,9 @@ asm_instrinsic_instruction :
         |
         DEVICE IDENTIFIER
         |
-        DEF expression
+        DEF IDENTIFIER EQUALS expression
         |
-        EQU expression
+        EQU IDENTIFIER EQUALS expression
         | 
         CSEG
         |

@@ -170,6 +170,37 @@ pub fn number_literal_to_u16(data: &String) -> u16 {
 
 }
 
+pub fn number_literal_to_u32(data: &String) -> u32 {
+
+    if data.to_lowercase().starts_with("0b")
+    {
+        // parse binary
+        let without_prefix = data.trim_start_matches("0b");
+        return u32::from_str_radix(without_prefix, 2).unwrap();
+    } 
+    else if data.to_lowercase().starts_with("0x")
+    {
+        // parse hex
+        let without_prefix = data.trim_start_matches("0x");
+        return u32::from_str_radix(without_prefix, 16).unwrap();
+    } 
+    else if data.starts_with("$")
+    {
+        // parse hex
+        let without_prefix = data.trim_start_matches("$");
+        return u32::from_str_radix(without_prefix, 16).unwrap();
+    }
+    else if data.starts_with("0") && 1 != data.len()
+    {
+        // parse octal
+        let without_prefix = data.trim_start_matches("0");
+        return u32::from_str_radix(without_prefix, 8).unwrap();
+    }
+
+    return data.parse::<u32>().unwrap();
+
+}
+
 pub fn number_literal_to_i16(data: &String) -> i16 {
 
     if data.to_lowercase().starts_with("0b")

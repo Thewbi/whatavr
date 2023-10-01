@@ -10,3 +10,4 @@ pub mod io_destination;
 pub mod segment_mode;
 pub mod binary_tree;
 pub mod node;
+pub mod evaluator;

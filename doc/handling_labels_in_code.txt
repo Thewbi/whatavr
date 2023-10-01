@@ -179,10 +179,10 @@ For labels of resolved bytes in memory, store the current adress_ptr value into 
 
 DEBUG - 
 [OK] Again output a list of all assembly records -> Each record has to have an address. 
-[TODO] .org and .include instructions are not contained any more
-[TODO] output the symbol table. Each variable label has to point to a correct address
-[TODO] make sure that the address of each line is correct. 
-[TODO] Test with several .org instructions that move the address around
+[OK] output the symbol table. Each variable label has to point to a correct address
+[OK] .org and .include instructions are not contained any more
+[OK] make sure that the address of each line is correct. 
+[OK] Test with several .org instructions that move the address around
 
 
 
@@ -196,7 +196,7 @@ has to be removed from the list since during the encoding phase it will not be e
 has a instruction type of UNKNOWN which causes a panic!()
 
 Evaluate expressions on each line given the current symbol table. (Call the evaluate method
-on each line))
+on each line)). The resulting value is written into the AsmRecord into the correct field (data????)
 
 DEBUG 
 [TODO] look at the final assembly and make sure that all addresses anv evaluated values are correct.

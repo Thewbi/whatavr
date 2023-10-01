@@ -723,7 +723,7 @@ impl<'i> NodeAssemblerVisitor {
     {
         //log::info!("cr: {:?}\n", visit_children_result);
 
-        let mut node_vector: Vec<Node<String>> = Vec::new();
+        //let mut node_vector: Vec<Node<String>> = Vec::new();
 
         let mut binary_tree: Node<String> = Node::new(visit_children_result[0].value.clone());
         binary_tree.expression = true;

@@ -418,7 +418,8 @@ impl<'i> assemblerVisitorCompat<'i> for DefaultAssemblerVisitor {
                 self.record.io_dest,
     String::from("source_file_B"),
                 0isize,
-        0isize);
+        0isize,
+    false);
             self.records.push(rec);
 
         } else if mnemonic_upper_case_as_string == "STS" {
@@ -455,7 +456,8 @@ impl<'i> assemblerVisitorCompat<'i> for DefaultAssemblerVisitor {
                 self.record.io_dest,
                 String::from("source_file_C"),
                 0isize,
-        0isize);
+        0isize,
+    false);
             self.records.push(rec);
 
         } else if mnemonic_upper_case_as_string == "ST" {
@@ -509,7 +511,8 @@ impl<'i> assemblerVisitorCompat<'i> for DefaultAssemblerVisitor {
                 self.record.io_dest,
                 String::from("source_file_D"),
                 0isize,
-        0isize);
+        0isize,
+    false);
             self.records.push(rec);
 
         } else {
@@ -527,7 +530,8 @@ impl<'i> assemblerVisitorCompat<'i> for DefaultAssemblerVisitor {
                 self.record.io_dest,
                 String::from("unknown_line_A"),
                 0isize,
-        0isize);
+        0isize,
+                false);
                 
             self.records.push(rec);
         }
