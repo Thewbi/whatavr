@@ -10,7 +10,7 @@ pub type LocalTokenFactory<'input> = antlr_rust::token_factory::ArenaCommonFacto
 asm_file : NEWLINE* row ( NEWLINE* row )* NEWLINE* EOF ;
 
 row : 
-    asm_instrinsic_instruction
+    asm_intrinsic_instruction
     |
     macro_usage
     |
@@ -48,8 +48,8 @@ expression :
     |
     expression LT expression
     |
-    expression EQUALS expression
-    |
+//    expression EQUALS expression
+//    |
     expression PLUS expression
     |
     expression MINUS expression
@@ -81,7 +81,7 @@ numeric :
     NUMBER
     ;
 
-asm_instrinsic_instruction :
+asm_intrinsic_instruction :
     DOT (
         INCLUDE STRING
         |

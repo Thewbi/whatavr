@@ -1,7 +1,7 @@
 #![allow(nonstandard_style)]
 // Generated from ../../src/parser/assembler_parser.g4 by ANTLR 4.8
 use antlr_rust::tree::{ParseTreeVisitor,ParseTreeVisitorCompat};
-use super::assembler_parser::*;
+use super::assembler_parserparser::*;
 
 /**
  * This interface defines a complete generic visitor for a parse tree produced
@@ -69,10 +69,10 @@ pub trait assembler_parserVisitor<'input>: ParseTreeVisitor<'input,assembler_par
 	fn visit_numeric(&mut self, ctx: &NumericContext<'input>) { self.visit_children(ctx) }
 
 	/**
-	 * Visit a parse tree produced by {@link assembler_parser#asm_instrinsic_instruction}.
+	 * Visit a parse tree produced by {@link assembler_parser#asm_intrinsic_instruction}.
 	 * @param ctx the parse tree
 	 */
-	fn visit_asm_instrinsic_instruction(&mut self, ctx: &Asm_instrinsic_instructionContext<'input>) { self.visit_children(ctx) }
+	fn visit_asm_intrinsic_instruction(&mut self, ctx: &Asm_intrinsic_instructionContext<'input>) { self.visit_children(ctx) }
 
 	/**
 	 * Visit a parse tree produced by {@link assembler_parser#byte_csv}.
@@ -290,10 +290,10 @@ pub trait assembler_parserVisitorCompat<'input>:ParseTreeVisitorCompat<'input, N
 		}
 
 	/**
-	 * Visit a parse tree produced by {@link assembler_parser#asm_instrinsic_instruction}.
+	 * Visit a parse tree produced by {@link assembler_parser#asm_intrinsic_instruction}.
 	 * @param ctx the parse tree
 	 */
-		fn visit_asm_instrinsic_instruction(&mut self, ctx: &Asm_instrinsic_instructionContext<'input>) -> Self::Return {
+		fn visit_asm_intrinsic_instruction(&mut self, ctx: &Asm_intrinsic_instructionContext<'input>) -> Self::Return {
 			self.visit_children(ctx)
 		}
 
@@ -529,8 +529,8 @@ where
         *<Self as ParseTreeVisitorCompat>::temp_result(self) = result;
 	}
 
-	fn visit_asm_instrinsic_instruction(&mut self, ctx: &Asm_instrinsic_instructionContext<'input>){
-		let result = <Self as assembler_parserVisitorCompat>::visit_asm_instrinsic_instruction(self, ctx);
+	fn visit_asm_intrinsic_instruction(&mut self, ctx: &Asm_intrinsic_instructionContext<'input>){
+		let result = <Self as assembler_parserVisitorCompat>::visit_asm_intrinsic_instruction(self, ctx);
         *<Self as ParseTreeVisitorCompat>::temp_result(self) = result;
 	}
 

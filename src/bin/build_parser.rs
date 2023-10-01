@@ -52,6 +52,7 @@ fn gen_for_grammar(
         .arg("-o")
         //.arg("../tests/gen")
         .arg("../../src/parser") // this is the folder where the generated files are placed
+        //.arg("C:/temp/parser")
         .arg(&lexer_file_name)
         .arg(&parser_file_name)
         .args(additional_arg)

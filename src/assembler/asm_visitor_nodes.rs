@@ -20,13 +20,13 @@ use crate::common::register_parser::is_register_name;
 use crate::common::register_parser::register_name_to_u16;
 use crate::instructions::instruction_type::InstructionType;
 use crate::parser;
-use crate::parser::assemblerparser::assemblerParserContextType;
-use crate::parser::assemblerparser::Asm_fileContextAll;
-use crate::parser::assemblerparser::InstructionContext;
-use crate::parser::assemblerparser::ParamContext;
-use crate::parser::assemblervisitor::assemblerVisitorCompat;
+use crate::parser::assembler_parserparser::Asm_fileContextAll;
+use crate::parser::assembler_parserparser::InstructionContext;
+use crate::parser::assembler_parserparser::ParamContext;
 use crate::DSEG_HASHMAP;
 use crate::CSEG_HASHMAP;
+use crate::parser::assembler_parserparser::assembler_parserContextType;
+use crate::parser::assembler_parservisitor::assembler_parserVisitorCompat;
 use antlr_rust::tree::ParseTree;
 use antlr_rust::parser_rule_context::ParserRuleContext;
 use antlr_rust::token::Token;
@@ -372,12 +372,12 @@ impl<'i> NodeAssemblerVisitor {
             let input_stream: InputStream<&str> = InputStream::new(data.as_str());
 
             let token_factory: antlr_rust::token_factory::ArenaFactory<'_, antlr_rust::token_factory::CommonTokenFactory, antlr_rust::token::GenericToken<_>> = ArenaCommonFactory::default();
-            let mut _lexer: parser::assemblerlexer::assemblerLexer<'_, InputStream<&str>> = parser::assemblerlexer::assemblerLexer::new_with_token_factory(
+            let mut _lexer: parser::assembler_lexerlexer::assembler_lexer<'_, InputStream<&str>> = parser::assembler_lexerlexer::assembler_lexer::new_with_token_factory(
                 input_stream,
                 &token_factory,
             );
-            let token_source: CommonTokenStream<'_, parser::assemblerlexer::assemblerLexer<'_, InputStream<&str>>> = CommonTokenStream::new(_lexer);
-            let mut parser: parser::assemblerparser::assemblerParser<'_, CommonTokenStream<'_, parser::assemblerlexer::assemblerLexer<'_, InputStream<&str>>>, antlr_rust::DefaultErrorStrategy<'_, assemblerParserContextType>> = parser::assemblerparser::assemblerParser::new(token_source);
+            let token_source: CommonTokenStream<'_, parser::assembler_lexerlexer::assembler_lexer<'_, InputStream<&str>>> = CommonTokenStream::new(_lexer);
+            let mut parser: parser::assembler_parserparser::assembler_parser<'_, CommonTokenStream<'_, parser::assembler_lexerlexer::assembler_lexer<'_, InputStream<&str>>>, antlr_rust::DefaultErrorStrategy<'_, assembler_parserContextType>> = parser::assembler_parserparser::assembler_parser::new(token_source);
 
             let result = parser.asm_file();
             assert!(result.is_ok());
@@ -476,7 +476,8 @@ impl<'i> NodeAssemblerVisitor {
             asm_record.source_file = self.source_file.clone();
             asm_record.line = line;
             asm_record.column = column;
-            asm_record.expression_1 = Some(Box::new(assembler_directive[2].clone()));
+            asm_record.label = assembler_directive[2].value.clone();
+            asm_record.expression_1 = Some(Box::new(assembler_directive[3].clone()));
 
             self.records.push(asm_record);
 
@@ -487,7 +488,8 @@ impl<'i> NodeAssemblerVisitor {
             asm_record.source_file = self.source_file.clone();
             asm_record.line = line;
             asm_record.column = column;
-            asm_record.expression_1 = Some(Box::new(assembler_directive[2].clone()));
+            asm_record.label = assembler_directive[2].value.clone();
+            asm_record.expression_1 = Some(Box::new(assembler_directive[4].clone()));
 
             self.records.push(asm_record);
 
@@ -498,7 +500,7 @@ impl<'i> NodeAssemblerVisitor {
             asm_record.source_file = self.source_file.clone();
             asm_record.line = line;
             asm_record.column = column;
-            asm_record.expression_1 = Some(Box::new(assembler_directive[2].clone()));
+            asm_record.expression_1 = Some(Box::new(assembler_directive[4].clone()));
 
             self.records.push(asm_record);
 
@@ -777,7 +779,7 @@ impl<'i> NodeAssemblerVisitor {
 }
 
 impl<'i> ParseTreeVisitorCompat<'i> for NodeAssemblerVisitor {
-    type Node = assemblerParserContextType;
+    type Node = assembler_parserContextType;
     type Return = Vec<Node<String>>;
 
     fn temp_result(&mut self) -> &mut Self::Return {
@@ -841,9 +843,9 @@ impl<'i> ParseTreeVisitorCompat<'i> for NodeAssemblerVisitor {
     }
 }
 
-impl<'i> assemblerVisitorCompat<'i> for NodeAssemblerVisitor {
+impl<'i> assembler_parserVisitorCompat<'i> for NodeAssemblerVisitor {
 
-    fn visit_row(&mut self, ctx: &parser::assemblerparser::RowContext<'i>) -> Self::Return {
+    fn visit_row(&mut self, ctx: &parser::assembler_parserparser::RowContext<'i>) -> Self::Return {
         self.descend_indent("visit_row");
         let children_result = self.visit_children(ctx);
         self.ascend_indent();
@@ -872,7 +874,7 @@ impl<'i> assemblerVisitorCompat<'i> for NodeAssemblerVisitor {
         visit_children_result
     }
 
-    fn visit_mnemonic(&mut self, ctx: &parser::assemblerparser::MnemonicContext<'i>) -> Self::Return {
+    fn visit_mnemonic(&mut self, ctx: &parser::assembler_parserparser::MnemonicContext<'i>) -> Self::Return {
         self.descend_indent("visit_mnemonic");
         let visit_children_result = self.visit_children(ctx);
         self.ascend_indent();
@@ -888,17 +890,17 @@ impl<'i> assemblerVisitorCompat<'i> for NodeAssemblerVisitor {
         visit_children_result
     }
 
-    fn visit_asm_instrinsic_instruction(&mut self, 
-        ctx: &parser::assemblerparser::Asm_instrinsic_instructionContext<'i>) -> Self::Return 
+    fn visit_asm_intrinsic_instruction(&mut self, 
+        ctx: &parser::assembler_parserparser::Asm_intrinsic_instructionContext<'i>) -> Self::Return 
     {
         let tok: Ref<'_, GenericToken<Cow<'_, str>>> = ctx.start();
         //log::info!("TOK {:?}\n", tok);
         //log::info!("TOK.line {:?}\n", tok.line);
         //log::info!("TOK.column {:?}\n", tok.column);
         
-        //log::info!("visit_asm_instrinsic_instruction CTX {:?} {:?} {:?}\n", self.source_file, ctx.start(), ctx.start().get_token_index());
+        //log::info!("visit_asm_intrinsic_instruction CTX {:?} {:?} {:?}\n", self.source_file, ctx.start(), ctx.start().get_token_index());
 
-        self.descend_indent("visit_asm_instrinsic_instruction");
+        self.descend_indent("visit_asm_intrinsic_instruction");
         let visit_children_result = self.visit_children(ctx);
         self.ascend_indent();
 
@@ -916,7 +918,7 @@ impl<'i> assemblerVisitorCompat<'i> for NodeAssemblerVisitor {
         visit_children_result
     }
 
-    fn visit_asm_intrinsic_usage(&mut self, ctx: &parser::assemblerparser::Asm_intrinsic_usageContext<'i>) -> Self::Return {
+    fn visit_asm_intrinsic_usage(&mut self, ctx: &parser::assembler_parserparser::Asm_intrinsic_usageContext<'i>) -> Self::Return {
         self.descend_indent("visit_asm_intrinsic_usage");
         let visit_children_result = self.visit_children(ctx);
         self.ascend_indent();
@@ -926,7 +928,7 @@ impl<'i> assemblerVisitorCompat<'i> for NodeAssemblerVisitor {
         self.process_asm_intrinsic_usage(visit_children_result)
     }
 
-    fn visit_expression(&mut self, ctx: &parser::assemblerparser::ExpressionContext<'i>) -> Self::Return 
+    fn visit_expression(&mut self, ctx: &parser::assembler_parserparser::ExpressionContext<'i>) -> Self::Return 
     {
         self.descend_indent("visit_expression");
         let mut visit_children_result = self.visit_children(ctx);
@@ -1089,7 +1091,7 @@ impl<'i> assemblerVisitorCompat<'i> for NodeAssemblerVisitor {
         visit_children_result
     }*/
 
-    fn visit_label_definition(&mut self, ctx: &parser::assemblerparser::Label_definitionContext<'i>) -> Self::Return {
+    fn visit_label_definition(&mut self, ctx: &parser::assembler_parserparser::Label_definitionContext<'i>) -> Self::Return {
         self.descend_indent("visit_label_definition");
         let visit_children_result = self.visit_children(ctx);
         self.ascend_indent();

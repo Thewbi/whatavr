@@ -27,7 +27,7 @@ use crate::assembler::asm_encoder::AsmEncoder;
 use crate::assembler::asm_record;
 use crate::assembler::asm_record::AsmRecord;
 use crate::assembler::asm_record_type::AsmRecordType;
-use crate::assembler::asm_visitor_new::NewAssemblerVisitor;
+//use crate::assembler::asm_visitor_new::NewAssemblerVisitor;
 use crate::assembler::evaluator::Evaluator;
 use crate::common::listing_parser::is_code_offset_c_listing;
 use crate::cpu::cpu::CPU;
@@ -38,10 +38,10 @@ use crate::instructions::instruction_type::InstructionType;
 use crate::instructions::instructions::INSTRUCTIONS;
 use crate::instructions::instructions::UNKNOWN;
 use crate::instructions::process::match_instruction;
-use crate::parser::assemblerparser::assemblerParserContextType;
-use crate::parser::assemblerparser::Asm_fileContextAll;
+use crate::parser::assembler_parserparser::Asm_fileContextAll;
 
 use crate::fs::File;
+use crate::parser::assembler_parserparser::assembler_parserContextType;
 
 use std::io::BufRead;
 use crate::io::BufReader;
@@ -76,6 +76,7 @@ lazy_static! {
 //
 // antlr lab
 //
+// cargo clean
 // cargo build
 // cargo run --bin build_parser
 // cargo run --bin whatavr
@@ -249,8 +250,7 @@ fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>) -> [u8; RAMEND
     let mut token_value_storage: HashMap<String, isize> = HashMap::new();
 
     let mut token_file_path: String = String::new();
-    //token_file_path.push_str("src/parser/assembler.tokens");
-    token_file_path.push_str("src/parser/assembler.tokens");
+    token_file_path.push_str("src/parser/assembler_lexer.tokens");
 
     // open the file in read-only mode (ignoring errors).
     let file = File::open(token_file_path).unwrap();
@@ -317,6 +317,9 @@ fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>) -> [u8; RAMEND
     //asm_file_path.push_str("test_resources/sample_files/asm/def_assembler_directive.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/dseg.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/define_byte.asm");
+
+    asm_file_path.push_str("test_resources/sample_files/asm/equ.asm");
+
     //asm_file_path.push_str("test_resources/sample_files/asm/excercise.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/expression_test.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/expression.asm");
@@ -329,7 +332,7 @@ fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>) -> [u8; RAMEND
     //asm_file_path.push_str("test_resources/sample_files/asm/push_pop.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/ret_test.asm");
 
-    asm_file_path.push_str("test_resources/sample_files/asm/str_length.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/str_length.asm");
 
     //asm_file_path.push_str("test_resources/sample_files/asm/scratchpad.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/scratchpad_2.asm");
@@ -456,12 +459,12 @@ fn parse_and_encode(segments: &mut Vec<Segment>, input_stream: InputStream<&str>
     log::info!("*************************************************\n");
 
     let token_factory: antlr_rust::token_factory::ArenaFactory<'_, antlr_rust::token_factory::CommonTokenFactory, antlr_rust::token::GenericToken<_>> = ArenaCommonFactory::default();
-    let mut _lexer: parser::assemblerlexer::assemblerLexer<'_, InputStream<&str>> = parser::assemblerlexer::assemblerLexer::new_with_token_factory(
+    let mut _lexer: parser::assembler_lexerlexer::assembler_lexer<'_, InputStream<&str>> = parser::assembler_lexerlexer::assembler_lexer::new_with_token_factory(
         input_stream,
         &token_factory,
     );
-    let token_source: CommonTokenStream<'_, parser::assemblerlexer::assemblerLexer<'_, InputStream<&str>>> = CommonTokenStream::new(_lexer);
-    let mut parser: parser::assemblerparser::assemblerParser<'_, CommonTokenStream<'_, parser::assemblerlexer::assemblerLexer<'_, InputStream<&str>>>, antlr_rust::DefaultErrorStrategy<'_, assemblerParserContextType>> = parser::assemblerparser::assemblerParser::new(token_source);
+    let token_source: CommonTokenStream<'_, parser::assembler_lexerlexer::assembler_lexer<'_, InputStream<&str>>> = CommonTokenStream::new(_lexer);
+    let mut parser: parser::assembler_parserparser::assembler_parser<'_, CommonTokenStream<'_, parser::assembler_lexerlexer::assembler_lexer<'_, InputStream<&str>>>, antlr_rust::DefaultErrorStrategy<'_, assembler_parserContextType>> = parser::assembler_parserparser::assembler_parser::new(token_source);
 
     let result = parser.asm_file();
     assert!(result.is_ok());

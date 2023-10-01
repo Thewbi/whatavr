@@ -1,0 +1,24 @@
+In order for this code to work:
+
+```
+let token_factory: antlr_rust::token_factory::ArenaFactory<'_, antlr_rust::token_factory::CommonTokenFactory, antlr_rust::token::GenericToken<_>> = ArenaCommonFactory::default();
+let mut _lexer: parser::assembler_lexerlexer::assembler_lexer<'_, InputStream<&str>> = parser::assembler_lexerlexer::assembler_lexer::new_with_token_factory(
+    input_stream,
+    &token_factory,
+);
+let token_source: CommonTokenStream<'_, parser::assembler_lexerlexer::assembler_lexer<'_, InputStream<&str>>> = CommonTokenStream::new(_lexer);
+let mut parser: parser::assembler_parserparser::assembler_parser<'_, CommonTokenStream<'_, parser::assembler_lexerlexer::assembler_lexer<'_, InputStream<&str>>>, antlr_rust::DefaultErrorStrategy<'_, assembler_parserContextType>> = parser::assembler_parserparser::assembler_parser::new(token_source);
+
+let result = parser.asm_file();
+assert!(result.is_ok());
+let root: Rc<Asm_fileContextAll> = result.unwrap();
+```
+
+The generated code has to be adjusted! Another token factory is required!
+
+In the generated C:\aaa_se\rust\whatavr\src\parser\assembler_lexerlexer.rs
+
+```
+//pub type LocalTokenFactory<'input> = CommonTokenFactory;
+pub type LocalTokenFactory<'input> = antlr_rust::token_factory::ArenaCommonFactory<'input>;
+```

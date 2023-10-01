@@ -1,7 +1,7 @@
 #![allow(nonstandard_style)]
 // Generated from ../../src/parser/assembler_parser.g4 by ANTLR 4.8
 use antlr_rust::tree::ParseTreeListener;
-use super::assembler_parser::*;
+use super::assembler_parserparser::*;
 
 pub trait assembler_parserListener<'input> : ParseTreeListener<'input,assembler_parserContextType>{
 /**
@@ -105,15 +105,15 @@ fn enter_numeric(&mut self, _ctx: &NumericContext<'input>) { }
  */
 fn exit_numeric(&mut self, _ctx: &NumericContext<'input>) { }
 /**
- * Enter a parse tree produced by {@link assembler_parser#asm_instrinsic_instruction}.
+ * Enter a parse tree produced by {@link assembler_parser#asm_intrinsic_instruction}.
  * @param ctx the parse tree
  */
-fn enter_asm_instrinsic_instruction(&mut self, _ctx: &Asm_instrinsic_instructionContext<'input>) { }
+fn enter_asm_intrinsic_instruction(&mut self, _ctx: &Asm_intrinsic_instructionContext<'input>) { }
 /**
- * Exit a parse tree produced by {@link assembler_parser#asm_instrinsic_instruction}.
+ * Exit a parse tree produced by {@link assembler_parser#asm_intrinsic_instruction}.
  * @param ctx the parse tree
  */
-fn exit_asm_instrinsic_instruction(&mut self, _ctx: &Asm_instrinsic_instructionContext<'input>) { }
+fn exit_asm_intrinsic_instruction(&mut self, _ctx: &Asm_intrinsic_instructionContext<'input>) { }
 /**
  * Enter a parse tree produced by {@link assembler_parser#byte_csv}.
  * @param ctx the parse tree

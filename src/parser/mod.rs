@@ -1,5 +1,4 @@
-pub mod assemblerlexer;
-pub mod assemblerlistener;
-//pub mod assemblerlistenerimpl;
-pub mod assemblerparser;
-pub mod assemblervisitor;
+pub mod assembler_lexerlexer;
+pub mod assembler_parserlistener;
+pub mod assembler_parserparser;
+pub mod assembler_parservisitor;
