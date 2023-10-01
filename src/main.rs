@@ -24,6 +24,7 @@ use instructions::instruction_definition::InstructionDefinition;
 use log::LevelFilter;
 
 use crate::assembler::asm_encoder::AsmEncoder;
+use crate::assembler::asm_record_type::AsmRecordType;
 use crate::assembler::asm_visitor_new::NewAssemblerVisitor;
 use crate::common::listing_parser::is_code_offset_c_listing;
 use crate::cpu::cpu::CPU;
@@ -301,7 +302,7 @@ fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>) -> [u8; RAMEND
     let mut asm_file_path: String = String::new();
     //asm_file_path.push_str("test_resources/sample_files/asm/asm_1.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/asm_2.asm");
-    asm_file_path.push_str("test_resources/sample_files/asm/asm_3.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/asm_3.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/asm_4.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/blinklicht.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/call_and_return.asm"); // regression test
@@ -325,7 +326,7 @@ fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>) -> [u8; RAMEND
     //asm_file_path.push_str("test_resources/sample_files/asm/push_pop.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/ret_test.asm");
 
-    //asm_file_path.push_str("test_resources/sample_files/asm/str_length.asm");
+    asm_file_path.push_str("test_resources/sample_files/asm/str_length.asm");
 
     //asm_file_path.push_str("test_resources/sample_files/asm/scratchpad.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/scratchpad_2.asm");
@@ -433,6 +434,11 @@ fn load_segment_from_hex_file(segments: &mut Vec<Segment>) -> io::Result<()>
     Ok(())
 }
 
+pub fn create_label(labels: &mut HashMap<String, u32>, label: String, idx: u32) {
+    println!("Label: {} -> idx: {:#04X}", label, idx);
+    labels.insert(label.clone(), idx);
+}
+
 fn parse_and_encode(segments: &mut Vec<Segment>, input_stream: InputStream<&str>, source_file: String) -> [u8; RAMEND as usize] 
 {
     //
@@ -463,41 +469,21 @@ fn parse_and_encode(segments: &mut Vec<Segment>, input_stream: InputStream<&str>
     //
 
     log::info!("*************************************************\n");
-    log::info!("Phase - AST Visiting - First Phase - Collecting jump label and variable name addresses\n");
-    log::info!("*************************************************\n");
-
-    // todo
-    // determine symbols in the current file and all included files (.include)
-    // have a large buffer of instructions
-    // have a address for each label
-    // have a filepath and a line number for each label (to know where the label is defined)
-
-    // // Line visitor
-    // let mut line_visitor: LineAssemblerVisitor = LineAssemblerVisitor::default();
-    // line_visitor.record.clear();
-
-    // let line_visitor_result = line_visitor.visit(&*root);
-    // log::trace!("{:?}\n", line_visitor_result);
-
-    log::info!("*************************************************\n");
-    log::info!("Phase - AST Visiting - Second Phase - Collecting instruction parameters\n");
+    log::info!("Phase - AST Visiting - First Phase - Create AsmRecords and digest expression trees\n");
     log::info!("*************************************************\n");
 
     // new visitor
     //let mut visitor: NewAssemblerVisitor = NewAssemblerVisitor::default();
+
+    // node visitor
     let mut visitor: NodeAssemblerVisitor = NodeAssemblerVisitor::default();
     visitor.source_file = source_file.clone();
     visitor.record.clear();
 
-    let visitor_result = visitor.visit(&*root);
-    //log::trace!("{:?}\n", visitor_result);
-
-    //
-    // DEBUG - output all records
-    //
+    let _visitor_result = visitor.visit(&*root);
 
     log::info!("*************************************************\n");
-    log::info!("Phase - DEBUG - ALL RECORDS\n");
+    log::info!("Phase - DEBUG - Output all records after digestion \n");
     log::info!("*************************************************\n");
 
     log::info!("\n");
@@ -508,8 +494,60 @@ fn parse_and_encode(segments: &mut Vec<Segment>, input_stream: InputStream<&str>
     }
 
     log::info!("*************************************************\n");
-    log::info!("Phase - DEBUG - ALL RECORDS - END END END END END\n");
+    log::info!("Phase - AST Visiting - Second Phase - Construct Addresses for labels and instructions\n");
     log::info!("*************************************************\n");
+
+    //
+    // phase 1 - scan for labels
+    //
+
+    let mut labels: HashMap<String, u32> = HashMap::new();
+
+    let mut address: u32 = 0u32;
+    for asm_record in visitor.records.iter_mut() {
+
+        // for .org instructions, change the idx to encode to another location in the code segment
+        if asm_record.record_type == AsmRecordType::ORG {
+            address = asm_record.address;
+            continue;
+        }
+
+        // assign the current address to the record
+        asm_record.set_address(address);
+
+        // if a label was specified for the current address,
+        // manage the mapping of the label to the current address
+        if asm_record.label != "" {
+            create_label(&mut labels, asm_record.label.clone(), address);
+        }
+        // if asm_record.record_type == AsmRecordType::DB {
+        //     create_label(&mut labels, asm_record.label.clone(), address);
+        // }
+
+        // advance the address by the actual length of the instruction.
+        // Some instructions are 1 word (2 byte) whereas others are 2 word (4 byte)
+        address += InstructionType::words(&asm_record.instruction_type);
+    }
+
+    log::info!("*************************************************\n");
+    log::info!("Phase - DEBUG - Output all records after address construction\n");
+    log::info!("*************************************************\n");
+
+    log::info!("\n");
+    let mut idx: u32 = 0u32;
+    for asm_record in visitor.records.iter_mut() {
+        log::info!("{}\n", asm_record);
+        log::info!("\n");
+    }
+
+    
+    println!("");
+    println!("+++++++-------+++++++-------+++++++-------+++++++-------");
+    for (label, address) in &labels {
+        println!("Label: {} -> idx: {:#04X}", label, address);
+    }
+    println!("+++++++-------+++++++-------+++++++-------+++++++-------");
+    println!("");
 
     //
     // Phase - Encoding

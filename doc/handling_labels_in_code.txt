@@ -155,7 +155,7 @@ except for .include lines which are recursively resolved (use stack to detect cy
 DEBUG - 
 [OK] Look at the list of lines and make sure the resolution of the .includes did work
 [OK] Make sure each line has a pointer to the file that they have been retrieved from.
-[TODO] Make sure expressions are inserted in the form of trees ldi r25, 3 * (17 + 18)
+[OK] Make sure expressions are inserted in the form of trees ldi r25, 3 * (17 + 18)
 must be:   * 
           /  \
          3    +
@@ -173,13 +173,13 @@ After a .org assembler instruction has been applied, the corresponding assembler
 has to be removed from the list since during the encoding phase it will not be encoded into machine code and it
 has a instruction type of UNKNOWN which causes a panic!()
 
-Add the addresses to each line that contains a assembler instruction.
+Add the addresses to each assembler record that contains a assembler instruction.
 
 For labels of resolved bytes in memory, store the current adress_ptr value into the symbol table for that symbol.
 
 DEBUG - 
-[TODO] Again output a list of all assembly records -> Each record has to have an address. .org and .include instructions
-are not contained any more
+[OK] Again output a list of all assembly records -> Each record has to have an address. 
+[TODO] .org and .include instructions are not contained any more
 [TODO] output the symbol table. Each variable label has to point to a correct address
 [TODO] make sure that the address of each line is correct. 
 [TODO] Test with several .org instructions that move the address around
@@ -189,9 +189,9 @@ are not contained any more
 Phase 3 - evaluate all expression trees using all values and addressees in the symbol table.
 
 To perform this evaluation, iterate over all list entries on the global line list and update the symbol table
-with each entry. 
+with each entry ot type .def, .equ. 
 
-After the symbol table was updated by a assembler instruction such as equ or def the assembler_record
+After the symbol table was updated by a assembler instruction such as .equ or .def the assembler_record
 has to be removed from the list since during the encoding phase it will not be encoded into machine code and it
 has a instruction type of UNKNOWN which causes a panic!()
 

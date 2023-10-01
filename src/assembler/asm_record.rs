@@ -28,6 +28,7 @@ pub struct AsmRecord {
     pub io_dest: IoDestination,
 
     pub idx: u32,
+    pub address: u32,
 
     pub direct_data: Vec<u8>,
 
@@ -66,6 +67,7 @@ impl AsmRecord {
             target_address: target_address,
             io_dest: io_dest,
             idx: 0u32,
+            address: 0u32,
             direct_data: Vec::default(),
             source_file: source_file,
             line: line,
@@ -86,6 +88,7 @@ impl AsmRecord {
         self.target_address = 0i16;
         self.io_dest = IoDestination::UNKNOWN;
         self.idx = u32::default();
+        self.address = u32::default();
         self.direct_data = Vec::default();
         self.source_file = String::default();
         self.line = isize::default();
@@ -94,6 +97,10 @@ impl AsmRecord {
 
     pub fn set_idx(&mut self, idx: u32) {
         self.idx = idx;
+    }
+
+    pub fn set_address(&mut self, address: u32) {
+        self.address = address;
     }
     
 }
@@ -113,6 +120,7 @@ impl Default for AsmRecord {
             target_address : 0i16,
             io_dest: IoDestination::UNKNOWN,
             idx: u32::default(),
+            address: u32::default(),
             direct_data: Vec::default(),
             source_file: String::default(),
             line: isize::default(),
@@ -123,8 +131,9 @@ impl Default for AsmRecord {
 
 impl fmt::Display for AsmRecord {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "(idx:{:<4} {:#04x}, label:{:<10}, itype:{:<5}, reg_1:{:<3} {:#04x}, reg_2:{:<3} {:#04x}, expr_1: {:?}, expr_2: {:?}, data:{} {:#04x}, tgt_label:{}, tgt_addr:{}, source_file:{}, line:{}, column:{})", 
+        write!(f, "(idx:{:<4} {:#04x}, addr:{:<4} {:#04x}, label:{:<10}, itype:{:<5}, reg_1:{:<3} {:#04x}, reg_2:{:<3} {:#04x}, expr_1: {:?}, expr_2: {:?}, data:{} {:#04x}, tgt_label:{}, tgt_addr:{}, source_file:{}, line:{}, column:{})", 
             self.idx, self.idx,
+            self.address, self.address,
             self.label, 
             self.instruction_type.to_string(),
             self.reg_1, self.reg_1,

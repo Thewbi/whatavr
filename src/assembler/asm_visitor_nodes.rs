@@ -424,6 +424,7 @@ impl<'i> NodeAssemblerVisitor {
             asm_record.source_file = self.source_file.clone();
             asm_record.line = line;
             asm_record.column = column;
+            asm_record.label = String::from("lul");
 
             for i in 2..assembler_directive.len()
             {
@@ -437,6 +438,13 @@ impl<'i> NodeAssemblerVisitor {
                 {
                     asm_record.direct_data = [asm_record.direct_data.as_slice(), &temp].concat();
                 }
+            }
+
+            // apply the last found label to the AsmRecord
+            if !self.label.is_empty()
+            {
+                asm_record.label = self.label.clone();
+                self.label = String::default();
             }
 
             self.records.push(asm_record);
@@ -468,6 +476,7 @@ impl<'i> NodeAssemblerVisitor {
             asm_record.source_file = self.source_file.clone();
             asm_record.line = line;
             asm_record.column = column;
+            asm_record.expression_1 = Some(Box::new(assembler_directive[2].clone()));
 
             self.records.push(asm_record);
 
@@ -478,6 +487,7 @@ impl<'i> NodeAssemblerVisitor {
             asm_record.source_file = self.source_file.clone();
             asm_record.line = line;
             asm_record.column = column;
+            asm_record.expression_1 = Some(Box::new(assembler_directive[2].clone()));
 
             self.records.push(asm_record);
 
@@ -488,6 +498,7 @@ impl<'i> NodeAssemblerVisitor {
             asm_record.source_file = self.source_file.clone();
             asm_record.line = line;
             asm_record.column = column;
+            asm_record.expression_1 = Some(Box::new(assembler_directive[2].clone()));
 
             self.records.push(asm_record);
 
@@ -697,6 +708,7 @@ impl<'i> NodeAssemblerVisitor {
             }
         }
 
+        // apply the last found label to the AsmRecord
         if !self.label.is_empty()
         {
             asm_record.label = self.label.clone();

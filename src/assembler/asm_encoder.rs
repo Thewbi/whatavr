@@ -126,10 +126,10 @@ macro_rules! LOW_LOW_I32 {
     };
 }
 
-pub fn create_label(labels: &mut HashMap<String, u32>, label: String, idx: u32) {
-    labels.insert(label.clone(), idx);
-    println!("Label: {} -> idx: {:#04X}", label, idx);
-}
+// pub fn create_label(labels: &mut HashMap<String, u32>, label: String, idx: u32) {
+//     labels.insert(label.clone(), idx);
+//     println!("Label: {} -> idx: {:#04X}", label, idx);
+// }
 
 // 1. enter all commands into a list
 // 2. resolve all macros and insert new entries (created from the resolved macros) into the list
@@ -159,34 +159,7 @@ impl AsmEncoder {
     pub fn assemble(&mut self, asm_records: &mut Vec<AsmRecord>, segment: &mut Segment) {
 
         //
-        // phase 1 - scan for labels
-        //
-
-        let mut idx: u32 = 0u32;
-        for asm_record in asm_records.iter_mut() {
-
-            // for .org instructions, change the idx to encode to another location in the code segment
-            if asm_record.record_type == AsmRecordType::ORG {
-                idx = asm_record.idx;
-                continue;
-            }
-
-            // assign the current address to the record
-            asm_record.set_idx(idx);
-
-            // if a label was specified for the current address,
-            // manage the mapping of the label to the current address
-            if asm_record.label != "" {
-                create_label(&mut self.labels, asm_record.label.clone(), idx);
-            }
-
-            // advance the address by the actual length of the instruction.
-            // Some instructions are 1 word (2 byte) whereas others are 2 word (4 byte)
-            idx += InstructionType::words(&asm_record.instruction_type);
-        }
-
-        //
-        // phase 2 - encode (with addresses resolved to labels)
+        // phase 1 - encode (with addresses resolved to labels)
         //
 
         for rec in asm_records.iter() {
