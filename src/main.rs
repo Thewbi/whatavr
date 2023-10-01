@@ -115,20 +115,20 @@ fn main() -> io::Result<()> {
     let mut cpu: CPU = CPU::default();
     cpu.sram = sram_content;
 
-    // for excercise only!
-    cpu.pc = 0x0082;
-    //cpu.register_file[30] = 0x01; // ZH
-    cpu.set_z(0x0120);
+    // // for excercise only!
+    // cpu.pc = 0x0082;
+    // //cpu.register_file[30] = 0x01; // ZH
+    // cpu.set_z(0x0120);
 
-    cpu.register_file[16] = 0x03; // r16
-    cpu.register_file[17] = 0xFF; // r17
+    // cpu.register_file[16] = 0x03; // r16
+    // cpu.register_file[17] = 0xFF; // r17
 
-    //*cpu.sph() = 0x10;
-    *cpu.sph() = 0x01;
-    *cpu.spl() = 0xFF;
+    // //*cpu.sph() = 0x10;
+    // *cpu.sph() = 0x01;
+    // *cpu.spl() = 0xFF;
 
     // output initial CPU state
-    log::info!("CPU initial: {}", &cpu);
+//    log::info!("CPU initial: {}", &cpu);
 
     // main loop that executes the instructions
     let mut done: bool = false;
@@ -149,7 +149,7 @@ fn main() -> io::Result<()> {
         cpu.execute_instruction(&segments[0]);
 
         // DEBUG - output the CPU state
-        log::trace!("{}\n", cpu);
+        log::info!("{}\n", cpu);
     }
 
     log_end();
@@ -288,7 +288,7 @@ fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>) -> [u8; RAMEND
     //
 
     log::info!("**********************************************\n");
-    log::info!("Phase - Phase - read the .asm file\n");
+    log::info!("Phase - read the .asm file\n");
     log::info!("**********************************************\n");
 
     //
@@ -344,7 +344,7 @@ fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>) -> [u8; RAMEND
     //asm_file_path.push_str("test_resources/sample_files/asm/rjh_coding_avr-asm-add-16.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/ret_test.asm");
 
-    asm_file_path.push_str("test_resources/sample_files/asm/str_length.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/str_length.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/scratchpad.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/scratchpad_2.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/setup_stack.asm"); // regression test
@@ -369,7 +369,7 @@ fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>) -> [u8; RAMEND
     // lsl, brne, brbc, breq, brsh, brge, brlt, rol, ror, sbi, cbi, sbc, subi
 
     //asm_file_path.push_str("test_resources/sample_files/asm/andi.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/add.asm");
+    asm_file_path.push_str("test_resources/sample_files/asm/add.asm"); // test this
     //asm_file_path.push_str("test_resources/sample_files/asm/adc.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/adiw.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/and.asm");
@@ -625,6 +625,12 @@ fn parse_and_encode(segments: &mut Vec<Segment>, input_stream: InputStream<&str>
     log::info!("Phase - DEBUG - Output all records after symbol table update and evaluation\n");
     log::info!("*************************************************************\n");
 
+    log::info!("\n");
+    for asm_record in visitor.records.iter_mut() {
+        log::info!("{}\n", asm_record);
+        log::info!("\n");
+    }
+
     println!("");
     println!("+++++++-------+++++++-------+++++++-------+++++++-------");
     for (label, address) in &symbol_table {
@@ -632,6 +638,17 @@ fn parse_and_encode(segments: &mut Vec<Segment>, input_stream: InputStream<&str>
     }
     println!("+++++++-------+++++++-------+++++++-------+++++++-------");
     println!("");
+
+    // copy symbol table into CSEG_HASHMAP
+    let mut cseg_map = CSEG_HASHMAP.lock().unwrap();
+    for (label, address) in &symbol_table {
+        //println!("Label: {} -> idx: {:#04X} {}d", label, address, address);
+        cseg_map.insert(label.clone(), address.to_string());
+    }
+
+    for asm_record in visitor.records.iter_mut() {
+        asm_record.idx = asm_record.address;
+    }
 
     //
     // Phase - Encoding

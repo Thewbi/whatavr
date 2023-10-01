@@ -238,8 +238,6 @@ impl CPU {
         let value: usize = usize::from_str_radix(without_prefix, 16).unwrap();
 
         return self.sfr[value];
-
-        // return self.sfr[0x3E];
     }
 
     fn get_spl(&self) -> u8 {
@@ -251,8 +249,6 @@ impl CPU {
         let value: usize = usize::from_str_radix(without_prefix, 16).unwrap();
 
         return self.sfr[value];
-
-        // return self.sfr[0x3D];
     }
 
     #[allow(dead_code, unused)]

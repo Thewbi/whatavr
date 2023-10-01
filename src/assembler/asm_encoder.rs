@@ -213,7 +213,6 @@ impl AsmEncoder {
         for rec in asm_records.iter() {
             self.encode(segment, rec);
         }
-
     }
 
     fn insert_into_segment(&self, segment: &mut Segment, address: u32, data: u8)
@@ -237,8 +236,6 @@ impl AsmEncoder {
         {
             for cc in &asm_record.direct_data
             {
-                //segment.data.push(*cc);
-                //segment.size += 1u32;
                 self.insert_into_segment(segment, asm_record.idx, *cc as u8);
             }
 
