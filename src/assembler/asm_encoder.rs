@@ -55,6 +55,54 @@ macro_rules! LOW_U16 {
 }
 
 #[macro_export]
+macro_rules! HIGH_HIGH_U32 {
+    // match like arm for macro
+    ($a:expr) => {
+        // macro expand to this code
+        {
+            // $a and $b will be templated using the value/variable provided to macro
+            ($a >> 24u32) & 0xFFu32
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! HIGH_U32 {
+    // match like arm for macro
+    ($a:expr) => {
+        // macro expand to this code
+        {
+            // $a and $b will be templated using the value/variable provided to macro
+            ($a >> 16u32) & 0xFFu32
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! LOW_U32 {
+    // match like arm for macro
+    ($a:expr) => {
+        // macro expand to this code
+        {
+            // $a and $b will be templated using the value/variable provided to macro
+            ($a >> 8u32) & 0xFFu32
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! LOW_LOW_U32 {
+    // match like arm for macro
+    ($a:expr) => {
+        // macro expand to this code
+        {
+            // $a and $b will be templated using the value/variable provided to macro
+            ($a & 0xFFu32)
+        }
+    };
+}
+
+#[macro_export]
 macro_rules! HIGH_I16 {
     // match like arm for macro
     ($a:expr) => {

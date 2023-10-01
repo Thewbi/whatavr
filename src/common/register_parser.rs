@@ -45,6 +45,36 @@ pub fn register_name_to_u16(input: &str) -> u16
     }
 }
 
+pub fn register_name_to_u32(input: &str) -> u32 
+{
+    let input_uc = input.to_uppercase();
+    match input_uc.as_str() {
+        "XL" => {
+            return 26u32; //  0x1A
+        }
+        "XH" => {
+            return 27u32; //  0x1B
+        }
+
+        "YL" => {
+            return 28u32; //  0x1C
+        }
+        "YH" => {
+            return 29u32; //  0x1D
+        }
+
+        "ZL" => {
+            return 30u32; //  0x1E
+        }
+        "ZH" => {
+            return 31u32; //  0x1F
+        }
+
+        _ => {
+            input[1..].parse::<u32>().unwrap()
+        }
+    }
+}
 
 #[cfg(test)]
 mod tests {

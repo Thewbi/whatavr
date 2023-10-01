@@ -1,6 +1,6 @@
 ;.include "m328Pdef.inc"             ; useful definitions ...
 
-.equ	dummy	= 1 + 2 + 3 * (3 + 4)
+;.equ	dummy	= 1 + 2 + 3 * (3 + 4)
 .equ	RAMEND	= 0x08ff
 .def	ZL	= r30
 .def	ZH	= r31

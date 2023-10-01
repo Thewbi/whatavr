@@ -476,8 +476,8 @@ impl<'i> NodeAssemblerVisitor {
             asm_record.source_file = self.source_file.clone();
             asm_record.line = line;
             asm_record.column = column;
-            asm_record.label = assembler_directive[2].value.clone();
-            asm_record.expression_1 = Some(Box::new(assembler_directive[3].clone()));
+            asm_record.target_label = assembler_directive[2].value.clone();
+            asm_record.expression_1 = Some(Box::new(assembler_directive[4].clone()));
 
             self.records.push(asm_record);
 
@@ -488,7 +488,7 @@ impl<'i> NodeAssemblerVisitor {
             asm_record.source_file = self.source_file.clone();
             asm_record.line = line;
             asm_record.column = column;
-            asm_record.label = assembler_directive[2].value.clone();
+            asm_record.target_label = assembler_directive[2].value.clone();
             asm_record.expression_1 = Some(Box::new(assembler_directive[4].clone()));
 
             self.records.push(asm_record);
@@ -500,7 +500,7 @@ impl<'i> NodeAssemblerVisitor {
             asm_record.source_file = self.source_file.clone();
             asm_record.line = line;
             asm_record.column = column;
-            asm_record.expression_1 = Some(Box::new(assembler_directive[4].clone()));
+            asm_record.expression_1 = Some(Box::new(assembler_directive[2].clone()));
 
             self.records.push(asm_record);
 

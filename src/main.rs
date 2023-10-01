@@ -24,10 +24,7 @@ use instructions::instruction_definition::InstructionDefinition;
 use log::LevelFilter;
 
 use crate::assembler::asm_encoder::AsmEncoder;
-use crate::assembler::asm_record;
-use crate::assembler::asm_record::AsmRecord;
 use crate::assembler::asm_record_type::AsmRecordType;
-//use crate::assembler::asm_visitor_new::NewAssemblerVisitor;
 use crate::assembler::evaluator::Evaluator;
 use crate::common::listing_parser::is_code_offset_c_listing;
 use crate::cpu::cpu::CPU;
@@ -303,58 +300,69 @@ fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>) -> [u8; RAMEND
     //
 
     let mut asm_file_path: String = String::new();
+
     //asm_file_path.push_str("test_resources/sample_files/asm/asm_1.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/asm_2.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/asm_3.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/asm_4.asm");
+
     //asm_file_path.push_str("test_resources/sample_files/asm/blinklicht.asm");
+
     //asm_file_path.push_str("test_resources/sample_files/asm/call_and_return.asm"); // regression test
     //asm_file_path.push_str("test_resources/sample_files/asm/call_test.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/call_test_2.asm");
-
     //asm_file_path.push_str("test_resources/sample_files/asm/count_bits.asm");
 
     //asm_file_path.push_str("test_resources/sample_files/asm/def_assembler_directive.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/def.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/dseg.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/define_byte.asm");
 
-    asm_file_path.push_str("test_resources/sample_files/asm/equ.asm");
-
+    //asm_file_path.push_str("test_resources/sample_files/asm/equ.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/excercise.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/expression_test.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/expression.asm");
+
+    //asm_file_path.push_str("test_resources/sample_files/asm/hwnp_excercise_1.asm");
+
     //asm_file_path.push_str("test_resources/sample_files/asm/inc.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/intrinsic.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/include_test.asm");
+
     //asm_file_path.push_str("test_resources/sample_files/asm/jmp_instruction.asm"); // problem
     //asm_file_path.push_str("test_resources/sample_files/asm/jmp.asm"); // good for regression test (will increment r17 until overflow)
+    
     //asm_file_path.push_str("test_resources/sample_files/asm/label_include_test.asm");
+
+    //asm_file_path.push_str("C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/avrasm/inc/m328Pdef.inc");
+
     //asm_file_path.push_str("test_resources/sample_files/asm/preprocessor.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/push_pop.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/pin_change_interrupt_demo.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/pin_change_interrupt_demo.asm");
+
+    //asm_file_path.push_str("test_resources/sample_files/asm/rjh_coding_avr-asm-add-16.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/ret_test.asm");
 
-    //asm_file_path.push_str("test_resources/sample_files/asm/str_length.asm");
-
+    asm_file_path.push_str("test_resources/sample_files/asm/str_length.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/scratchpad.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/scratchpad_2.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/setup_stack.asm"); // regression test
-    //asm_file_path.push_str("test_resources/sample_files/asm/timer_polling_example.asm");
-    //asm_file_path.push_str("C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/avrasm/inc/m328Pdef.inc");
-    //asm_file_path.push_str("test_resources/sample_files/asm/hwnp_excercise_1.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/st_std_test.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/stack_test.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/pin_change_interrupt_demo.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/pin_change_interrupt_demo.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/rjh_coding_avr-asm-add-16.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/include_test.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/timer1.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/twos_complement_overflow.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/sts.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/timebase.asm");
-    //asm_file_path.push_str("test_resources/sample_files/asm/out.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/store_to_flash.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/store_to_flash_2.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/store_load_flash.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/store_load_sram.asm");
+
+    //asm_file_path.push_str("test_resources/sample_files/asm/timer_polling_example.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/timer1.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/twos_complement_overflow.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/timebase.asm");
+
+    //asm_file_path.push_str("test_resources/sample_files/asm/out.asm");
+    //asm_file_path.push_str("test_resources/sample_files/asm/org.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/odd_even_test.asm");
 
     // ld, st, call, ret, push, pop, mov, movw, and, inc, dec, andi, add, adc, adiw, ldi, lsr,
@@ -496,7 +504,6 @@ fn parse_and_encode(segments: &mut Vec<Segment>, input_stream: InputStream<&str>
     log::info!("*************************************************\n");
 
     log::info!("\n");
-    let mut idx: u32 = 0u32;
     for asm_record in visitor.records.iter_mut() {
         log::info!("{:?}\n", asm_record);
         log::info!("\n");
@@ -511,21 +518,19 @@ fn parse_and_encode(segments: &mut Vec<Segment>, input_stream: InputStream<&str>
     //
 
     let mut symbol_table: HashMap<String, u32> = HashMap::new();
-    let mut evaluator: Evaluator =  Evaluator::new();    
+    let mut evaluator: Evaluator = Evaluator::new();    
 
-    let mut address: u32 = 0u32;
+    let mut address: u32 = u32::default();
     for asm_record in visitor.records.iter_mut() {
 
         // for .org instructions, change the idx to encode to another location in the code segment
         if asm_record.record_type == AsmRecordType::ORG {
-            //address = asm_record.address;
 
-            address = evaluator.evaluate(asm_record.expression_1.clone());
+            address = evaluator.evaluate(&symbol_table, asm_record.expression_1.clone());
 
-            //address = asm_record.expression_1
-
-            //TODO REMOVE THE .ORG AsmRecord since it has been processed and is not converted into machine code during encoding
+            // remove .org AsmRecord since it has been processed and is not converted into machine code during encoding
             asm_record.remove = true;
+
             continue;
         }
 
@@ -560,7 +565,7 @@ fn parse_and_encode(segments: &mut Vec<Segment>, input_stream: InputStream<&str>
     println!("");
     println!("+++++++-------+++++++-------+++++++-------+++++++-------");
     for (label, address) in &symbol_table {
-        println!("Label: {} -> idx: {:#04X}", label, address);
+        println!("Label: {} -> idx: {:#04X} {}d", label, address, address);
     }
     println!("+++++++-------+++++++-------+++++++-------+++++++-------");
     println!("");
@@ -569,9 +574,49 @@ fn parse_and_encode(segments: &mut Vec<Segment>, input_stream: InputStream<&str>
     log::info!("Phase - Iterate over AsmRecords, update symbol table from .def and .equ and evaluation expressions\n");
     log::info!("*************************************************\n");
 
+    for asm_record in visitor.records.iter_mut() {
+
+        // for .org instructions, change the idx to encode to another location in the code segment
+        if asm_record.record_type == AsmRecordType::DEF || asm_record.record_type == AsmRecordType::EQU {
+
+            let value = evaluator.evaluate(&symbol_table, asm_record.expression_1.clone());
+
+            symbol_table.insert(asm_record.target_label.clone(), value.into());
+
+            // remove .def AsmRecord since it has been processed and is not converted into machine code during encoding
+            asm_record.remove = true;
+
+            continue;
+        }
+
+        if asm_record.expression_1.is_some()
+        {
+            let value = evaluator.evaluate(&symbol_table, asm_record.expression_1.clone());
+            asm_record.data = value as u16;
+        }
+
+        if asm_record.expression_2.is_some()
+        {
+            let value = evaluator.evaluate(&symbol_table, asm_record.expression_2.clone());
+            asm_record.data = value as u16;
+        }
+    }
+
     // remove all asm records that do not contain instructions
     // retain keeps only the elements that match the predicate
     visitor.records.retain(|x| x.record_type == AsmRecordType::INSTRUCTION);
+
+    log::info!("*************************************************************\n");
+    log::info!("Phase - DEBUG - Output all records after symbol table update and evaluation\n");
+    log::info!("*************************************************************\n");
+
+    println!("");
+    println!("+++++++-------+++++++-------+++++++-------+++++++-------");
+    for (label, address) in &symbol_table {
+        println!("Label: {} -> idx: {:#04X} {}d", label, address, address);
+    }
+    println!("+++++++-------+++++++-------+++++++-------+++++++-------");
+    println!("");
 
     //
     // Phase - Encoding
