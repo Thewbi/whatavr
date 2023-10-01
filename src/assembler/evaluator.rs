@@ -48,43 +48,63 @@ impl Evaluator {
         match expr.value.as_str() {
 
             "LOW" => {
-
                 let evaluated_value: u32 = self.evaluate(symbol_table, &expr.left);
                 let low_value: u32 = crate::LOW_LOW_U32!(evaluated_value);
                 return low_value;
-
-                //let lhs = expr.left.unwrap();
-                //let symbol_table_value: &u32 = symbol_table.get(&lhs.value).unwrap();
-                //let low_value: u32 = crate::LOW_LOW_U32!(symbol_table_value);
-                //return low_value;
             }
 
             "HIGH" => {
-
                 let evaluated_value: u32 = self.evaluate(symbol_table, &expr.left);
                 let low_value: u32 = crate::LOW_U32!(evaluated_value);
                 return low_value;
-
-                // let lhs = expr.left.unwrap();
-                // let symbol_table_value: &u32 = symbol_table.get(&lhs.value).unwrap();
-                // let low_value: u32 = crate::LOW_U32!(symbol_table_value);
-                // return low_value;
             }
 
             "*" => {
-
                 let lhs_evaluated_value: u32 = self.evaluate(symbol_table, &expr.left);
                 let rhs_evaluated_value: u32 = self.evaluate(symbol_table, &expr.right);
                 return lhs_evaluated_value * rhs_evaluated_value;
+            }
 
-                // let lhs = expr.left.unwrap();
-                // let symbol_table_value: &u32 = symbol_table.get(&lhs.value).unwrap();
-                // let low_value: u32 = crate::LOW_U32!(symbol_table_value);
-                // return low_value;
+            "/" => {
+                let lhs_evaluated_value: u32 = self.evaluate(symbol_table, &expr.left);
+                let rhs_evaluated_value: u32 = self.evaluate(symbol_table, &expr.right);
+                return lhs_evaluated_value / rhs_evaluated_value;
+            }
+
+            "+" => {
+                let lhs_evaluated_value: u32 = self.evaluate(symbol_table, &expr.left);
+                let rhs_evaluated_value: u32 = self.evaluate(symbol_table, &expr.right);
+                return lhs_evaluated_value + rhs_evaluated_value;
+            }
+
+            "-" => {
+                let lhs_evaluated_value: u32 = self.evaluate(symbol_table, &expr.left);
+                let rhs_evaluated_value: u32 = self.evaluate(symbol_table, &expr.right);
+                return lhs_evaluated_value - rhs_evaluated_value;
+            }
+
+            "<<" => {
+                let lhs_evaluated_value: u32 = self.evaluate(symbol_table, &expr.left);
+                let rhs_evaluated_value: u32 = self.evaluate(symbol_table, &expr.right);
+                return lhs_evaluated_value << rhs_evaluated_value;
+            }
+
+            ">>" => {
+                let lhs_evaluated_value: u32 = self.evaluate(symbol_table, &expr.left);
+                let rhs_evaluated_value: u32 = self.evaluate(symbol_table, &expr.right);
+                return lhs_evaluated_value >> rhs_evaluated_value;
+            }
+
+            ">" => {
+                panic!("Not implemented yet!")
+            }
+
+            "<" => {
+                panic!("Not implemented yet!")
             }
 
             _ => { /*panic!("Unknown!") */ },
-            
+
         }
 
         u32::default()

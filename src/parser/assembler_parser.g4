@@ -44,11 +44,11 @@ expression :
     |
     expression SLASH expression  // division
     |
-    expression GT expression
+    expression GT expression // I think boolean results go into a predicate and not into an expression
     |
-    expression LT expression
+    expression LT expression // I think boolean results go into a predicate and not into an expression
     |
-//    expression EQUALS expression
+//    expression EQUALS expression // no equals since an expression has to return a value
 //    |
     expression PLUS expression
     |
