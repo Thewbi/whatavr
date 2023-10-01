@@ -526,7 +526,7 @@ fn parse_and_encode(segments: &mut Vec<Segment>, input_stream: InputStream<&str>
         // for .org instructions, change the idx to encode to another location in the code segment
         if asm_record.record_type == AsmRecordType::ORG {
 
-            address = evaluator.evaluate(&symbol_table, asm_record.expression_1.clone());
+            address = evaluator.evaluate(&symbol_table, &asm_record.expression_1);
 
             // remove .org AsmRecord since it has been processed and is not converted into machine code during encoding
             asm_record.remove = true;
@@ -576,28 +576,43 @@ fn parse_and_encode(segments: &mut Vec<Segment>, input_stream: InputStream<&str>
 
     for asm_record in visitor.records.iter_mut() {
 
+        log::info!("{}\n", asm_record);
+
         // for .org instructions, change the idx to encode to another location in the code segment
         if asm_record.record_type == AsmRecordType::DEF || asm_record.record_type == AsmRecordType::EQU {
 
-            let value = evaluator.evaluate(&symbol_table, asm_record.expression_1.clone());
+            let value = evaluator.evaluate(&symbol_table, &asm_record.expression_1);
 
             symbol_table.insert(asm_record.target_label.clone(), value.into());
 
-            // remove .def AsmRecord since it has been processed and is not converted into machine code during encoding
+            // remove assembler instruction AsmRecord since it has been processed 
+            // and is not converted into machine code during encoding
             asm_record.remove = true;
 
             continue;
         }
 
+        // remove assembler instruction AsmRecord since it has been processed 
+        // and is not converted into machine code during encoding
+        if asm_record.record_type != AsmRecordType::INSTRUCTION {
+            asm_record.remove = true;
+        }
+
         if asm_record.expression_1.is_some()
         {
-            let value = evaluator.evaluate(&symbol_table, asm_record.expression_1.clone());
+            let value = evaluator.evaluate(&symbol_table, &asm_record.expression_1);
             asm_record.data = value as u16;
         }
 
         if asm_record.expression_2.is_some()
         {
-            let value = evaluator.evaluate(&symbol_table, asm_record.expression_2.clone());
+            let value = evaluator.evaluate(&symbol_table, &asm_record.expression_2);
+            asm_record.data = value as u16;
+        }
+
+        if !asm_record.target_label.is_empty()
+        {
+            let value: u32 = *symbol_table.get(&asm_record.target_label).unwrap();
             asm_record.data = value as u16;
         }
     }
