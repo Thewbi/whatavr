@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::CSEG_HASHMAP;
+//use crate::CSEG_HASHMAP;
 use crate::HIGH_U16;
 use crate::LOW_U16;
 use crate::common::common_constants::RAMEND;
@@ -91,6 +91,8 @@ fn decrement_stack_pointer(cpu: &mut CPU) {
 
 pub struct CPU {
 
+    pub labels: HashMap<String, u32>,
+
     // the carry flag
     pub c: bool,
 
@@ -132,6 +134,7 @@ pub struct CPU {
 impl Default for CPU {
     fn default() -> Self {
         Self {
+            labels: HashMap::new(),
             c: false,
             z: false,
             n: false,
@@ -173,6 +176,7 @@ impl CPU {
     #[allow(dead_code, unused)]
     pub fn new(pc: i32, register_file: [u8; 32usize], sram: [u8; RAMEND as usize], sfr: [u8; 255usize]) -> Self {
         Self {
+            labels: HashMap::new(),
             c: false,
             z: false,
             n: false,
@@ -199,11 +203,13 @@ impl CPU {
     // https://stackoverflow.com/questions/35390615/writing-getter-setter-properties-in-rust
     pub fn sph(&mut self) -> &mut u8 {
 
-        let map = CSEG_HASHMAP.lock().unwrap();
-        let value_as_string = map.get("SPH").unwrap();
+        // let map = CSEG_HASHMAP.lock().unwrap();
+        // let value_as_string = map.get("SPH").unwrap();
 
-        let without_prefix = value_as_string.trim_start_matches("0x");
-        let value: usize = usize::from_str_radix(without_prefix, 16).unwrap();
+        // let without_prefix = value_as_string.trim_start_matches("0x");
+        // let value: usize = usize::from_str_radix(without_prefix, 16).unwrap();
+
+        let value: usize = self.labels["SPH"] as usize;
 
         return &mut self.sfr[value];
 
@@ -215,11 +221,13 @@ impl CPU {
 
     pub fn spl(&mut self) -> &mut u8 {
 
-        let map = CSEG_HASHMAP.lock().unwrap();
-        let value_as_string = map.get("SPL").unwrap();
+        // let map = CSEG_HASHMAP.lock().unwrap();
+        // let value_as_string = map.get("SPL").unwrap();
 
-        let without_prefix = value_as_string.trim_start_matches("0x");
-        let value: usize = usize::from_str_radix(without_prefix, 16).unwrap();
+        // let without_prefix = value_as_string.trim_start_matches("0x");
+        // let value: usize = usize::from_str_radix(without_prefix, 16).unwrap();
+
+        let value: usize = self.labels["SPL"] as usize;
 
         return &mut self.sfr[value];
 
@@ -231,22 +239,26 @@ impl CPU {
 
     fn get_sph(&self) -> u8 {
 
-        let map = CSEG_HASHMAP.lock().unwrap();
-        let value_as_string = map.get("SPH").unwrap();
+        // let map = CSEG_HASHMAP.lock().unwrap();
+        // let value_as_string = map.get("SPH").unwrap();
 
-        let without_prefix = value_as_string.trim_start_matches("0x");
-        let value: usize = usize::from_str_radix(without_prefix, 16).unwrap();
+        // let without_prefix = value_as_string.trim_start_matches("0x");
+        // let value: usize = usize::from_str_radix(without_prefix, 16).unwrap();
+
+        let value: usize = self.labels["SPH"] as usize;
 
         return self.sfr[value];
     }
 
     fn get_spl(&self) -> u8 {
 
-        let map = CSEG_HASHMAP.lock().unwrap();
-        let value_as_string = map.get("SPL").unwrap();
+        // let map = CSEG_HASHMAP.lock().unwrap();
+        // let value_as_string = map.get("SPL").unwrap();
 
-        let without_prefix = value_as_string.trim_start_matches("0x");
-        let value: usize = usize::from_str_radix(without_prefix, 16).unwrap();
+        // let without_prefix = value_as_string.trim_start_matches("0x");
+        // let value: usize = usize::from_str_radix(without_prefix, 16).unwrap();
+
+        let value: usize = self.labels["SPL"] as usize;
 
         return self.sfr[value];
     }
@@ -441,7 +453,7 @@ impl CPU {
         let mut cpu: &mut CPU = self;
 
         // DEBUG
-        log::trace!("Executing instruction: {:?}\n", instruction.instruction_type);
+        log::info!("Executing instruction: {:?}\n", instruction.instruction_type);
 
         // execute the instruction
         match instruction.instruction_type {
@@ -703,8 +715,8 @@ impl CPU {
                 //cpu.pc += 2i32;
 
                 // nop
+                
                 panic!("Break reached");
-
                 
             }
 

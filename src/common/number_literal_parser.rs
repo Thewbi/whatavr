@@ -232,6 +232,37 @@ pub fn number_literal_to_i16(data: &String) -> i16 {
 
 }
 
+pub fn number_literal_to_i32(data: &String) -> i32 {
+
+    if data.to_lowercase().starts_with("0b")
+    {
+        // parse binary
+        let without_prefix = data.trim_start_matches("0b");
+        return i32::from_str_radix(without_prefix, 2).unwrap();
+    } 
+    else if data.to_lowercase().starts_with("0x")
+    {
+        // parse hex
+        let without_prefix = data.trim_start_matches("0x");
+        return i32::from_str_radix(without_prefix, 16).unwrap();
+    } 
+    else if data.starts_with("$")
+    {
+        // parse hex
+        let without_prefix = data.trim_start_matches("$");
+        return i32::from_str_radix(without_prefix, 16).unwrap();
+    }
+    else if data.starts_with("0") && 1 != data.len()
+    {
+        // parse octal
+        let without_prefix = data.trim_start_matches("0");
+        return i32::from_str_radix(without_prefix, 8).unwrap();
+    }
+
+    return data.parse::<i32>().unwrap();
+
+}
+
 pub fn is_char_literal(input: &String) -> bool
 {
     let trimmed_input = input.trim();

@@ -95,8 +95,11 @@ fn main() -> io::Result<()> {
     // this is cseg the code segment
     let mut segments: Vec<Segment> = Vec::new();
 
+    // the symbol table
+    let mut symbol_table: HashMap<String, u32> = HashMap::new();
+
     // asm source code
-    let sram_content: [u8; RAMEND as usize] = load_segment_from_asm_source_code(&mut segments);
+    let sram_content: [u8; RAMEND as usize] = load_segment_from_asm_source_code(&mut segments, &mut symbol_table);
 
     // // hex
     // load_segment_from_hex_file(&mut segments);
@@ -114,6 +117,19 @@ fn main() -> io::Result<()> {
 
     let mut cpu: CPU = CPU::default();
     cpu.sram = sram_content;
+
+    for (label, address) in &symbol_table {
+        //println!("Label: {} -> idx: {:#04X} {}d", label, address, address);
+        cpu.labels.insert(label.clone(), *address);
+    }
+
+    println!("");
+    println!("+++++++-------+++++++-------+++++++-------+++++++-------");
+    for (label, address) in &mut cpu.labels {
+        println!("Label: {} -> idx: {:#04X} {}d", label, address, address);
+    }
+    println!("+++++++-------+++++++-------+++++++-------+++++++-------");
+    println!("");
 
     // // for excercise only!
     // cpu.pc = 0x0082;
@@ -158,7 +174,7 @@ fn main() -> io::Result<()> {
 
 }
 
-fn load_segment_from_listing_file(segments: &mut Vec<Segment>) -> [u8; RAMEND as usize] //-> io::Result<()>
+fn load_segment_from_listing_file(segments: &mut Vec<Segment>, symbol_table: &mut HashMap<String, u32>) -> [u8; RAMEND as usize] //-> io::Result<()>
 {
     let mut lss_file_path: String = String::new();
     //lss_file_path.push_str("test_resources/sample_files/lss/ADC_C.lss");
@@ -228,12 +244,12 @@ fn load_segment_from_listing_file(segments: &mut Vec<Segment>) -> [u8; RAMEND as
 
     let input_stream: InputStream<&str> = InputStream::new(string_buffer.as_str());
 
-    parse_and_encode(segments, input_stream, lss_file_path.clone())
+    parse_and_encode(segments, input_stream, lss_file_path.clone(), symbol_table)
 
     //Ok(())
 }
 
-fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>) -> [u8; RAMEND as usize] 
+fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>, symbol_table: &mut HashMap<String, u32>) -> [u8; RAMEND as usize] 
 {
     //
     // Phase - load token into a hashmap
@@ -414,7 +430,7 @@ fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>) -> [u8; RAMEND
 
     let input_stream: InputStream<&str> = InputStream::new(data.as_str());
 
-    parse_and_encode(segments, input_stream, asm_file_path.clone())
+    parse_and_encode(segments, input_stream, asm_file_path.clone(), symbol_table)
 
 }
 
@@ -456,7 +472,10 @@ pub fn create_label(map: &mut HashMap<String, u32>, label: String, idx: u32) {
     map.insert(label.clone(), idx);
 }
 
-fn parse_and_encode(segments: &mut Vec<Segment>, input_stream: InputStream<&str>, source_file: String) -> [u8; RAMEND as usize] 
+fn parse_and_encode(segments: &mut Vec<Segment>, 
+    input_stream: InputStream<&str>, 
+    source_file: String,
+    symbol_table: &mut HashMap<String, u32>) -> [u8; RAMEND as usize] 
 {
     //
     // Phase - AST Creation (Grammar Lexing and Parsing)
@@ -517,7 +536,7 @@ fn parse_and_encode(segments: &mut Vec<Segment>, input_stream: InputStream<&str>
     // phase 1 - scan for labels
     //
 
-    let mut symbol_table: HashMap<String, u32> = HashMap::new();
+    
     let mut evaluator: Evaluator = Evaluator::new();    
 
     let mut address: u32 = u32::default();
@@ -540,7 +559,7 @@ fn parse_and_encode(segments: &mut Vec<Segment>, input_stream: InputStream<&str>
         // if a label was specified for the current address,
         // manage the mapping of the label to the current address
         if asm_record.label != "" {
-            create_label(&mut symbol_table, asm_record.label.clone(), address);
+            create_label(symbol_table, asm_record.label.clone(), address);
         }
 
         // advance the address by the actual length of the instruction.
@@ -564,7 +583,7 @@ fn parse_and_encode(segments: &mut Vec<Segment>, input_stream: InputStream<&str>
     
     println!("");
     println!("+++++++-------+++++++-------+++++++-------+++++++-------");
-    for (label, address) in &symbol_table {
+    for (label, address) in &mut *symbol_table {
         println!("Label: {} -> idx: {:#04X} {}d", label, address, address);
     }
     println!("+++++++-------+++++++-------+++++++-------+++++++-------");
@@ -613,7 +632,8 @@ fn parse_and_encode(segments: &mut Vec<Segment>, input_stream: InputStream<&str>
         if !asm_record.target_label.is_empty()
         {
             let value: u32 = *symbol_table.get(&asm_record.target_label).unwrap();
-            asm_record.data = value as u16;
+            //asm_record.data = value as u16;
+            asm_record.reg_1 = value as u16;
         }
     }
 
@@ -633,18 +653,18 @@ fn parse_and_encode(segments: &mut Vec<Segment>, input_stream: InputStream<&str>
 
     println!("");
     println!("+++++++-------+++++++-------+++++++-------+++++++-------");
-    for (label, address) in &symbol_table {
+    for (label, address) in &mut *symbol_table {
         println!("Label: {} -> idx: {:#04X} {}d", label, address, address);
     }
     println!("+++++++-------+++++++-------+++++++-------+++++++-------");
     println!("");
 
-    // copy symbol table into CSEG_HASHMAP
-    let mut cseg_map = CSEG_HASHMAP.lock().unwrap();
-    for (label, address) in &symbol_table {
-        //println!("Label: {} -> idx: {:#04X} {}d", label, address, address);
-        cseg_map.insert(label.clone(), address.to_string());
-    }
+    // // copy symbol table into CSEG_HASHMAP
+    // let mut cseg_map = CSEG_HASHMAP.lock().unwrap();
+    // for (label, address) in &symbol_table {
+    //     //println!("Label: {} -> idx: {:#04X} {}d", label, address, address);
+    //     cseg_map.insert(label.clone(), address.to_string());
+    // }
 
     for asm_record in visitor.records.iter_mut() {
         asm_record.idx = asm_record.address;
@@ -665,6 +685,13 @@ fn parse_and_encode(segments: &mut Vec<Segment>, input_stream: InputStream<&str>
 
     // convert the mnemonic instructions into bytes to store into the ihex segment
     let mut asm_encoder: AsmEncoder = AsmEncoder::new();
+
+    // copy all labels into the encoder
+    for (label, address) in symbol_table {
+        //println!("Label: {} -> idx: {:#04X} {}d", label, address, address);
+        asm_encoder.labels.insert(label.clone(), *address);
+    }
+
     asm_encoder.assemble(&mut visitor.records, &mut assembler_segment);
 
     segments.push(assembler_segment);

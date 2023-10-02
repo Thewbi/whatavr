@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{ihex_mgmt::ihex_mgmt::Segment, instructions::instruction_type::InstructionType, common::number_literal_parser::number_literal_to_u16, CSEG_HASHMAP};
+use crate::{ihex_mgmt::ihex_mgmt::Segment, instructions::instruction_type::InstructionType, common::number_literal_parser::{number_literal_to_u16, number_literal_to_i32}, CSEG_HASHMAP};
 
 use super::{asm_record::AsmRecord, asm_record_type::AsmRecordType};
 
@@ -239,10 +239,12 @@ impl AsmEncoder {
                 self.insert_into_segment(segment, asm_record.idx, *cc as u8);
             }
 
-            let mut cseg_map = CSEG_HASHMAP.lock().unwrap();
-            cseg_map.insert(asm_record.label.clone(), asm_record.idx.to_string());
+            // {
+            //     let mut cseg_map = CSEG_HASHMAP.lock().unwrap();
+            //     cseg_map.insert(asm_record.label.clone(), asm_record.idx.to_string());
 
-            log::trace!("{:?}\n", cseg_map);
+            //     log::trace!("{:?}\n", cseg_map);
+            // }
             
             return;
         }
@@ -590,7 +592,7 @@ impl AsmEncoder {
         // segment.data.push((result >> 8u16) as u8);
         // segment.size += 1u32;
         self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
-        temp_addr += 1u32;
+//        temp_addr += 1u32;
     }
 
     /// 8. AND – Logical AND
@@ -616,7 +618,7 @@ impl AsmEncoder {
         // segment.data.push((result >> 8u16) as u8);
         // segment.size += 1u32;
         self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
-        temp_addr += 1u32;
+//        temp_addr += 1u32;
     }
 
     /// 9. ANDI – Logical AND with Immediate
@@ -646,7 +648,7 @@ impl AsmEncoder {
         // segment.data.push((result >> 8u16) as u8);
         // segment.size += 1u32;
         self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
-        temp_addr += 1u32;
+//        temp_addr += 1u32;
     }
 
     /// 17. BREAK
@@ -673,7 +675,7 @@ impl AsmEncoder {
         //segment.data.push((result >> 8u16) as u8);
         //segment.size += 1u32;
         self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
-        temp_addr += 1u32;
+//        temp_addr += 1u32;
     }
 
     /// 18. BREQ – Branch if Equal
@@ -720,7 +722,7 @@ impl AsmEncoder {
         //segment.data.push((result >> 8u16) as u8);
         //segment.size += 1u32;
         self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
-        temp_addr += 1u32;
+//        temp_addr += 1u32;
     }
 
     /// 27. BRNE – Branch if Not Equal
@@ -728,6 +730,13 @@ impl AsmEncoder {
     fn encode_brne(&self, segment: &mut Segment, address: u32, label: &String) {
 
         let label_address: i32 = self.labels[label] as i32;
+
+        // let mut label_address: i32 = i32::default();
+        // {
+        //     let cseg_map = CSEG_HASHMAP.lock().unwrap();
+        //     label_address = number_literal_to_i32(&cseg_map[label]);
+        // }
+        
         let offset_k: i32 = label_address - (address as i32);
 
         // do I need to use some kind of little endian encoding?
@@ -745,7 +754,7 @@ impl AsmEncoder {
         //segment.data.push((result >> 8u16) as u8);
         //segment.size += 1u32;
         self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
-        temp_addr += 1u32;
+//        temp_addr += 1u32;
 
         log::trace!("{:#18b}\n", result);
     }
@@ -759,10 +768,15 @@ impl AsmEncoder {
             panic!("No label or address found for call instruction!");
         }
 
-        let target_address: i32;
+        let mut target_address: i32 = i32::default();
         if !label.is_empty()
         {
             target_address = self.labels[label] as i32;
+
+            // {
+            //     let cseg_map = CSEG_HASHMAP.lock().unwrap();
+            //     target_address = number_literal_to_i32(&cseg_map[label]);
+            // }
         }
         else
         {
@@ -833,7 +847,7 @@ impl AsmEncoder {
         //segment.data.push((result >> 8u16) as u8);
         //segment.size += 1u32;
         self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
-        temp_addr += 1u32;
+//        temp_addr += 1u32;
     }
 
     /// 41. CLI – Clear Global Interrupt Flag
@@ -854,7 +868,7 @@ impl AsmEncoder {
         //segment.data.push((result >> 8u16) as u8);
         //segment.size += 1u32;
         self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
-        temp_addr += 1u32;
+//        temp_addr += 1u32;
     }
 
     /// 43. CLR – Clear
@@ -902,7 +916,7 @@ impl AsmEncoder {
         //segment.data.push((result >> 8u16) as u8);
         //segment.size += 1u32;
         self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
-        temp_addr += 1u32;
+//        temp_addr += 1u32;
     }
 
     /// 53. DEC – Decrement
@@ -925,7 +939,7 @@ impl AsmEncoder {
         //segment.data.push((result >> 8u16) as u8);
         //segment.size += 1u32;
         self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
-        temp_addr += 1u32;
+//        temp_addr += 1u32;
     }
 
     /// 58. EOR – Exclusive OR
@@ -954,7 +968,7 @@ impl AsmEncoder {
         //segment.data.push((result >> 8u16) as u8);
         //segment.size += 1u32;
         self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
-        temp_addr += 1u32;
+//        temp_addr += 1u32;
     }
 
     /// 64. IN - Load an I/O Location to Register
@@ -983,7 +997,7 @@ impl AsmEncoder {
         //segment.data.push((result >> 8u16) as u8);
         //segment.size += 1u32;
         self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
-        temp_addr += 1u32;
+//        temp_addr += 1u32;
     }
 
     /// 65. INC - Adds one -1- to the contents of register Rd and places the result in the destination register Rd.
@@ -1009,7 +1023,7 @@ impl AsmEncoder {
         //segment.data.push((result >> 8u16) as u8);
         //segment.size += 1u32;
         self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
-        temp_addr += 1u32;
+//        temp_addr += 1u32;
     }
 
     /// 66. JMP – Jump
@@ -1069,7 +1083,7 @@ impl AsmEncoder {
         //segment.data.push((result >> 8u16) as u8);
         //segment.size += 1u32;
         self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
-        temp_addr += 1u32;
+//        temp_addr += 1u32;
 
     }
 
@@ -1095,7 +1109,7 @@ impl AsmEncoder {
         //segment.data.push((result >> 8u16) as u8);
         //segment.size += 1u32;
         self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
-        temp_addr += 1u32;
+//        temp_addr += 1u32;
 
         log::trace!("result: {:#026b}", result);
     }
@@ -1121,7 +1135,7 @@ impl AsmEncoder {
         //segment.data.push((result >> 8u16) as u8);
         //segment.size += 1u32;
         self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
-        temp_addr += 1u32;
+//        temp_addr += 1u32;
 
         log::trace!("result: {:#026b}", result);
     }
@@ -1148,7 +1162,7 @@ impl AsmEncoder {
         //segment.data.push((result >> 8u16) as u8);
         //segment.size += 1u32;
         self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
-        temp_addr += 1u32;
+//        temp_addr += 1u32;
 
         log::trace!("result: {:#026b}", result);
     }
@@ -1176,7 +1190,7 @@ impl AsmEncoder {
         //segment.data.push((result >> 8u16) as u8);
         //segment.size += 1u32;
         self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
-        temp_addr += 1u32;
+//        temp_addr += 1u32;
 
         log::trace!("result: {:#026b}", result);
     }
@@ -1210,7 +1224,7 @@ impl AsmEncoder {
         //segment.data.push((result >> 8u16) as u8);
         //segment.size += 1u32;
         self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
-        temp_addr += 1u32;
+//        temp_addr += 1u32;
     }
 
     /// 74. LDS – Load Direct from Data Space
@@ -1253,7 +1267,7 @@ impl AsmEncoder {
         //segment.data.push((result >> 8u16) as u8);
         //segment.size += 1u32;
         self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
-        temp_addr += 1u32;
+//        temp_addr += 1u32;
 
     }
 
@@ -1288,7 +1302,7 @@ impl AsmEncoder {
         //segment.data.push((result >> 8u16) as u8);
         //segment.size += 1u32;
         self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
-        temp_addr += 1u32;
+//        temp_addr += 1u32;
     }
 
     fn encode_lpm_1(&self, segment: &mut Segment, address: u32)
@@ -1309,7 +1323,7 @@ impl AsmEncoder {
         //segment.data.push((result >> 8u16) as u8);
         //segment.size += 1u32;
         self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
-        temp_addr += 1u32;
+//        temp_addr += 1u32;
     }
 
     fn encode_lpm_2(&self, segment: &mut Segment, address: u32, register_d: u16)
@@ -1330,7 +1344,7 @@ impl AsmEncoder {
         //segment.data.push((result >> 8u16) as u8);
         //segment.size += 1u32;
         self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
-        temp_addr += 1u32;
+//        temp_addr += 1u32;
     }
 
     fn encode_lpm_3(&self, segment: &mut Segment, address: u32, register_d: u16)
@@ -1351,7 +1365,7 @@ impl AsmEncoder {
         //segment.data.push((result >> 8u16) as u8);
         //segment.size += 1u32;
         self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
-        temp_addr += 1u32;
+//        temp_addr += 1u32;
     }
 
     // 78. LSR – Logical Shift Right
@@ -1378,7 +1392,7 @@ impl AsmEncoder {
         //segment.data.push((result >> 8u16) as u8);
         //segment.size += 1u32;
         self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
-        temp_addr += 1u32;
+//        temp_addr += 1u32;
     }
 
     // 79. MOV – Copy Register
@@ -1409,7 +1423,7 @@ impl AsmEncoder {
         //segment.data.push((result >> 8u16) as u8);
         //segment.size += 1u32;
         self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
-        temp_addr += 1u32;
+//        temp_addr += 1u32;
     }
 
     /// 85. NOP - No Operation
@@ -1429,7 +1443,7 @@ impl AsmEncoder {
         //segment.data.push((result >> 8u16) as u8);
         //segment.size += 1u32;
         self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
-        temp_addr += 1u32;
+//        temp_addr += 1u32;
     }
 
     /// 87. ORI – Logical OR with Immediate
@@ -1461,12 +1475,11 @@ impl AsmEncoder {
         //segment.data.push((result >> 8u16) as u8);
         //segment.size += 1u32;
         self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
-        temp_addr += 1u32;
+//        temp_addr += 1u32;
     }
 
     /// 88. OUT – Store Register to I/O Location
     /// 1011 1AAr rrrr AAAA
-    //fn encode_out(&mut self, segment: &mut Segment, io_dest: IoDestination, register_r: u16) {
     fn encode_out(&mut self, segment: &mut Segment, address: u32, register_a: u16, register_r: u16) {
 
         if register_r > 31 {
@@ -1497,7 +1510,7 @@ impl AsmEncoder {
         //segment.data.push((result >> 8u16) as u8);
         //segment.size += 1u32;
         self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
-        temp_addr += 1u32;
+//        temp_addr += 1u32;
     }
 
     /// 89. POP – Pop Register from Stack
@@ -1520,7 +1533,7 @@ impl AsmEncoder {
         //segment.data.push((result >> 8u16) as u8);
         //segment.size += 1u32;
         self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
-        temp_addr += 1u32;
+//        temp_addr += 1u32;
     }
 
     /// 90. PUSH – Push Register on Stack
@@ -1540,7 +1553,7 @@ impl AsmEncoder {
 
         log::trace!("ENC PUSH: {:#02x}", (result >> 8u16) as u8);
         self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
-        temp_addr += 1u32;
+//        temp_addr += 1u32;
     }
 
     /// 91. RCALL – Relative Call to Subroutine
@@ -1579,7 +1592,7 @@ impl AsmEncoder {
         //segment.data.push((result >> 8u16) as u8);
         //segment.size += 1u32;
         self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
-        temp_addr += 1u32;
+//        temp_addr += 1u32;
 
         log::trace!("result: {:#026b}", result);
     }
@@ -1601,7 +1614,7 @@ impl AsmEncoder {
         //segment.data.push(HIGH!(result) as u8);
         //segment.size += 1u32;
         self.insert_into_segment(segment, temp_addr, HIGH!(result) as u8);
-        temp_addr += 1u32;
+//        temp_addr += 1u32;
     }
 
     /// 93. RETI – Return from Interrupt
@@ -1621,7 +1634,7 @@ impl AsmEncoder {
         //segment.data.push(HIGH!(result) as u8);
         //segment.size += 1u32;
         self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
-        temp_addr += 1u32;
+//        temp_addr += 1u32;
     }
 
     /// 94. RJMP – Relative Jump
@@ -1661,7 +1674,7 @@ impl AsmEncoder {
         //segment.data.push((result >> 8u16) as u8);
         //segment.size += 1u32;
         self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
-        temp_addr += 1u32;
+//        temp_addr += 1u32;
         
     }
 
@@ -1691,7 +1704,7 @@ impl AsmEncoder {
         //segment.data.push((result >> 8u16) as u8);
         //segment.size += 1u32;
         self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
-        temp_addr += 1u32;
+//        temp_addr += 1u32;
     }
 
     // 102. SBIW – Subtract Immediate from Word
@@ -1706,13 +1719,13 @@ impl AsmEncoder {
             panic!("Invalid register pair {} {} for SBIW instruction!", register_d_plus, register_d);
         }
 
-        let reg: u8;
+        let _reg: u8;
         match register_d {
 
-            24u16 => { reg = 0b00u8; }
-            26u16 => { reg = 0b01u8; }
-            28u16 => { reg = 0b10u8; }
-            30u16 => { reg = 0b11u8; }
+            24u16 => { _reg = 0b00u8; }
+            26u16 => { _reg = 0b01u8; }
+            28u16 => { _reg = 0b10u8; }
+            30u16 => { _reg = 0b11u8; }
 
             _ => { panic!("Not a valid register Rd {} for SBIW instruction!", register_d)}
         }
@@ -1722,16 +1735,12 @@ impl AsmEncoder {
         let mut temp_addr:u32 = address;
 
         log::trace!("ENC SBIW: {:#02x}", (result >> 0u16) as u8);
-        //segment.data.push((result >> 0u16) as u8);
-        //segment.size += 1u32;
         self.insert_into_segment(segment, temp_addr, (result >> 0u16) as u8);
         temp_addr += 1u32;
 
         log::trace!("ENC SBIW: {:#02x}", (result >> 8u16) as u8);
-        //segment.data.push((result >> 8u16) as u8);
-        //segment.size += 1u32;
         self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
-        temp_addr += 1u32;
+//        temp_addr += 1u32;
 
     }
 
@@ -1759,7 +1768,7 @@ impl AsmEncoder {
         //segment.data.push((result >> 8u16) as u8);
         //segment.size += 1u32;
         self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
-        temp_addr += 1u32;
+//        temp_addr += 1u32;
     }
 
     // 105. SBRS – Skip if Bit in Register is Set
@@ -1788,7 +1797,7 @@ impl AsmEncoder {
         //segment.data.push((result >> 8u16) as u8);
         //segment.size += 1u32;
         self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
-        temp_addr += 1u32;
+//        temp_addr += 1u32;
     }
 
     /// 108. SEI – Set Global Interrupt Flag
@@ -1810,7 +1819,7 @@ impl AsmEncoder {
         //segment.data.push((result >> 8u16) as u8);
         //segment.size += 1u32;
         self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
-        temp_addr += 1u32;
+//        temp_addr += 1u32;
     }
 
     /// 118. ST (STD) – Store Indirect From Register to Data Space using Index X
@@ -1839,7 +1848,7 @@ impl AsmEncoder {
         //segment.data.push((result >> 8u16) as u8);
         //segment.size += 1u32;
         self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
-        temp_addr += 1u32;
+//        temp_addr += 1u32;
 
         log::trace!("result: {:#026b}", result);
     }
@@ -1867,7 +1876,7 @@ impl AsmEncoder {
         //segment.data.push((result >> 8u16) as u8);
         //segment.size += 1u32;
         self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
-        temp_addr += 1u32;
+//        temp_addr += 1u32;
 
         log::trace!("result: {:#026b}", result);
     }
@@ -1895,7 +1904,7 @@ impl AsmEncoder {
         //segment.data.push((result >> 8u16) as u8);
         //segment.size += 1u32;
         self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
-        temp_addr += 1u32;
+//        temp_addr += 1u32;
 
         log::trace!("result: {:#026b}", result);
     }
@@ -1926,7 +1935,7 @@ impl AsmEncoder {
         //segment.data.push((result >> 8u16) as u8);
         //segment.size += 1u32;
         self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
-        temp_addr += 1u32;
+//        temp_addr += 1u32;
 
         log::trace!("result: {:#026b}", result);
     }
@@ -1954,7 +1963,7 @@ impl AsmEncoder {
         //segment.data.push((result >> 8u16) as u8);
         //segment.size += 1u32;
         self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
-        temp_addr += 1u32;
+//        temp_addr += 1u32;
 
         log::trace!("result: {:#026b}", result);
     }
@@ -1982,7 +1991,7 @@ impl AsmEncoder {
         //segment.data.push((result >> 8u16) as u8);
         //segment.size += 1u32;
         self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
-        temp_addr += 1u32;
+//        temp_addr += 1u32;
 
         log::trace!("result: {:#026b}", result);
     }
@@ -2013,7 +2022,7 @@ impl AsmEncoder {
         // segment.data.push((result >> 8u16) as u8);
         // //segment.size += 1u32;
         self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
-        temp_addr += 1u32;
+//        temp_addr += 1u32;
 
         log::trace!("result: {:#026b}", result);
     }
@@ -2041,7 +2050,7 @@ impl AsmEncoder {
         // segment.data.push((result >> 8u16) as u8);
         // //segment.size += 1u32;
         self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
-        temp_addr += 1u32;
+//        temp_addr += 1u32;
 
         log::trace!("result: {:#026b}", result);
     }
@@ -2069,7 +2078,7 @@ impl AsmEncoder {
         // segment.data.push((result >> 8u16) as u8);
         // //segment.size += 1u32;
         self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
-        temp_addr += 1u32;
+//        temp_addr += 1u32;
 
         log::trace!("result: {:#026b}", result);
     }
@@ -2115,7 +2124,7 @@ impl AsmEncoder {
         // segment.data.push((result >> 8u16) as u8);
         // segment.size += 1u32;
         self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
-        temp_addr += 1u32;
+//        temp_addr += 1u32;
 
     }
 
@@ -2149,7 +2158,7 @@ impl AsmEncoder {
         // segment.data.push((result >> 8u16) as u8);
         // segment.size += 1u32;
         self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
-        temp_addr += 1u32;
+//        temp_addr += 1u32;
 
     }
 
@@ -2173,7 +2182,7 @@ impl AsmEncoder {
         // segment.data.push((result >> 8u16) as u8);
         // segment.size += 1u32;
         self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
-        temp_addr += 1u32;
+//        temp_addr += 1u32;
     }
 
     // 126. TST – Test for Zero or Minus
@@ -2196,7 +2205,7 @@ impl AsmEncoder {
         // segment.data.push((result >> 8u16) as u8);
         // segment.size += 1u32;
         self.insert_into_segment(segment, temp_addr, (result >> 8u16) as u8);
-        temp_addr += 1u32;
+//        temp_addr += 1u32;
     }
 
 }
