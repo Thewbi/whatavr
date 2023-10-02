@@ -424,19 +424,27 @@ impl<'i> NodeAssemblerVisitor {
             asm_record.source_file = self.source_file.clone();
             asm_record.line = line;
             asm_record.column = column;
-            asm_record.label = String::from("lul");
+            asm_record.label = String::default();
 
             for i in 2..assembler_directive.len()
             {
-                let temp = assembler_directive[i].value.as_bytes();
-
-                if temp[0] == b'\"'
+                if is_number_literal_u16(&assembler_directive[i].value)
                 {
-                    asm_record.direct_data = [asm_record.direct_data.as_slice(), &temp[1..(temp.len() - 1usize)]].concat();
+                    let data: u8 = number_literal_to_u8(&assembler_directive[i].value);
+                    //asm_record.direct_data = [asm_record.direct_data.as_slice(), &data].concat();
+                    asm_record.direct_data.push(data);
                 }
                 else 
                 {
-                    asm_record.direct_data = [asm_record.direct_data.as_slice(), &temp].concat();
+                    let temp = assembler_directive[i].value.as_bytes();
+                    if temp[0] == b'\"'
+                    {
+                        asm_record.direct_data = [asm_record.direct_data.as_slice(), &temp[1..(temp.len() - 1usize)]].concat();
+                    }
+                    else 
+                    {
+                        asm_record.direct_data = [asm_record.direct_data.as_slice(), &temp].concat();
+                    }
                 }
             }
 

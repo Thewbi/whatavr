@@ -26,6 +26,7 @@ use log::LevelFilter;
 use crate::assembler::asm_encoder::AsmEncoder;
 use crate::assembler::asm_record_type::AsmRecordType;
 use crate::assembler::evaluator::Evaluator;
+use crate::assembler::segment_mode::SegmentMode;
 use crate::common::listing_parser::is_code_offset_c_listing;
 use crate::cpu::cpu::CPU;
 use crate::ihex_mgmt::ihex_mgmt::parse_hex_file;
@@ -329,6 +330,7 @@ fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>, symbol_table: 
     //asm_file_path.push_str("test_resources/sample_files/asm/call_test_2.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/count_bits.asm");
 
+    //asm_file_path.push_str("test_resources/sample_files/asm/db.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/def_assembler_directive.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/def.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/dseg.asm");
@@ -346,7 +348,7 @@ fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>, symbol_table: 
     //asm_file_path.push_str("test_resources/sample_files/asm/include_test.asm");
 
     //asm_file_path.push_str("test_resources/sample_files/asm/jmp_instruction.asm"); // problem
-    //asm_file_path.push_str("test_resources/sample_files/asm/jmp.asm"); // good for regression test (will increment r17 until overflow)
+    //asm_file_path.push_str("test_resources/sample_files/asm/jmp.asm"); // regression test, will overflow the register in an endless loop
     
     //asm_file_path.push_str("test_resources/sample_files/asm/label_include_test.asm");
 
@@ -360,12 +362,12 @@ fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>, symbol_table: 
     //asm_file_path.push_str("test_resources/sample_files/asm/rjh_coding_avr-asm-add-16.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/ret_test.asm");
 
-    //asm_file_path.push_str("test_resources/sample_files/asm/str_length.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/scratchpad.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/scratchpad_2.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/setup_stack.asm"); // regression test
     //asm_file_path.push_str("test_resources/sample_files/asm/st_std_test.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/stack_test.asm");
+    asm_file_path.push_str("test_resources/sample_files/asm/str_length.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/sts.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/store_to_flash.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/store_to_flash_2.asm");
@@ -385,7 +387,7 @@ fn load_segment_from_asm_source_code(segments: &mut Vec<Segment>, symbol_table: 
     // lsl, brne, brbc, breq, brsh, brge, brlt, rol, ror, sbi, cbi, sbc, subi
 
     //asm_file_path.push_str("test_resources/sample_files/asm/andi.asm");
-    asm_file_path.push_str("test_resources/sample_files/asm/add.asm"); // test this
+    //asm_file_path.push_str("test_resources/sample_files/asm/add.asm"); // regression test
     //asm_file_path.push_str("test_resources/sample_files/asm/adc.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/adiw.asm");
     //asm_file_path.push_str("test_resources/sample_files/asm/and.asm");
@@ -535,7 +537,6 @@ fn parse_and_encode(segments: &mut Vec<Segment>,
     //
     // phase 1 - scan for labels
     //
-
     
     let mut evaluator: Evaluator = Evaluator::new();    
 
@@ -593,6 +594,8 @@ fn parse_and_encode(segments: &mut Vec<Segment>,
     log::info!("Phase - Iterate over AsmRecords, update symbol table from .def and .equ and evaluation expressions\n");
     log::info!("*************************************************\n");
 
+    let mut segment_mode : SegmentMode = SegmentMode::CodeSegment;
+
     for asm_record in visitor.records.iter_mut() {
 
         log::info!("{}\n", asm_record);
@@ -611,11 +614,62 @@ fn parse_and_encode(segments: &mut Vec<Segment>,
             continue;
         }
 
-        // remove assembler instruction AsmRecord since it has been processed 
-        // and is not converted into machine code during encoding
-        if asm_record.record_type != AsmRecordType::INSTRUCTION {
+        if asm_record.record_type == AsmRecordType::CSEG
+        {
+            segment_mode = SegmentMode::CodeSegment;
             asm_record.remove = true;
         }
+        if asm_record.record_type == AsmRecordType::DSEG
+        {
+            segment_mode = SegmentMode::DataSegment;
+            asm_record.remove = true;
+        }
+
+        if asm_record.record_type == AsmRecordType::DB
+        {
+            if segment_mode == SegmentMode::DataSegment
+            {
+                // // store the label in the sram (data_segment) hashmap
+                // let mut map = DSEG_HASHMAP.lock().unwrap();
+                // map.insert(self.label.clone(), self.dseg_org_pointer);
+
+                // log::info!("DSEG_HASHMAP {:?}\n", map);
+
+                // copy the bytes into sram (data_segment)
+                //for i in 2..assembler_directive.len() 
+                for temp_data in &asm_record.direct_data
+                {    
+                    //let temp_data: u8 = number_literal_to_u8(&assembler_directive[i]);
+
+                    log::info!("Storing value {:#04x} into SRAM at address {:#06x}\n", temp_data, visitor.dseg_org_pointer);
+
+                    visitor.sram[visitor.dseg_org_pointer as usize] = *temp_data;
+                    visitor.dseg_org_pointer += 1u16;
+                }
+
+                //self.label = String::default();
+
+                asm_record.remove = true;
+            }
+            else if segment_mode == SegmentMode::CodeSegment
+            {
+                // will be encoded later
+
+                // do not remove this record, since it has to be encoded into CSEG by the encoder
+                asm_record.remove = false;
+            }
+            else
+            {
+                panic!("Not implemented!");
+            }
+
+        }
+
+        // // remove assembler instruction AsmRecord since it has been processed 
+        // // and is not converted into machine code during encoding
+        // if asm_record.record_type != AsmRecordType::INSTRUCTION {
+        //     asm_record.remove = true;
+        // }
 
         if asm_record.expression_1.is_some()
         {
@@ -639,7 +693,8 @@ fn parse_and_encode(segments: &mut Vec<Segment>,
 
     // remove all asm records that do not contain instructions
     // retain keeps only the elements that match the predicate
-    visitor.records.retain(|x| x.record_type == AsmRecordType::INSTRUCTION);
+    //visitor.records.retain(|x| x.record_type == AsmRecordType::INSTRUCTION);
+    visitor.records.retain(|x| x.remove == false);
 
     log::info!("*************************************************************\n");
     log::info!("Phase - DEBUG - Output all records after symbol table update and evaluation\n");

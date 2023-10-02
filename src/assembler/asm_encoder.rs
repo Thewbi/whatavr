@@ -234,9 +234,11 @@ impl AsmEncoder {
         // todo: add .org handling
         if asm_record.direct_data.len() > 0
         {
+            let mut addr: u32 = asm_record.idx;
             for cc in &asm_record.direct_data
             {
-                self.insert_into_segment(segment, asm_record.idx, *cc as u8);
+                self.insert_into_segment(segment, addr, *cc as u8);
+                addr += 1u32;
             }
 
             // {
@@ -694,7 +696,12 @@ impl AsmEncoder {
         }
 
         // convert from bytes to words
-        let offset_k: i16 = target_address / 2i16;
+
+        // absolute offset
+        //let offset_k: i16 = target_address / 2i16;
+
+        // relative offset
+        let offset_k: i16 = (target_address - (address as i16)) / 2i16;
         
         log::trace!("offset_k (in words): {:#06x}\n", offset_k);
         log::trace!("offset_k (in words): {:#06x}\n", offset_k as u32);

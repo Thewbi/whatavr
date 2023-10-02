@@ -378,6 +378,26 @@ impl CPU {
         value
     }
 
+    fn store_to_text_space(&mut self, address: usize, segment: &mut Segment) -> u8 {
+        //todo!("Load byte from address {} in text space!", address);
+
+        let value: u8 = segment.data[address];
+        log::info!("\tLoaded value {} {:#04X} at address {} {:#04X} from text space!\n", value, value, address, address);
+        log::trace!("\n");
+
+        value
+    }
+
+    fn load_from_text_space(&mut self, address: usize, segment: &Segment) -> u8 {
+        //todo!("Load byte from address {} in text space!", address);
+
+        let value: u8 = segment.data[address];
+        log::info!("\tLoaded value {} {:#04X} at address {} {:#04X} from text space!\n", value, value, address, address);
+        log::trace!("\n");
+
+        value
+    }
+
     fn store_to_i_o_space(&mut self, address: usize, value: u8) {
         // output the value stored in register r_val into memory to the address a_val
         self.sfr[address] = value;
@@ -573,6 +593,8 @@ impl CPU {
 
                 cpu.register_file[d_reg_idx] = d_reg_val & r_reg_val;
 
+                cpu.z = cpu.register_file[d_reg_idx] == 0u8;
+
                 log::trace!("[AND] result value: {}\n", cpu.register_file[d_reg_idx]);
 
                 cpu.pc += 2i32;
@@ -699,6 +721,10 @@ impl CPU {
                 {
                     // jump (relative to pc branch)
                     cpu.pc += k_val * 2i32;
+                }
+                else 
+                {
+                    cpu.pc += 2i32;
                 }
             }
 
@@ -1110,9 +1136,10 @@ impl CPU {
                 // retrieve the data (address) stored inside Z
                 let value_z: u16 = cpu.get_z();
 
-                // load data from memory (data space) at the address stored in Z
+                // load data from memory (data space (SRAM)) at the address stored in Z
                 // (data space != I/O space (for I/O space, use the OUT instruction))
-                let value: u8 = cpu.load_from_data_space(value_z as usize);
+                //let value: u8 = cpu.load_from_data_space(value_z as usize);
+                let value: u8 = cpu.load_from_text_space(value_z as usize, segment);
 
                 let register: u16 = 0u16;
                 cpu.register_file[register as usize] = value;
@@ -1127,9 +1154,10 @@ impl CPU {
                 // retrieve the data (address) stored inside Z
                 let value_z: u16 = cpu.get_z();
 
-                // load data from memory (data space) at the address stored in Z
+                // load data from memory (data space (SRAM)) at the address stored in Z
                 // (data space != I/O space (for I/O space, use the OUT instruction))
-                let value: u8 = cpu.load_from_data_space(value_z as usize);
+                //let value: u8 = cpu.load_from_data_space(value_z as usize);
+                let value: u8 = cpu.load_from_text_space(value_z as usize, segment);
 
                 let d_val: u16 = value_storage[&'d'];
                 cpu.register_file[d_val as usize] = value;
@@ -1145,9 +1173,10 @@ impl CPU {
                 // retrieve the data (address) stored inside Z
                 let mut value_z: u16 = cpu.get_z();
 
-                // load data from memory (data space) at the address stored in Z
+                // load data from memory (data space (SRAM)) at the address stored in Z
                 // (data space != I/O space (for I/O space, use the OUT instruction))
-                let value: u8 = cpu.load_from_data_space(value_z as usize);
+                //let value: u8 = cpu.load_from_data_space(value_z as usize);
+                let value: u8 = cpu.load_from_text_space(value_z as usize, segment);
 
                 let d_val: u16 = value_storage[&'d'];
                 cpu.register_file[d_val as usize] = value;

@@ -22,8 +22,12 @@
 	out SPL, r16
 
 main:
-    ldi ZH, HIGH(teststring * 2)    ; Laden des Übergabewertes ins Z-Reg 
-    ldi ZL, LOW(teststring * 2)     ; (2x) -> Flash ist wort-adressiert!
+    ;ldi ZH, HIGH(teststring * 2)    ; Laden des Übergabewertes ins Z-Reg 
+    ;ldi ZL, LOW(teststring * 2)     ; (2x) -> Flash ist wort-adressiert!
+
+    ldi ZH, HIGH(teststring * 1)
+    ldi ZL, LOW(teststring * 1)
+
     call str_length                 ; Funktion ´str_length´ wird aufgerufen
 
 end:                                ; Endlosschleife ...
@@ -33,13 +37,15 @@ str_length:
     push ZH                         ; Register Z auf dem Stack retten …
     push ZL                         ; ...
     clr r25                         ; Registerpaar r25:r24 (Rückgabewert) 
-    clr r24                         ; löschen 
+    clr r24                         ; löschen
+
 while:
     lpm r0, z+                      ; Über Z adressiertes Byte aus dem Flash
     tst r0                          ; laden und auf '\0' prüfen ...
-    breq endwhile                   ; Nulltemninierung gefunden?
+    breq endwhile                   ; Nullterminierung gefunden?
     adiw r24, 1                     ; Nein, also r24 inkrementieren ...
     rjmp while                      ; ... und nächstes Byte prüfen
+
 endwhile:                           ; Null-Byte gefunden!
     pop ZL                          ; Registerinhalte wiederherstellen 
     pop ZH                          ; ...
